@@ -226,8 +226,24 @@ module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
   ...                                                  | inr x≠x = ⊥-elim (x≠x idp)
 
   -- for some reason right unitality is valid on the presyntax, without well-formedness hypothesis
-  ∘-right-unit : ∀{Δ γ} →  (γ ∘ Pre-id Δ) == γ
+  ∘-right-unit : ∀ {Δ γ} →  (γ ∘ Pre-id Δ) == γ
   ∘-right-unit {Δ} {nil} = idp
   ∘-right-unit {Δ} {γ :: (y , t)} = ::= ∘-right-unit (×= idp ([id]t Δ t))
 
- -- uniqueness of derivations (all the types are propositions.)
+  -- ## uniqueness of derivations (all the types are propositions.) ##
+  -- there is a catch here : I should use without-K, I think
+
+  -- elimination of the rules
+  -- cc= : ∀ {Γ x A} {Γ⊢ : Γ ⊢C} {Γ⊢' : Γ ⊢C} {x∉Γ : x ∉ Γ} {x∉'Γ : x ∉ Γ} {Γ⊢A : Γ ⊢T A} {Γ⊢'A : Γ ⊢T A} → Γ⊢ == Γ⊢' → x∉Γ == x∉'Γ → Γ⊢A == Γ⊢'A → (cc Γ⊢ x∉Γ Γ⊢A )== (cc Γ⊢' x∉'Γ Γ⊢'A)
+  -- cc= idp idp idp = idp
+
+  -- is-prop-⊢C : ∀ {Γ} → is-prop (Γ ⊢C)
+  -- is-prop-⊢T : ∀ {Γ A} → is-prop (Γ ⊢T A)
+  -- is-prop-⊢t : ∀ {Γ A t} → is-prop (Γ ⊢t t # A)
+  -- is-prop-⊢S : ∀ {Δ Γ γ} → is-prop (Δ ⊢S γ > Γ)
+
+  -- fst (is-prop-⊢C ec ec) = idp
+  -- snd (is-prop-⊢C ec ec) idp = idp
+  -- fst (is-prop-⊢C (cc Γ⊢ x∉Γ Γ⊢A) (cc Γ⊢' x∉'Γ Γ⊢'A)) = cc= (fst (is-prop-⊢C _ _)) {!!} (fst (is-prop-⊢T _ _))
+  -- snd (is-prop-⊢C (cc Γ⊢ x∉Γ Γ⊢A) (cc Γ⊢' x∉'Γ Γ⊢'A)) y = {!!}
+
