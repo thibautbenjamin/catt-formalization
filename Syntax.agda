@@ -230,20 +230,49 @@ module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
   ∘-right-unit {Δ} {nil} = idp
   ∘-right-unit {Δ} {γ :: (y , t)} = ::= ∘-right-unit (×= idp ([id]t Δ t))
 
-  -- ## uniqueness of derivations (all the types are propositions.) ##
-  -- there is a catch here : I should use without-K, I think
+  -- ## Structure of CwF
+  Pre-π : ∀ (Γ : Pre-Ctx) (x : 𝕍) (A : Pre-Ty) → Pre-Sub
+  Pre-π Γ x A = Pre-id Γ
 
-  -- elimination of the rules
-  -- cc= : ∀ {Γ x A} {Γ⊢ : Γ ⊢C} {Γ⊢' : Γ ⊢C} {x∉Γ : x ∉ Γ} {x∉'Γ : x ∉ Γ} {Γ⊢A : Γ ⊢T A} {Γ⊢'A : Γ ⊢T A} → Γ⊢ == Γ⊢' → x∉Γ == x∉'Γ → Γ⊢A == Γ⊢'A → (cc Γ⊢ x∉Γ Γ⊢A )== (cc Γ⊢' x∉'Γ Γ⊢'A)
-  -- cc= idp idp idp = idp
+  Γ,x:A⊢π:Γ : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → (Γ :: (x , A)) ⊢S Pre-π Γ x A > Γ
+  Γ,x:A⊢π:Γ Γ,x:A⊢@(cc Γ⊢ _ _) = wkS (Γ⊢id:Γ Γ⊢) Γ,x:A⊢
 
-  -- is-prop-⊢C : ∀ {Γ} → is-prop (Γ ⊢C)
-  -- is-prop-⊢T : ∀ {Γ A} → is-prop (Γ ⊢T A)
-  -- is-prop-⊢t : ∀ {Γ A t} → is-prop (Γ ⊢t t # A)
-  -- is-prop-⊢S : ∀ {Δ Γ γ} → is-prop (Δ ⊢S γ > Γ)
+-- ## uniqueness of derivations (all the types are propositions.) ##
+-- there is a catch here : I should use without-K, I think
 
-  -- fst (is-prop-⊢C ec ec) = idp
-  -- snd (is-prop-⊢C ec ec) idp = idp
-  -- fst (is-prop-⊢C (cc Γ⊢ x∉Γ Γ⊢A) (cc Γ⊢' x∉'Γ Γ⊢'A)) = cc= (fst (is-prop-⊢C _ _)) {!!} (fst (is-prop-⊢T _ _))
-  -- snd (is-prop-⊢C (cc Γ⊢ x∉Γ Γ⊢A) (cc Γ⊢' x∉'Γ Γ⊢'A)) y = {!!}
+-- elimination of the rules
+-- cc= : ∀ {Γ x A} {Γ⊢ : Γ ⊢C} {Γ⊢' : Γ ⊢C} {x∉Γ : x ∉ Γ} {x∉'Γ : x ∉ Γ} {Γ⊢A : Γ ⊢T A} {Γ⊢'A : Γ ⊢T A} → Γ⊢ == Γ⊢' → x∉Γ == x∉'Γ → Γ⊢A == Γ⊢'A → (cc Γ⊢ x∉Γ Γ⊢A )== (cc Γ⊢' x∉'Γ Γ⊢'A)
+-- cc= idp idp idp = idp
+
+-- is-prop-⊢C : ∀ {Γ} → is-prop (Γ ⊢C)
+-- is-prop-⊢T : ∀ {Γ A} → is-prop (Γ ⊢T A)
+-- is-prop-⊢t : ∀ {Γ A t} → is-prop (Γ ⊢t t # A)
+-- is-prop-⊢S : ∀ {Δ Γ γ} → is-prop (Δ ⊢S γ > Γ)
+
+-- fst (is-prop-⊢C ec ec) = idp
+-- snd (is-prop-⊢C ec ec) idp = idp
+-- fst (is-prop-⊢C (cc Γ⊢ x∉Γ Γ⊢A) (cc Γ⊢' x∉'Γ Γ⊢'A)) = cc= (fst (is-prop-⊢C _ _)) {!!} (fst (is-prop-⊢T _ _))
+-- snd (is-prop-⊢C (cc Γ⊢ x∉Γ Γ⊢A) (cc Γ⊢' x∉'Γ Γ⊢'A)) y = {!!}
+
+
+
+  -- ## Typed syntax
+  Ctx : Set
+  Ctx = Σ Pre-Ctx (λ Γ → Γ ⊢C)
+
+  Ty : Ctx → Set
+  Ty (Γ , _) = Σ Pre-Ty (λ A → Γ ⊢T A)
+
+  Tm : ∀ (Γ : Ctx) → Ty Γ → Set
+  Tm (Γ , _) (A , _) = Σ Pre-Tm (λ t → Γ ⊢t t # A)
+
+  Sub : ∀ (Δ : Ctx) (Γ : Ctx) → Set
+  Sub (Δ , _) (Γ , _) = Σ Pre-Sub (λ γ → Δ ⊢S γ > Γ)
+
+  -- ## Operations of typed syntax
+  _∙_ : ∀ (Γ : Ctx) → Ty Γ → Ctx
+  Γ ∙ A = {!!}
+  -- TODO : define all operation on typed syntax
+  -- TODO : change to de Bruijn indices (easy, no variable binding)
+
 
