@@ -122,3 +122,52 @@ module Prelude where
 
   eqdec : ∀ {i} → Set i → Set i
   eqdec A = ∀ (a b : A) → dec (a == b)
+
+
+  -- Stuff about ℕ inspired from HoTT-Agda
+  pred : ℕ → ℕ
+  pred O = O
+  pred (S n) = n
+
+  S-is-inj : ∀ n m → (S n == S m) → n == m
+  S-is-inj n m p = ap pred p
+
+  S-≠ : ∀ {n m : ℕ} (p : n ≠ m) → S n ≠ S m
+  S-≠ {n} {m} n≠m  p = n≠m (S-is-inj n m p)
+
+  private
+    S≠O-type : ℕ → Set
+    S≠O-type O = ⊥
+    S≠O-type (S n) = ⊤
+
+  S≠O : (n : ℕ) → S n ≠ O
+  S≠O n p = coe (ap S≠O-type p) tt
+
+  O≠S : (n : ℕ) → (O ≠ S n)
+  O≠S n p = S≠O n (p ^)
+
+  eqdecℕ : eqdec ℕ
+  eqdecℕ O O = inl idp
+  eqdecℕ O (S b) = inr (O≠S b)
+  eqdecℕ (S a) O = inr (S≠O a)
+  eqdecℕ (S a) (S b) with (eqdecℕ a b)
+  ...                 | inl idp = inl idp
+  ...                 | inr a≠b = inr (S-≠ a≠b)
+
+  data _≤_ : ℕ → ℕ → Set where
+    0≤ : ∀ n → O ≤ n
+    S≤ : ∀ {n m} → n ≤ m → S n ≤ S m
+
+  n≤n : ∀ (n : ℕ) → n ≤ n
+  n≤n O = 0≤ O
+  n≤n (S n) = S≤ (n≤n n)
+
+  Sn≰n : ∀ (n : ℕ) → ¬ (S n ≤ n)
+  Sn≰n .(S _) (S≤ Sn≤n) = Sn≰n _ Sn≤n
+
+  n≤m→n≤Sm : ∀ {n m : ℕ} → n ≤ m → n ≤ S m
+  n≤m→n≤Sm (0≤ n) = 0≤ (S n)
+  n≤m→n≤Sm (S≤ n≤m) = S≤ (n≤m→n≤Sm n≤m)
+
+  Sn≤m→n≤m : ∀ {n m : ℕ} → S n ≤ m → n ≤ m
+  Sn≤m→n≤m (S≤ n≤m) = n≤m→n≤Sm n≤m

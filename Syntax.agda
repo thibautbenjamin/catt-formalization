@@ -3,7 +3,7 @@
 open import Agda.Primitive
 open import Prelude
 
-module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
+module Syntax where
 
   data list : Set → Set where
     nil : ∀{A} → list A
@@ -12,12 +12,16 @@ module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
   ::= : ∀ {A} {l l' : list A} {a a' : A} → l == l' → a == a' → (l :: a) == (l' :: a')
   ::= idp idp = idp
 
+  cons≠nil : ∀ {A}{l : list A} {a : A} → (l :: a) ≠ nil
+  cons≠nil = {!!}
+
+
   ifdec_>_then_else_ : ∀ {i j} {A : Set i} (B : Set j) → (dec B) → A → A → A
   ifdec b > inl x then A else B = A
   ifdec b > inr x then A else B = B
 
-  if_≡_then_else_ : ∀ {i} {A : Set i} → 𝕍 → 𝕍 → A → A → A
-  if v ≡ w then A else B = ifdec (v == w) > (eqdec𝕍 v w) then A else B
+  if_≡_then_else_ : ∀ {i} {A : Set i} → ℕ → ℕ → A → A → A
+  if v ≡ w then A else B = ifdec (v == w) > (eqdecℕ v w) then A else B
 
   -- Pre-syntax
   data Pre-Ty : Set
@@ -28,13 +32,13 @@ module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
     Pre-⇒ : Pre-Ty → Pre-Tm → Pre-Tm → Pre-Ty
 
   data Pre-Tm where
-    Pre-Var : 𝕍 → Pre-Tm
+    Pre-Var : ℕ → Pre-Tm
 
   Pre-Ctx : Set
-  Pre-Ctx = list (𝕍 × Pre-Ty)
+  Pre-Ctx = list (ℕ × Pre-Ty)
 
   Pre-Sub : Set
-  Pre-Sub = list (𝕍 × Pre-Tm)
+  Pre-Sub = list (ℕ × Pre-Tm)
 
   -- Equality elimination for constructors
   Pre-⇒= : ∀ {A B t t' u u'} → A == B → t == t' → u == u' → Pre-⇒ A t u == Pre-⇒ B t' u'
@@ -53,21 +57,13 @@ module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
   Pre-Var x [ nil ]Pre-Tm = Pre-Var x
   Pre-Var x [ σ :: (v , t) ]Pre-Tm = if x ≡ v then t else ((Pre-Var x) [ σ ]Pre-Tm)
 
-  -- x ∉ Γ ⇒ the variable x doesn't appear in Γ
-  _∉_ : 𝕍 → Pre-Ctx → Set
-  v ∉ nil = ⊤
-  v ∉ (Γ :: (w , A)) = (v ∉ Γ) × (v ≠ w)
+  length : Pre-Ctx → ℕ
+  length nil = O
+  length (Γ :: _) = S (length Γ)
 
-
-  -- x # A ∈ Γ ⇒ the variable x appears in Γ with type A
-  _#_∈_ : 𝕍 → Pre-Ty → Pre-Ctx → Set
+  _#_∈_ : ℕ → Pre-Ty → Pre-Ctx → Set
   _ # _ ∈ nil = ⊥
   x # A ∈ (Γ :: (y , B)) = (x # A ∈ Γ) + ((x == y) × (A == B))
-
-  -- useful for reasoning, x cannot be both in Γ and not in Γ
-  ¬∈ : ∀ {x Γ A} → x # A ∈ Γ → x ∉ Γ → ⊥
-  ¬∈ {Γ = Γ :: (y , _)} (inl x∈Γ) (x∉Γ , x≠y) = ¬∈ x∈Γ x∉Γ
-  ¬∈ {Γ = Γ :: (y , _)} (inr (x=y , _)) (x∉Γ , x≠y) = x≠y x=y
 
   -- ## Well-formedness statements ≡ inference rules ##
   data _⊢C : Pre-Ctx → Set
@@ -77,7 +73,7 @@ module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
 
   data _⊢C where
     ec : nil ⊢C
-    cc : ∀ {Γ x A} → Γ ⊢C → x ∉ Γ → Γ ⊢T A → (Γ :: (x , A)) ⊢C
+    cc : ∀ {Γ A} → Γ ⊢C → Γ ⊢T A → (Γ :: ((length Γ) , A)) ⊢C
 
   data _⊢T_ where
     ob : ∀ {Γ} → Γ ⊢C → Γ ⊢T Pre-∗
@@ -121,14 +117,14 @@ module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
   Δ⊢γ:Γ→Δ⊢ (sc Δ⊢γ:Γ Γ,x:A⊢ Δ⊢t:A[γ]) = Δ⊢γ:Γ→Δ⊢ Δ⊢γ:Γ
 
   Γ,x:A⊢→Γ,x:A⊢A : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → (Γ :: (x , A)) ⊢T A
-  Γ,x:A⊢→Γ,x:A⊢A Γ,x:A⊢@(cc Γ⊢ x∉Γ Γ⊢A) = wkT Γ⊢A Γ,x:A⊢
+  Γ,x:A⊢→Γ,x:A⊢A Γ,x:A⊢@(cc Γ⊢ Γ⊢A) = wkT Γ⊢A Γ,x:A⊢
 
   Γ,x:A⊢→Γ,x:A⊢x:A : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → (Γ :: (x , A)) ⊢t (Pre-Var x) # A
   Γ,x:A⊢→Γ,x:A⊢x:A Γ,x:A⊢ = var Γ,x:A⊢ (inr (idp , idp))
 
   Γ⊢t:A→Γ⊢A : ∀ {Γ A t} → Γ ⊢t t # A → Γ ⊢T A
-  Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc Γ⊢ x∉Γ Γ⊢A) (inl y∈Γ)) = wkT (Γ⊢t:A→Γ⊢A (var Γ⊢ y∈Γ)) Γ,x:A⊢
-  Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc _ _ _) (inr (idp , idp))) = Γ,x:A⊢→Γ,x:A⊢A Γ,x:A⊢
+  Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc Γ⊢ Γ⊢A) (inl y∈Γ)) = wkT (Γ⊢t:A→Γ⊢A (var Γ⊢ y∈Γ)) Γ,x:A⊢
+  Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc _ _) (inr (idp , idp))) = Γ,x:A⊢→Γ,x:A⊢A Γ,x:A⊢
 
 
   -- ## cut-admissibility ##
@@ -138,14 +134,21 @@ module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
 
   -- action on weakened types and terms :
   -- if x is not in A, then A[<γ,(x,t)>] = A[γ] and similarly for terms
+  n∉Γ : ∀ {Γ A n} → Γ ⊢C → (length Γ ≤ n) → ¬ (n # A ∈ Γ)
+  n∉Γ (cc Γ⊢ _) l+1≤n (inl n∈Γ) = n∉Γ Γ⊢ (Sn≤m→n≤m l+1≤n) n∈Γ
+  n∉Γ (cc Γ⊢ _) Sn≤n (inr (idp , idp)) = Sn≰n _ Sn≤n
+
+  lΓ∉Γ : ∀ {Γ A} → Γ ⊢C → ¬ ((length Γ) # A ∈ Γ)
+  lΓ∉Γ Γ⊢ = n∉Γ Γ⊢ (n≤n _)
+
   wk[]T : ∀ {Γ Δ γ x u A B} → Γ ⊢T A → Δ ⊢S (γ :: (x , u)) > (Γ :: (x , B)) → (A [ (γ :: (x , u)) ]Pre-Ty) == (A [ γ ]Pre-Ty)
   wk[]t : ∀ {Γ Δ γ x u A t B} → Γ ⊢t t # A → Δ ⊢S (γ :: (x , u)) > (Γ :: (x , B)) → (t [ (γ :: (x , u)) ]Pre-Tm) == (t [ γ ]Pre-Tm)
 
   wk[]T (ob Γ⊢) _ = idp
   wk[]T (ar Γ⊢t:A Γ⊢u:A) Δ⊢γ+:Γ+ = Pre-⇒= (wk[]T (Γ⊢t:A→Γ⊢A Γ⊢t:A) Δ⊢γ+:Γ+)  (wk[]t Γ⊢t:A Δ⊢γ+:Γ+) (wk[]t Γ⊢u:A Δ⊢γ+:Γ+)
-  wk[]t {x = x} (var {x = y} Γ⊢ y∈Γ) Δ⊢γ+:Γ+             with (eqdec𝕍 y x)
+  wk[]t {x = x} (var {x = y} Γ⊢ y∈Γ) Δ⊢γ+:Γ+             with (eqdecℕ y x)
   ...                                                    | inr _ = idp
-  wk[]t {x = x} (var Γ⊢ x∈Γ) (sc Δ⊢γ+:Γ+ (cc _ x∉Γ _) _) | inl idp = ⊥-elim (¬∈ x∈Γ x∉Γ )
+  wk[]t (var Γ⊢ l∈Γ) (sc Δ⊢γ:Γ (cc _ _) _) | inl idp = ⊥-elim (lΓ∉Γ Γ⊢ l∈Γ)
 
 
   -- cut-admissibility : action of substitutions preserves derivability
@@ -154,13 +157,12 @@ module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
 
   []T (ob Γ⊢) Δ⊢γ:Γ = ob (Δ⊢γ:Γ→Δ⊢ Δ⊢γ:Γ)
   []T (ar Γ⊢t:A Γ⊢u:A) Δ⊢γ:Γ = ar ([]t Γ⊢t:A Δ⊢γ:Γ) ([]t Γ⊢u:A Δ⊢γ:Γ)
-  []t (var {x = x} (cc {x = y} Γ⊢ y∉Γ Γ⊢B) (inl x∈Γ)) Δ⊢γ+:Γ+@(sc Δ⊢γ:Γ _ Δ⊢t:B[Γ]) with (eqdec𝕍 x y)
-  ...                                                                               | inl idp = ⊥-elim (¬∈ x∈Γ y∉Γ)
-  ...                                                                               | inr H = trT (wk[]T (Γ⊢t:A→Γ⊢A (var Γ⊢  x∈Γ)) Δ⊢γ+:Γ+ ^) ([]t (var Γ⊢  x∈Γ) Δ⊢γ:Γ)
-  []t (var {x = x} (cc Γ⊢ x∉Γ Γ⊢A) (inr (idp , idp))) Δ⊢γ+:Γ+@(sc Δ⊢γ:Γ+ _ Δ⊢t:A[γ]) with (eqdec𝕍 x x)
-  ...                                                                                | inl idp = trT (wk[]T Γ⊢A Δ⊢γ+:Γ+ ^) Δ⊢t:A[γ]
-  ...                                                                                | inr x≠x = ⊥-elim (x≠x idp)
-
+  []t {Γ = (Γ :: _)} {t = Pre-Var x} (var Γ+⊢@(cc Γ⊢ _) (inl x∈Γ)) Δ⊢γ+:Γ+@(sc Δ⊢γ:Γ _ _) with (eqdecℕ x (length Γ))
+  ...                                                                                     | inl idp = ⊥-elim (lΓ∉Γ Γ⊢ x∈Γ)
+  ...                                                                                     | inr _ = trT (wk[]T (Γ⊢t:A→Γ⊢A (var Γ⊢ x∈Γ)) Δ⊢γ+:Γ+ ^) ([]t (var Γ⊢ x∈Γ) Δ⊢γ:Γ)
+  []t {Γ = (Γ :: _)} {t = Pre-Var x} (var Γ+⊢@(cc Γ⊢ Γ⊢A) (inr (idp , idp))) Δ⊢γ+:Γ+@(sc Δ⊢γ:Γ x₁ Δ⊢t:A[γ]) with (eqdecℕ x (length Γ))
+  ...                                                                                     | inl idp = trT (wk[]T Γ⊢A Δ⊢γ+:Γ+ ^) Δ⊢t:A[γ]
+  ...                                                                                     | inr x≠x = ⊥-elim (x≠x idp)
 
   -- ## categorical structure ##
   -- identity on the presyntax level
@@ -175,7 +177,7 @@ module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
   [id]T Γ Pre-∗ = idp
   [id]T Γ (Pre-⇒ A t u) = Pre-⇒= ([id]T Γ A) ([id]t Γ t) ([id]t Γ u)
   [id]t nil (Pre-Var x) = idp
-  [id]t (Γ :: (y , B)) (Pre-Var x) with (eqdec𝕍 x y)
+  [id]t (Γ :: (y , B)) (Pre-Var x) with (eqdecℕ x y)
   ...                              | inl x=y = Pre-Var= (x=y ^)
   ...                              | inr _ = [id]t Γ (Pre-Var x)
 
@@ -183,7 +185,7 @@ module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
   -- identity is well-formed
   Γ⊢id:Γ : ∀ {Γ} → Γ ⊢C → Γ ⊢S Pre-id Γ > Γ
   Γ⊢id:Γ ec = es ec
-  Γ⊢id:Γ Γ,x:A⊢@(cc Γ⊢ x∉Γ Γ⊢A) = sc (wkS (Γ⊢id:Γ Γ⊢) Γ,x:A⊢) Γ,x:A⊢ (var Γ,x:A⊢ (inr (idp , [id]T _ _)))
+  Γ⊢id:Γ Γ,x:A⊢@(cc Γ⊢ Γ⊢A) = sc (wkS (Γ⊢id:Γ Γ⊢) Γ,x:A⊢) Γ,x:A⊢ (var Γ,x:A⊢ (inr (idp , [id]T _ _)))
 
   -- composition on the pre-syntax
   _∘_ : Pre-Sub → Pre-Sub → Pre-Sub
@@ -197,16 +199,16 @@ module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
 
   [∘]T (ob _) _ _ = idp
   [∘]T (ar Γ⊢t:A Γ⊢u:A) Δ⊢γ:Γ Θ⊢δ:Δ = Pre-⇒= ([∘]T (Γ⊢t:A→Γ⊢A Γ⊢t:A) Δ⊢γ:Γ Θ⊢δ:Δ) ([∘]t Γ⊢t:A Δ⊢γ:Γ Θ⊢δ:Δ) ([∘]t Γ⊢u:A Δ⊢γ:Γ Θ⊢δ:Δ)
-  [∘]t (var {x = x} Γ,y:A⊢ x∈Γ+) (sc {x = y} Δ⊢γ:Γ _ Δ⊢t:A[γ]) Θ⊢δ:Δ with (eqdec𝕍 x y )
+  [∘]t (var {x = x} Γ,y:A⊢ x∈Γ+) (sc {x = y} Δ⊢γ:Γ _ Δ⊢t:A[γ]) Θ⊢δ:Δ with (eqdecℕ x y )
   ...                                                                | inl idp = idp
   [∘]t (var Γ,y:A⊢ (inr (idp , idp))) (sc Δ⊢γ:Γ _ Δ⊢t:A[γ]) Θ⊢δ:Δ | inr x≠x = ⊥-elim (x≠x idp)
-  [∘]t (var (cc Γ⊢ _ _) (inl x∈Γ)) (sc Δ⊢γ:Γ _ Δ⊢t:A[γ]) Θ⊢δ:Δ | inr _ = [∘]t (var Γ⊢ x∈Γ) Δ⊢γ:Γ Θ⊢δ:Δ
+  [∘]t (var (cc Γ⊢ _) (inl x∈Γ)) (sc Δ⊢γ:Γ _ Δ⊢t:A[γ]) Θ⊢δ:Δ | inr _ = [∘]t (var Γ⊢ x∈Γ) Δ⊢γ:Γ Θ⊢δ:Δ
 
 
   -- composition of well-formed substitutions is well-formed
   ∘-admissibility : ∀ {Γ Δ Θ γ δ} → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → Θ ⊢S (γ ∘ δ) > Γ
   ∘-admissibility (es Δ⊢) Θ⊢δ:Δ = es (Δ⊢γ:Γ→Δ⊢ Θ⊢δ:Δ)
-  ∘-admissibility (sc Δ⊢γ:Γ Γ,x:A⊢@(cc _ _ Γ⊢A) Δ⊢t:A[γ]) Θ⊢δ:Δ = sc (∘-admissibility Δ⊢γ:Γ Θ⊢δ:Δ) Γ,x:A⊢ (trT ([∘]T Γ⊢A Δ⊢γ:Γ Θ⊢δ:Δ) ([]t Δ⊢t:A[γ] Θ⊢δ:Δ))
+  ∘-admissibility (sc Δ⊢γ:Γ Γ,x:A⊢@(cc _ Γ⊢A) Δ⊢t:A[γ]) Θ⊢δ:Δ = sc (∘-admissibility Δ⊢γ:Γ Θ⊢δ:Δ) Γ,x:A⊢ (trT ([∘]T Γ⊢A Δ⊢γ:Γ Θ⊢δ:Δ) ([]t Δ⊢t:A[γ] Θ⊢δ:Δ))
 
   -- composition is associative, this is true only for well-formed substitutions
   ∘-associativity : ∀ {Γ Δ Θ Ξ γ δ θ} → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → Ξ ⊢S θ > Θ → ((γ ∘ δ) ∘ θ) == (γ ∘ (δ ∘ θ))
@@ -221,7 +223,7 @@ module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
 
   ∘-left-unit : ∀{Γ Δ γ} → Δ ⊢S γ > Γ → (Pre-id Γ ∘ γ) == γ
   ∘-left-unit (es _) = idp
-  ∘-left-unit Δ⊢γ+:Γ+@(sc {x = x} Δ⊢γ:Γ (cc Γ⊢ _ _) _) with (eqdec𝕍 x x)
+  ∘-left-unit Δ⊢γ+:Γ+@(sc {x = x} Δ⊢γ:Γ (cc Γ⊢ _) _) with (eqdecℕ x x)
   ...                                                  | inl idp = ::= (wk[]S (Γ⊢id:Γ Γ⊢) Δ⊢γ+:Γ+ >> ∘-left-unit Δ⊢γ:Γ) idp
   ...                                                  | inr x≠x = ⊥-elim (x≠x idp)
 
@@ -231,28 +233,130 @@ module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
   ∘-right-unit {Δ} {γ :: (y , t)} = ::= ∘-right-unit (×= idp ([id]t Δ t))
 
   -- ## Structure of CwF
-  Pre-π : ∀ (Γ : Pre-Ctx) (x : 𝕍) (A : Pre-Ty) → Pre-Sub
+  Pre-π : ∀ (Γ : Pre-Ctx) (x : ℕ) (A : Pre-Ty) → Pre-Sub
   Pre-π Γ x A = Pre-id Γ
 
   Γ,x:A⊢π:Γ : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → (Γ :: (x , A)) ⊢S Pre-π Γ x A > Γ
-  Γ,x:A⊢π:Γ Γ,x:A⊢@(cc Γ⊢ _ _) = wkS (Γ⊢id:Γ Γ⊢) Γ,x:A⊢
+  Γ,x:A⊢π:Γ Γ,x:A⊢@(cc Γ⊢ _) = wkS (Γ⊢id:Γ Γ⊢) Γ,x:A⊢
 
--- ## uniqueness of derivations (all the types are propositions.) ##
--- there is a catch here : I should use without-K, I think
+  -- ## decidability of type checking
+  dec-⊢C : ∀ Γ → dec (Γ ⊢C)
+  dec-⊢T : ∀ Γ A → dec (Γ ⊢T A)
+  dec-⊢t : ∀ Γ A t → dec (Γ ⊢t t # A)
+  dec-⊢S : ∀ Δ Γ γ → dec (Δ ⊢S γ > Γ)
 
--- elimination of the rules
--- cc= : ∀ {Γ x A} {Γ⊢ : Γ ⊢C} {Γ⊢' : Γ ⊢C} {x∉Γ : x ∉ Γ} {x∉'Γ : x ∉ Γ} {Γ⊢A : Γ ⊢T A} {Γ⊢'A : Γ ⊢T A} → Γ⊢ == Γ⊢' → x∉Γ == x∉'Γ → Γ⊢A == Γ⊢'A → (cc Γ⊢ x∉Γ Γ⊢A )== (cc Γ⊢' x∉'Γ Γ⊢'A)
--- cc= idp idp idp = idp
+  private
+    Γ+⊢→Γ⊢ : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → Γ ⊢C
+    Γ+⊢→Γ⊢ (cc Γ⊢ _) = Γ⊢
 
--- is-prop-⊢C : ∀ {Γ} → is-prop (Γ ⊢C)
--- is-prop-⊢T : ∀ {Γ A} → is-prop (Γ ⊢T A)
--- is-prop-⊢t : ∀ {Γ A t} → is-prop (Γ ⊢t t # A)
--- is-prop-⊢S : ∀ {Δ Γ γ} → is-prop (Δ ⊢S γ > Γ)
 
--- fst (is-prop-⊢C ec ec) = idp
--- snd (is-prop-⊢C ec ec) idp = idp
--- fst (is-prop-⊢C (cc Γ⊢ x∉Γ Γ⊢A) (cc Γ⊢' x∉'Γ Γ⊢'A)) = cc= (fst (is-prop-⊢C _ _)) {!!} (fst (is-prop-⊢T _ _))
--- snd (is-prop-⊢C (cc Γ⊢ x∉Γ Γ⊢A) (cc Γ⊢' x∉'Γ Γ⊢'A)) y = {!!}
+    Γ+⊢→x=l : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → x == length Γ
+    Γ+⊢→x=l (cc _ _) = idp
+
+    Γ+⊢→Γ⊢A : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → Γ ⊢T A
+    Γ+⊢→Γ⊢A (cc _ Γ⊢A) = Γ⊢A
+
+    Γ⊢t⇒u→Γ⊢A : ∀ {Γ A t u} → Γ ⊢T Pre-⇒ A t u → Γ ⊢T A
+    Γ⊢t⇒u→Γ⊢A (ar Γ⊢t:A Γ⊢u:A) = Γ⊢t:A→Γ⊢A Γ⊢t:A
+
+
+    Γ⊢t⇒u→Γ⊢t : ∀ {Γ A t u} → Γ ⊢T Pre-⇒ A t u → Γ ⊢t t # A
+    Γ⊢t⇒u→Γ⊢t (ar Γ⊢t:A Γ⊢u:A) = Γ⊢t:A
+
+    Γ⊢t⇒u→Γ⊢u : ∀ {Γ A t u} → Γ ⊢T Pre-⇒ A t u → Γ ⊢t u # A
+    Γ⊢t⇒u→Γ⊢u (ar Γ⊢t:A Γ⊢u:A) = Γ⊢u:A
+
+    Γ⊢x:A→x∈Γ : ∀ {Γ x A} → Γ ⊢t Pre-Var x # A → x # A ∈ Γ
+    Γ⊢x:A→x∈Γ (var _ x∈Γ) = x∈Γ
+
+    Δ⊢<>:Γ→Γ=nil : ∀ {Δ Γ} → Δ ⊢S nil > Γ → Γ == nil
+    Δ⊢<>:Γ→Γ=nil (es _) = idp
+
+    Δ⊢γ:⊘→γ=nil : ∀ {Δ γ} → Δ ⊢S γ > nil → γ == nil
+    Δ⊢γ:⊘→γ=nil (es _) = idp
+
+    Δ⊢γ+:Γ+→x=y : ∀ {Δ Γ x A γ y t} → Δ ⊢S (γ :: (y , t)) > (Γ :: (x , A)) → x == y
+    Δ⊢γ+:Γ+→x=y (sc _ _ _) = idp
+
+    Δ⊢γ+:Γ+→Δ⊢t : ∀ {Δ Γ x A γ y t} → Δ ⊢S (γ :: (y , t)) > (Γ :: (x , A)) → Δ ⊢t t # (A [ γ ]Pre-Ty)
+    Δ⊢γ+:Γ+→Δ⊢t (sc _ _ Δ⊢t) = Δ⊢t
+
+    Δ⊢γ+:Γ+→Δ⊢γ : ∀ {Δ Γ x A γ y t} → Δ ⊢S (γ :: (y , t)) > (Γ :: (x , A)) → Δ ⊢S γ > Γ
+    Δ⊢γ+:Γ+→Δ⊢γ (sc Δ⊢γ:Γ _ _) = Δ⊢γ:Γ
+
+
+
+  eqdec-Ty : eqdec Pre-Ty
+  eqdec-Tm : eqdec Pre-Tm
+
+  eqdec-Ty Pre-∗ Pre-∗ = inl idp
+  eqdec-Ty Pre-∗ (Pre-⇒ _ _ _) = {!!}
+  eqdec-Ty (Pre-⇒ _ _ _) Pre-∗ = {!!}
+  eqdec-Ty (Pre-⇒ A t u) (Pre-⇒ B t' u') with eqdec-Ty A B | eqdec-Tm t t' | eqdec-Tm u u'
+  ...                                      | inl idp       | inl idp       | inl idp      = inl idp
+  ...                                      | inl idp       | inl idp       | inr u≠u'     = inr {!!}
+  ...                                      | inl idp       | inr _         | _            = inr {!!}
+  ...                                      | inr _         | _             | _            = inr {!!}
+  eqdec-Tm (Pre-Var x) (Pre-Var y) = {!!}
+
+
+  dec-∈ : ∀ (Γ x A) → dec (x # A ∈ Γ)
+  dec-∈ nil x A = inr λ x → x
+  dec-∈ (Γ :: (y , B)) x A with (eqdecℕ y x) | (eqdec-Ty B A)
+  ...                       | inl idp         | inl idp = inl (inr (idp , idp))
+  ...                       | inl idp         | inr B≠A       with dec-∈ Γ x A
+  ...                                                         | inl x∈Γ = inl (inl x∈Γ)
+  ...                                                         | inr x∉Γ = inr λ {(inl x∈Γ) → x∉Γ x∈Γ ; (inr (_ , A=B)) → B≠A (A=B ^)}
+  dec-∈ (Γ :: (y , B)) x A | inr y≠x         | _   with dec-∈ Γ x A
+  ...                                               | inl x∈Γ = inl (inl x∈Γ)
+  ...                                               | inr x∉Γ = inr λ{ (inl x∈Γ) → x∉Γ x∈Γ ; (inr (x=y , _)) → y≠x (x=y ^)}
+
+  dec-⊢C nil = inl ec
+  dec-⊢C (Γ :: (x , A)) with dec-⊢C Γ | eqdecℕ x (length Γ) | dec-⊢T Γ A
+  ...                        | inl Γ⊢ | inl idp              | inl Γ⊢A      = inl (cc Γ⊢ Γ⊢A)
+  ...                        | inl  _ | inl idp              | inr Γ⊬A      = inr λ Γ+⊢ → Γ⊬A (Γ+⊢→Γ⊢A Γ+⊢)
+  ...                        | inl Γ⊢ | inr n≠l              | _            = inr λ Γ+⊢ → n≠l (Γ+⊢→x=l Γ+⊢)
+  ...                        | inr Γ⊬ | _                    | _            = inr λ Γ+⊢ → Γ⊬ (Γ+⊢→Γ⊢ Γ+⊢)
+  dec-⊢T Γ Pre-∗ with dec-⊢C Γ
+  ...             | inl Γ⊢ = inl (ob Γ⊢)
+  ...             | inr Γ⊬ = inr λ Γ⊢* → Γ⊬ (Γ⊢A→Γ⊢ Γ⊢*)
+  dec-⊢T Γ (Pre-⇒ A t u) with dec-⊢t Γ A t | dec-⊢t Γ A u
+  ...                     | inl Γ⊢t:A    | inl Γ⊢u:A = inl (ar Γ⊢t:A Γ⊢u:A)
+  ...                     | inl _        | inr Γ⊬u:A = inr λ Γ⊢t⇒u → Γ⊬u:A (Γ⊢t⇒u→Γ⊢u Γ⊢t⇒u)
+  ...                     | inr Γ⊬t:A    | _         = inr λ Γ⊢t⇒u → Γ⊬t:A (Γ⊢t⇒u→Γ⊢t Γ⊢t⇒u)
+
+  dec-⊢t Γ A (Pre-Var x) with dec-⊢C Γ       | dec-∈ Γ x A
+  ...                     | inl Γ⊢          | inl x∈Γ      = inl (var Γ⊢ x∈Γ)
+  ...                     | inl _           | inr x∉Γ      = inr λ Γ⊢x:A → x∉Γ (Γ⊢x:A→x∈Γ Γ⊢x:A)
+  ...                     | inr Γ⊬          | _            = inr λ Γ⊢x:A → Γ⊬ (Γ⊢t:A→Γ⊢ Γ⊢x:A)
+  dec-⊢S Δ nil nil with dec-⊢C Δ
+  ...              | inl Δ⊢ = inl (es Δ⊢)
+  ...              | inr Δ⊬ = inr λ Δ⊢<>:⊘ → Δ⊬ (Δ⊢γ:Γ→Δ⊢ Δ⊢<>:⊘)
+  dec-⊢S Δ (Γ :: _) nil = inr λ Δ⊢<>:Γ → cons≠nil (Δ⊢<>:Γ→Γ=nil Δ⊢<>:Γ)
+  dec-⊢S Δ nil (γ :: a) = inr λ Δ⊢γ:⊘ → cons≠nil (Δ⊢γ:⊘→γ=nil Δ⊢γ:⊘)
+  dec-⊢S Δ (Γ :: (x , A)) (γ :: (y , t)) with dec-⊢S Δ Γ γ | dec-⊢C (Γ :: (x , A)) | dec-⊢t Δ (A [ γ ]Pre-Ty) t | eqdecℕ x y
+  ...                                    | inl Δ⊢γ:Γ       | inl Γ+⊢               | inl Δ⊢t                    | inl idp    = inl (sc Δ⊢γ:Γ Γ+⊢ Δ⊢t)
+  ...                                    | inl _           | inl _                 | inl _                      | inr x≠y    = inr λ Δ⊢γ+:Γ+ → x≠y (Δ⊢γ+:Γ+→x=y Δ⊢γ+:Γ+)
+  ...                                    | inl _           | inl _                 | inr Δ⊬t                    | _          = inr λ Δ⊢γ+:Γ+ → Δ⊬t (Δ⊢γ+:Γ+→Δ⊢t Δ⊢γ+:Γ+)
+  ...                                    | inl _           | inr Γ+⊬               | _                          | _          = inr λ Δ⊢γ+:Γ+ → Γ+⊬ (Δ⊢γ:Γ→Γ⊢ Δ⊢γ+:Γ+)
+  ...                                    | inr Δ⊬γ         | _                     | _                          | _          = inr λ Δ⊢γ+:Γ+ → Δ⊬γ (Δ⊢γ+:Γ+→Δ⊢γ Δ⊢γ+:Γ+)
+
+  -- ## uniqueness of derivations (all the types are propositions.)
+  -- there is a catch here : I should use without-K, I think
+
+  -- elimination of the rules
+  -- cc= : ∀ {Γ x A} {Γ⊢ : Γ ⊢C} {Γ⊢' : Γ ⊢C} {x∉Γ : x ∉ Γ} {x∉'Γ : x ∉ Γ} {Γ⊢A : Γ ⊢T A} {Γ⊢'A : Γ ⊢T A} → Γ⊢ == Γ⊢' → x∉Γ == x∉'Γ → Γ⊢A == Γ⊢'A → (cc Γ⊢ x∉Γ Γ⊢A )== (cc Γ⊢' x∉'Γ Γ⊢'A)
+  -- cc= idp idp idp = idp
+
+  -- is-prop-⊢C : ∀ {Γ} → is-prop (Γ ⊢C)
+  -- is-prop-⊢T : ∀ {Γ A} → is-prop (Γ ⊢T A)
+  -- is-prop-⊢t : ∀ {Γ A t} → is-prop (Γ ⊢t t # A)
+  -- is-prop-⊢S : ∀ {Δ Γ γ} → is-prop (Δ ⊢S γ > Γ)
+
+  -- fst (is-prop-⊢C ec ec) = idp
+  -- snd (is-prop-⊢C ec ec) idp = idp
+    -- fst (is-prop-⊢C (cc Γ⊢ x∉Γ Γ⊢A) (cc Γ⊢' x∉'Γ Γ⊢'A)) = cc= (fst (is-prop-⊢C _ _)) {!!} (fst (is-prop-⊢T _ _))
+  -- snd (is-prop-⊢C (cc Γ⊢ x∉Γ Γ⊢A) (cc Γ⊢' x∉'Γ Γ⊢'A)) y = {!!}
 
 
 
@@ -269,10 +373,11 @@ module Syntax (𝕍 : Set) (eqdec𝕍 : eqdec 𝕍) where
   Sub : ∀ (Δ : Ctx) (Γ : Ctx) → Set
   Sub (Δ , _) (Γ , _) = Σ Pre-Sub (λ γ → Δ ⊢S γ > Γ)
 
-  -- ## Operations of typed syntax
+ -- ## Operations of typed syntax 
   _∙_ : ∀ (Γ : Ctx) → Ty Γ → Ctx
-  Γ ∙ A = {!!}
-  -- TODO : define all operation on typed syntax
-  -- TODO : change to de Bruijn indices (easy, no variable binding)
+  (Γ , Γ⊢) ∙ (A , Γ⊢A) = (Γ :: ((length Γ) , A )) , cc Γ⊢ Γ⊢A
+
+-- TODO : define all operation on typed syntax
+
 
 
