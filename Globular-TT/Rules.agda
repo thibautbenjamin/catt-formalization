@@ -1,0 +1,95 @@
+{-# OPTIONS --rewriting --allow-unsolved-metas #-}
+
+open import Agda.Primitive
+open import Prelude
+import GSeTT.Syntax
+import GSeTT.Rules
+open import GSeTT.Typed-Syntax
+
+
+module Globular-TT.Rules (index : Set) (rule : index → Σ GSeTT.Typed-Syntax.Ctx (λ Γ → Ty Γ)) where
+  open import Globular-TT.Syntax index rule
+
+  data _⊢C : Pre-Ctx → Set₁
+  data _⊢T_ : Pre-Ctx → Pre-Ty → Set₁
+  data _⊢t_#_ : Pre-Ctx → Pre-Tm → Pre-Ty → Set₁
+  data _⊢S_>_ : Pre-Ctx → Pre-Sub → Pre-Ctx → Set₁
+
+  data _⊢C where
+    ec : ⊘ ⊢C
+    cc : ∀ {Γ A} → Γ ⊢C → Γ ⊢T A → (Γ ∙ (C-length Γ) # A) ⊢C
+
+  data _⊢T_ where
+    ob : ∀ {Γ} → Γ ⊢C → Γ ⊢T ∗
+    ar : ∀ {Γ A t u} → Γ ⊢t t # A → Γ ⊢t u # A → Γ ⊢T ⇒ A t u
+
+  data _⊢t_#_ where
+    var : ∀ {Γ x A} → Γ ⊢C → x # A ∈ Γ → Γ ⊢t (Var x) # A
+    tm : ∀ {Δ γ} → (i : index) → Δ ⊢S γ > GPre-Ctx (fst (fst (rule i))) → Δ ⊢t Tm-constructor i γ # ((GPre-Ty (fst (snd (rule i)))) [ γ ]Pre-Ty)
+
+  data _⊢S_>_ where
+    es : ∀ {Δ} → Δ ⊢C → Δ ⊢S <> > ⊘
+    sc : ∀ {Δ Γ γ x A t} → Δ ⊢S γ > Γ → (Γ ∙ x # A) ⊢C → (Δ ⊢t t # (A [ γ ]Pre-Ty)) → Δ ⊢S < γ , x ↦ t > > (Γ ∙ x # A)
+
+
+  {- Derivability is preserved by the translation from GSeTT to our TT -}
+  x∈GCtx : ∀ {x A Γ} → x GSeTT.Syntax.# A ∈ Γ → x # GPre-Ty A ∈ GPre-Ctx Γ
+  x∈GCtx {Γ = Γ :: a} (inl x∈Γ) = inl (x∈GCtx x∈Γ)
+  x∈GCtx {Γ = Γ :: (x,A)} (inr (idp , idp)) = inr (idp , idp)
+
+
+  GCtx : ∀ (Γ : GSeTT.Syntax.Pre-Ctx) → Γ GSeTT.Rules.⊢C → (GPre-Ctx Γ) ⊢C
+  GTy : ∀ (Γ : GSeTT.Syntax.Pre-Ctx) (A : GSeTT.Syntax.Pre-Ty) → Γ GSeTT.Rules.⊢T A → (GPre-Ctx Γ) ⊢T (GPre-Ty A)
+  GTm : ∀ (Γ : GSeTT.Syntax.Pre-Ctx) (A : GSeTT.Syntax.Pre-Ty) (t : GSeTT.Syntax.Pre-Tm) → Γ GSeTT.Rules.⊢t t # A  → (GPre-Ctx Γ) ⊢t (GPre-Tm t) # (GPre-Ty A)
+
+  GCtx .nil GSeTT.Rules.ec = ec
+  GCtx .(_ :: (length _ , _)) (GSeTT.Rules.cc Γ⊢ Γ⊢A) = {!cc (GCtx Γ⊢) (GTy Γ⊢A)!}
+  GTy Γ .GSeTT.Syntax.∗ (GSeTT.Rules.ob Γ⊢) = ob (GCtx Γ Γ⊢)
+  GTy Γ (GSeTT.Syntax.⇒ A t u) (GSeTT.Rules.ar Γ⊢t:A Γ⊢u:A) = ar (GTm Γ A t Γ⊢t:A) (GTm Γ A u Γ⊢u:A)
+  GTm Γ A (GSeTT.Syntax.Var x) (GSeTT.Rules.var Γ⊢ x∈Γ) = var (GCtx Γ Γ⊢) (x∈GCtx x∈Γ)
+
+
+  {- Properties of the type theory -}
+  {- weakening admissibility -}
+  wkT : ∀ {Γ A y B} → Γ ⊢T A → (Γ ∙ y # B) ⊢C → (Γ ∙ y # B) ⊢T A
+  wkt : ∀ {Γ A t y B} → Γ ⊢t t # A → (Γ ∙ y # B) ⊢C → (Γ ∙ y # B) ⊢t t # A
+  wkS : ∀ {Δ Γ γ y B} → Δ ⊢S γ > Γ → (Δ ∙ y # B) ⊢C → (Δ ∙ y # B) ⊢S γ > Γ
+
+  wkT (ob _) Γ,y:B⊢ = ob Γ,y:B⊢
+  wkT (ar Γ⊢t:A Γ⊢u:A) Γ,y:B⊢ = ar (wkt Γ⊢t:A Γ,y:B⊢) (wkt Γ⊢u:A Γ,y:B⊢)
+  wkt (var Γ⊢C x∈Γ) Γ,y:B⊢ = var Γ,y:B⊢ (inl x∈Γ)
+  wkt (tm i Γ⊢γ:Δ) Γ,y:B⊢ = tm i (wkS Γ⊢γ:Δ Γ,y:B⊢)
+  wkS (es _) Δ,y:B⊢ = es Δ,y:B⊢
+  wkS (sc Δ⊢γ:Γ Γ,x:A⊢ Δ⊢t:A[γ]) Δ,y:B⊢ = sc (wkS Δ⊢γ:Γ Δ,y:B⊢) Γ,x:A⊢ (wkt Δ⊢t:A[γ] Δ,y:B⊢)
+
+
+  {- Consistency : all objects appearing in derivable judgments are derivable -}
+  Γ⊢A→Γ⊢ : ∀ {Γ A} → Γ ⊢T A → Γ ⊢C
+  Γ⊢t:A→Γ⊢ : ∀ {Γ A t} → Γ ⊢t t # A → Γ ⊢C
+  Δ⊢γ:Γ→Δ⊢ : ∀ {Δ Γ γ} → Δ ⊢S γ > Γ → Δ ⊢C
+
+  Γ⊢A→Γ⊢ (ob Γ⊢) = Γ⊢
+  Γ⊢A→Γ⊢ (ar Γ⊢t:A Γ⊢u:A) = Γ⊢t:A→Γ⊢ Γ⊢t:A
+  Γ⊢t:A→Γ⊢ (var Γ⊢ _) = Γ⊢
+  Γ⊢t:A→Γ⊢ (tm i Γ⊢γ:Δ) = Δ⊢γ:Γ→Δ⊢ Γ⊢γ:Δ
+  Δ⊢γ:Γ→Δ⊢ (es Δ⊢) = Δ⊢
+  Δ⊢γ:Γ→Δ⊢ (sc Δ⊢γ:Γ Γ,x:A⊢ Δ⊢t:A[γ]) = Δ⊢γ:Γ→Δ⊢ Δ⊢γ:Γ
+
+  Δ⊢γ:Γ→Γ⊢ : ∀ {Δ Γ γ} → Δ ⊢S γ > Γ → Γ ⊢C
+  Δ⊢γ:Γ→Γ⊢ (es Δ⊢) = ec
+  Δ⊢γ:Γ→Γ⊢ (sc Δ⊢γ:Γ Γ,x:A⊢ Δ⊢t:A[γ]) = Γ,x:A⊢
+
+
+
+  Γ,x:A⊢→Γ,x:A⊢A : ∀ {Γ x A} → (Γ ∙ x # A) ⊢C → (Γ ∙ x # A) ⊢T A
+  Γ,x:A⊢→Γ,x:A⊢A Γ,x:A⊢@(cc Γ⊢ Γ⊢A) = wkT Γ⊢A Γ,x:A⊢
+
+  Γ,x:A⊢→Γ,x:A⊢x:A : ∀ {Γ x A} → (Γ ∙ x # A) ⊢C → (Γ ∙ x # A) ⊢t (Var x) # A
+  Γ,x:A⊢→Γ,x:A⊢x:A Γ,x:A⊢ = var Γ,x:A⊢ (inr (idp , idp))
+
+  Γ⊢t:A→Γ⊢A : ∀ {Γ A t} → Γ ⊢t t # A → Γ ⊢T A
+  Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc Γ⊢ Γ⊢A) (inl y∈Γ)) = wkT (Γ⊢t:A→Γ⊢A (var Γ⊢ y∈Γ)) Γ,x:A⊢
+  Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc _ _) (inr (idp , idp))) = Γ,x:A⊢→Γ,x:A⊢A Γ,x:A⊢
+  -- this one is slightly harder
+  Γ⊢t:A→Γ⊢A (tm i _) = {!!}
+

@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --without-K #-}
+{-# OPTIONS --rewriting --without-K --allow-unsolved-metas #-}
 
 --
 -- Prelude.agda - Some base definitions
@@ -6,7 +6,7 @@
 
 module Prelude where
 
-  open import Agda.Primitive public 
+  open import Agda.Primitive public
 
   record ⊤ : Set where
     constructor tt
@@ -98,13 +98,13 @@ module Prelude where
   is-set : Set → Set
   is-set A = ∀ (x y : A) → is-prop (x == y)
 
-  data ⊥ : Set where
+  data ⊥ {i} : Set i where
 
-  ⊥-elim : ∀ {i} {A : Set i} → ⊥ → A
+  ⊥-elim : ∀ {i j} {A : Set i} → ⊥ {j} → A
   ⊥-elim ()
 
   ¬_ : ∀ {i} → Set i → Set i
-  ¬ A = A → ⊥
+  ¬ A = A → ⊥ {lzero}
 
   _≠_ : ∀{i} {A : Set i} (a b : A) → Set i
   a ≠ b = ¬ (a == b)
@@ -171,3 +171,27 @@ module Prelude where
 
   Sn≤m→n≤m : ∀ {n m : ℕ} → S n ≤ m → n ≤ m
   Sn≤m→n≤m (S≤ n≤m) = n≤m→n≤Sm n≤m
+
+  _<_ : ℕ → ℕ → Set
+  n < m = (n ≤ m) × (n ≠ m)
+
+  data list {i} : Set i → Set (lsuc i) where
+    nil : ∀{A} → list A
+    _::_ : ∀ {A} → list A → (a : A) → list A
+
+  ::= : ∀ {i} {A : Set i} {l l' : list A} {a a' : A} → l == l' → a == a' → (l :: a) == (l' :: a')
+  ::= idp idp = idp
+
+  cons≠nil : ∀ {i} {A : Set i} {l : list A} {a : A} → (l :: a) ≠ nil
+  cons≠nil = {!!}
+
+  length : ∀ {i} {A : Set i} → list A → ℕ
+  length nil = 0
+  length (l :: _) = S (length l)
+
+  ifdec_>_then_else_ : ∀ {i j} {A : Set i} (B : Set j) → (dec B) → A → A → A
+  ifdec b > inl x then A else B = A
+  ifdec b > inr x then A else B = B
+
+  if_≡_then_else_ : ∀ {i} {A : Set i} → ℕ → ℕ → A → A → A
+  if v ≡ w then A else B = ifdec (v == w) > (eqdecℕ v w) then A else B
