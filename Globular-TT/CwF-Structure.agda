@@ -9,7 +9,7 @@ open import GSeTT.Typed-Syntax
 
 {- Structure of CwF of a globular type theory : Cut admissibility is significantly harder and has to be proved together with it -}
 module Globular-TT.CwF-Structure (index : Set) (rule : index → Σ GSeTT.Typed-Syntax.Ctx (λ Γ → Ty Γ)) where
-  open import Globular-TT.Syntax index rule
+  open import Globular-TT.Syntax index
   open import Globular-TT.Rules index rule
 
 
@@ -29,6 +29,13 @@ module Globular-TT.CwF-Structure (index : Set) (rule : index → Σ GSeTT.Typed-
   wk[]T : ∀ {Γ Δ γ x u A B} → Γ ⊢T A → Δ ⊢S < γ , x ↦ u > > (Γ ∙ x # B) → (A [ < γ , x ↦ u > ]Pre-Ty) == (A [ γ ]Pre-Ty)
   wk[]t : ∀ {Γ Δ γ x u A t B} → Γ ⊢t t # A → Δ ⊢S < γ , x ↦ u > > (Γ ∙ x # B) → (t [ < γ , x ↦ u > ]Pre-Tm) == (t [ γ ]Pre-Tm)
   wk[]S : ∀ {Γ Δ γ x u B Θ θ} → Γ ⊢S θ > Θ → Δ ⊢S < γ , x ↦ u > > (Γ ∙ x # B) → (θ ∘ < γ , x ↦ u >) == (θ ∘ γ)
+  []T : ∀ {Γ A Δ γ} → Γ ⊢T A → Δ ⊢S γ > Γ → Δ ⊢T (A [ γ ]Pre-Ty)
+  []t : ∀ {Γ A t Δ γ} → Γ ⊢t t # A → Δ ⊢S γ > Γ → Δ ⊢t (t [ γ ]Pre-Tm) # (A [ γ ]Pre-Ty)
+  [∘]T : ∀ {Γ Δ Θ A γ δ} → Γ ⊢T A → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → ((A [ γ ]Pre-Ty) [ δ ]Pre-Ty) == (A [ γ ∘ δ ]Pre-Ty)
+  [∘]t : ∀ {Γ Δ Θ A t γ δ} → Γ ⊢t t # A → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → ((t [ γ ]Pre-Tm) [ δ ]Pre-Tm) == (t [ γ ∘ δ ]Pre-Tm)
+  ∘-admissibility : ∀ {Γ Δ Θ γ δ} → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → Θ ⊢S (γ ∘ δ) > Γ
+  ∘-associativity : ∀ {Γ Δ Θ Ξ γ δ θ} → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → Ξ ⊢S θ > Θ → ((γ ∘ δ) ∘ θ) == (γ ∘ (δ ∘ θ))
+  Γ⊢t:A→Γ⊢A : ∀ {Γ A t} → Γ ⊢t t # A → Γ ⊢T A
 
   wk[]T (ob Γ⊢) _ = idp
   wk[]T (ar Γ⊢t:A Γ⊢u:A) Δ⊢γ+:Γ+ = ⇒= (wk[]T (Γ⊢t:A→Γ⊢A Γ⊢t:A) Δ⊢γ+:Γ+)  (wk[]t Γ⊢t:A Δ⊢γ+:Γ+) (wk[]t Γ⊢u:A Δ⊢γ+:Γ+)
@@ -37,18 +44,7 @@ module Globular-TT.CwF-Structure (index : Set) (rule : index → Σ GSeTT.Typed-
   wk[]t (var Γ⊢ l∈Γ) (sc Δ⊢γ:Γ (cc _ _) _) | inl idp = ⊥-elim (lΓ∉Γ Γ⊢ l∈Γ)
   wk[]t (tm i Γ⊢θ:Θ) Δ⊢γ+:Γ+ = Tm-constructor= idp (wk[]S Γ⊢θ:Θ Δ⊢γ+:Γ+)
   wk[]S (es _) _ = idp
-  wk[]S (sc Γ⊢θ:Θ _ Γ⊢t:A[θ]) Δ⊢γ+:Γ+ = {!!} -- ::= (wk[]S Γ⊢θ:Θ Δ⊢γ+:Γ+)  (×= idp (wk[]t Γ⊢t:A[θ] Δ⊢γ+:Γ+))
-
-
-
-  {- cut-admissibility : action of substitutions preserves derivability -}
-  -- Compared to GSeTT, these proofs are more mutually inductive
-  []T : ∀ {Γ A Δ γ} → Γ ⊢T A → Δ ⊢S γ > Γ → Δ ⊢T (A [ γ ]Pre-Ty)
-  []t : ∀ {Γ A t Δ γ} → Γ ⊢t t # A → Δ ⊢S γ > Γ → Δ ⊢t (t [ γ ]Pre-Tm) # (A [ γ ]Pre-Ty)
-  [∘]T : ∀ {Γ Δ Θ A γ δ} → Γ ⊢T A → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → ((A [ γ ]Pre-Ty) [ δ ]Pre-Ty) == (A [ γ ∘ δ ]Pre-Ty)
-  [∘]t : ∀ {Γ Δ Θ A t γ δ} → Γ ⊢t t # A → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → ((t [ γ ]Pre-Tm) [ δ ]Pre-Tm) == (t [ γ ∘ δ ]Pre-Tm)
-  ∘-admissibility : ∀ {Γ Δ Θ γ δ} → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → Θ ⊢S (γ ∘ δ) > Γ
-  ∘-associativity : ∀ {Γ Δ Θ Ξ γ δ θ} → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → Ξ ⊢S θ > Θ → ((γ ∘ δ) ∘ θ) == (γ ∘ (δ ∘ θ))
+  wk[]S (sc Γ⊢θ:Θ _ Γ⊢t:A[θ]) Δ⊢γ+:Γ+ = <,>= (wk[]S Γ⊢θ:Θ Δ⊢γ+:Γ+) idp (wk[]t Γ⊢t:A[θ] Δ⊢γ+:Γ+)
 
 
   []T (ob Γ⊢) Δ⊢γ:Γ = ob (Δ⊢γ:Γ→Δ⊢ Δ⊢γ:Γ)
@@ -74,8 +70,13 @@ module Globular-TT.CwF-Structure (index : Set) (rule : index → Σ GSeTT.Typed-
   ∘-admissibility (sc Δ⊢γ:Γ Γ,x:A⊢@(cc _ Γ⊢A) Δ⊢t:A[γ]) Θ⊢δ:Δ = sc (∘-admissibility Δ⊢γ:Γ Θ⊢δ:Δ) Γ,x:A⊢ (trT ([∘]T Γ⊢A Δ⊢γ:Γ Θ⊢δ:Δ) ([]t Δ⊢t:A[γ] Θ⊢δ:Δ))
 
   ∘-associativity (es _) _ _ = idp
-  ∘-associativity (sc Δ⊢γ:Γ _ Δ⊢t:A[γ]) Θ⊢δ:Δ Ξ⊢θ:Θ = {!!} -- ::= (∘-associativity Δ⊢γ:Γ Θ⊢δ:Δ Ξ⊢θ:Θ) (×= idp ([∘]t Δ⊢t:A[γ] Θ⊢δ:Δ Ξ⊢θ:Θ))
+  ∘-associativity (sc Δ⊢γ:Γ _ Δ⊢t:A[γ]) Θ⊢δ:Δ Ξ⊢θ:Θ = <,>= (∘-associativity Δ⊢γ:Γ Θ⊢δ:Δ Ξ⊢θ:Θ) idp ([∘]t Δ⊢t:A[γ] Θ⊢δ:Δ Ξ⊢θ:Θ)
 
+
+
+  Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc Γ⊢ Γ⊢A) (inl y∈Γ)) = wkT (Γ⊢t:A→Γ⊢A (var Γ⊢ y∈Γ)) Γ,x:A⊢
+  Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc _ _) (inr (idp , idp))) = Γ,x:A⊢→Γ,x:A⊢A Γ,x:A⊢
+  Γ⊢t:A→Γ⊢A (tm i Γ⊢γ:Δ) = []T (GTy (fst (fst (rule i))) (fst (snd (rule i))) (snd (snd (rule i)))) Γ⊢γ:Δ
 
   {- action of identity on types terms and substitutions is trivial (true on syntax) -}
   [id]T : ∀ Γ A → (A [ Pre-id Γ ]Pre-Ty) == A
@@ -90,7 +91,7 @@ module Globular-TT.CwF-Structure (index : Set) (rule : index → Σ GSeTT.Typed-
   ...                              | inl x=y = Var= (x=y ^)
   ...                              | inr _ = [id]t Γ (Var x)
   ∘-right-unit {Δ} {<>} = idp
-  ∘-right-unit {Δ} {< γ , y ↦ t >} = {!!} -- ::= ∘-right-unit (×= idp ([id]t Δ t))
+  ∘-right-unit {Δ} {< γ , y ↦ t >} = <,>= ∘-right-unit idp ([id]t Δ t) -- ::= ∘-right-unit (×= idp ([id]t Δ t))
 
 
 
@@ -106,10 +107,8 @@ module Globular-TT.CwF-Structure (index : Set) (rule : index → Σ GSeTT.Typed-
   ∘-left-unit : ∀{Γ Δ γ} → Δ ⊢S γ > Γ → (Pre-id Γ ∘ γ) == γ
   ∘-left-unit (es _) = idp
   ∘-left-unit Δ⊢γ+:Γ+@(sc {x = x} Δ⊢γ:Γ (cc Γ⊢ _) _) with (eqdecℕ x x)
-  ...                                                  | inl idp = {!!} -- ::= (wk[]S (Γ⊢id:Γ Γ⊢) Δ⊢γ+:Γ+ >> ∘-left-unit Δ⊢γ:Γ) idp
+  ...                                                  | inl idp = <,>= (wk[]S (Γ⊢id:Γ Γ⊢) Δ⊢γ+:Γ+ >> ∘-left-unit Δ⊢γ:Γ) idp idp
   ...                                                  | inr x≠x = ⊥-elim (x≠x idp)
-
-
 
 
   {- Structure of CwF -}

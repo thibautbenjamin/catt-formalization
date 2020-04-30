@@ -8,7 +8,7 @@ open import GSeTT.Typed-Syntax
 
 
 module Globular-TT.Rules (index : Set) (rule : index → Σ GSeTT.Typed-Syntax.Ctx (λ Γ → Ty Γ)) where
-  open import Globular-TT.Syntax index rule
+  open import Globular-TT.Syntax index
 
   data _⊢C : Pre-Ctx → Set₁
   data _⊢T_ : Pre-Ctx → Pre-Ty → Set₁
@@ -37,13 +37,17 @@ module Globular-TT.Rules (index : Set) (rule : index → Σ GSeTT.Typed-Syntax.C
   x∈GCtx {Γ = Γ :: a} (inl x∈Γ) = inl (x∈GCtx x∈Γ)
   x∈GCtx {Γ = Γ :: (x,A)} (inr (idp , idp)) = inr (idp , idp)
 
+  G-length : ∀ Γ → length Γ == C-length (GPre-Ctx Γ)
+  G-length nil = idp
+  G-length (Γ :: _) = S= (G-length Γ)
+
 
   GCtx : ∀ (Γ : GSeTT.Syntax.Pre-Ctx) → Γ GSeTT.Rules.⊢C → (GPre-Ctx Γ) ⊢C
   GTy : ∀ (Γ : GSeTT.Syntax.Pre-Ctx) (A : GSeTT.Syntax.Pre-Ty) → Γ GSeTT.Rules.⊢T A → (GPre-Ctx Γ) ⊢T (GPre-Ty A)
   GTm : ∀ (Γ : GSeTT.Syntax.Pre-Ctx) (A : GSeTT.Syntax.Pre-Ty) (t : GSeTT.Syntax.Pre-Tm) → Γ GSeTT.Rules.⊢t t # A  → (GPre-Ctx Γ) ⊢t (GPre-Tm t) # (GPre-Ty A)
 
   GCtx .nil GSeTT.Rules.ec = ec
-  GCtx .(_ :: (length _ , _)) (GSeTT.Rules.cc Γ⊢ Γ⊢A) = {!cc (GCtx Γ⊢) (GTy Γ⊢A)!}
+  GCtx (Γ :: (.(length Γ) , A)) (GSeTT.Rules.cc Γ⊢ Γ⊢A) = coe (ap (λ n → (GPre-Ctx (Γ :: (n , A)) ⊢C)) (G-length Γ) ^) (cc (GCtx Γ Γ⊢) (GTy Γ A Γ⊢A))
   GTy Γ .GSeTT.Syntax.∗ (GSeTT.Rules.ob Γ⊢) = ob (GCtx Γ Γ⊢)
   GTy Γ (GSeTT.Syntax.⇒ A t u) (GSeTT.Rules.ar Γ⊢t:A Γ⊢u:A) = ar (GTm Γ A t Γ⊢t:A) (GTm Γ A u Γ⊢u:A)
   GTm Γ A (GSeTT.Syntax.Var x) (GSeTT.Rules.var Γ⊢ x∈Γ) = var (GCtx Γ Γ⊢) (x∈GCtx x∈Γ)
@@ -87,9 +91,5 @@ module Globular-TT.Rules (index : Set) (rule : index → Σ GSeTT.Typed-Syntax.C
   Γ,x:A⊢→Γ,x:A⊢x:A : ∀ {Γ x A} → (Γ ∙ x # A) ⊢C → (Γ ∙ x # A) ⊢t (Var x) # A
   Γ,x:A⊢→Γ,x:A⊢x:A Γ,x:A⊢ = var Γ,x:A⊢ (inr (idp , idp))
 
-  Γ⊢t:A→Γ⊢A : ∀ {Γ A t} → Γ ⊢t t # A → Γ ⊢T A
-  Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc Γ⊢ Γ⊢A) (inl y∈Γ)) = wkT (Γ⊢t:A→Γ⊢A (var Γ⊢ y∈Γ)) Γ,x:A⊢
-  Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc _ _) (inr (idp , idp))) = Γ,x:A⊢→Γ,x:A⊢A Γ,x:A⊢
-  -- this one is slightly harder
-  Γ⊢t:A→Γ⊢A (tm i _) = {!!}
+  -- The proposition Γ⊢t:A→Γ⊢A is slightly harder and is moved in CwF-Struture since it depends on lemmas there
 

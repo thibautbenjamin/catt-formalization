@@ -125,6 +125,9 @@ module Prelude where
 
 
   -- Stuff about ℕ inspired from HoTT-Agda
+  S= : ∀{n m} → n == m → S n == S m
+  S= idp = idp
+
   pred : ℕ → ℕ
   pred O = O
   pred (S n) = n

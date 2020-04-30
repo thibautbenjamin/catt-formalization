@@ -3,11 +3,10 @@
 open import Agda.Primitive
 open import Prelude
 import GSeTT.Syntax
-import GSeTT.Rules
 open import GSeTT.Typed-Syntax
 
 {- Syntax for a globular type theory, with arbitrary term constructors -}
-module Globular-TT.Syntax (index : Set) (rule : index → Σ GSeTT.Typed-Syntax.Ctx (λ Γ → Ty Γ)) where
+module Globular-TT.Syntax (index : Set) where
 
   data Pre-Ty : Set₁
   data Pre-Tm : Set₁
