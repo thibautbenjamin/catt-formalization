@@ -9,16 +9,16 @@ A general framework for studying type theories over globular sets. These type t
 
 ## Structure of the Code
 * GSeTT - The type theory for globular sets
-..* Syntax.agda : untyped syntax (type constructors and variables, contexts, substitutions)
-..* Rules.agda : Typing rules - introduction rules for types and variables, formation of contexts and substitutions
-..* CwF-Structure.agda : Structure of Category with families carried by the theory
-..* Dec-Type-Checking : Decidability of type checking for this theory
-..* Uniqueness-Derivations : Uniqueness of derivation for a derivable judgment
-..* Typed-Syntax : (Probably better not to use it)
+  * Syntax.agda : untyped syntax (type constructors and variables, contexts, substitutions)
+  * Rules.agda : Typing rules - introduction rules for types and variables, formation of contexts and substitutions
+  * CwF-Structure.agda : Structure of Category with families carried by the theory
+  * Dec-Type-Checking : Decidability of type checking for this theory
+  * Uniqueness-Derivations : Uniqueness of derivation for a derivable judgment
+  * Typed-Syntax : (Probably better not to use it)
 * Globular-TT - A globular type theory, the term constructors and introduction rules  are parametrized over judgments in GSeTT
-..* Syntax.agda : untyped syntax (type constructors and variables, contexts, substitutions)
-..* Rules.agda : Typing rules - introduction rules for types and variables, formation of contexts and substitutions
-..* CwF-Structure.agda : Structure of Category with families carried by the theory
+  * Syntax.agda : untyped syntax (type constructors and variables, contexts, substitutions)
+  * Rules.agda : Typing rules - introduction rules for types and variables, formation of contexts and substitutions
+  * CwF-Structure.agda : Structure of Category with families carried by the theory
 
 
 
