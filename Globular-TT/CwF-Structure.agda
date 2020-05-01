@@ -95,8 +95,6 @@ module Globular-TT.CwF-Structure (index : Set) (rule : index → Σ GSeTT.Typed-
   ∘-right-unit {Δ} {<>} = idp
   ∘-right-unit {Δ} {< γ , y ↦ t >} = <,>= ∘-right-unit idp ([id]t Δ t) -- ::= ∘-right-unit (×= idp ([id]t Δ t))
 
-
-
   {- identity is well-formed -}
   Γ⊢id:Γ : ∀ {Γ} → Γ ⊢C → Γ ⊢S Pre-id Γ > Γ
   Γ⊢id:Γ ec = es ec

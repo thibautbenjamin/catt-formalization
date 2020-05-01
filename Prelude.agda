@@ -175,6 +175,13 @@ module Prelude where
   Sn≤m→n≤m : ∀ {n m : ℕ} → S n ≤ m → n ≤ m
   Sn≤m→n≤m (S≤ n≤m) = n≤m→n≤Sm n≤m
 
+  dec-≤ : ∀ n m → dec (n ≤ m)
+  dec-≤ O m = inl (0≤ m)
+  dec-≤ (S n) O = inr λ ()
+  dec-≤ (S n) (S m) with (dec-≤ n m)
+  ...               | inl n≤m = inl (S≤ n≤m)
+  ...               | inr n≰m = inr λ {(S≤ n≤m) → n≰m n≤m}
+
   _<_ : ℕ → ℕ → Set
   n < m = (n ≤ m) × (n ≠ m)
 
