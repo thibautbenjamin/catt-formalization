@@ -21,7 +21,7 @@ module Globular-TT.Rules (index : Set) (rule : index → Σ GSeTT.Typed-Syntax.C
 
   data _⊢T_ where
     ob : ∀ {Γ} → Γ ⊢C → Γ ⊢T ∗
-    ar : ∀ {Γ A t u} → Γ ⊢t t # A → Γ ⊢t u # A → Γ ⊢T ⇒ A t u
+    ar : ∀ {Γ A t u} → Γ ⊢T A → Γ ⊢t t # A → Γ ⊢t u # A → Γ ⊢T ⇒ A t u
 
   data _⊢t_#_ where
     var : ∀ {Γ x A} → Γ ⊢C → x # A ∈ Γ → Γ ⊢t (Var x) # A
@@ -49,7 +49,7 @@ module Globular-TT.Rules (index : Set) (rule : index → Σ GSeTT.Typed-Syntax.C
   GCtx .nil GSeTT.Rules.ec = ec
   GCtx (Γ :: (.(length Γ) , A)) (GSeTT.Rules.cc Γ⊢ Γ⊢A) = coe (ap (λ n → (GPre-Ctx (Γ :: (n , A)) ⊢C)) (G-length Γ) ^) (cc (GCtx Γ Γ⊢) (GTy Γ A Γ⊢A))
   GTy Γ .GSeTT.Syntax.∗ (GSeTT.Rules.ob Γ⊢) = ob (GCtx Γ Γ⊢)
-  GTy Γ (GSeTT.Syntax.⇒ A t u) (GSeTT.Rules.ar Γ⊢t:A Γ⊢u:A) = ar (GTm Γ A t Γ⊢t:A) (GTm Γ A u Γ⊢u:A)
+  GTy Γ (GSeTT.Syntax.⇒ A t u) (GSeTT.Rules.ar Γ⊢t:A Γ⊢u:A) = ar (GTy Γ A (GSeTT.Rules.Γ⊢t:A→Γ⊢A Γ⊢t:A)) (GTm Γ A t Γ⊢t:A) (GTm Γ A u Γ⊢u:A)
   GTm Γ A (GSeTT.Syntax.Var x) (GSeTT.Rules.var Γ⊢ x∈Γ) = var (GCtx Γ Γ⊢) (x∈GCtx x∈Γ)
 
 
@@ -60,7 +60,7 @@ module Globular-TT.Rules (index : Set) (rule : index → Σ GSeTT.Typed-Syntax.C
   wkS : ∀ {Δ Γ γ y B} → Δ ⊢S γ > Γ → (Δ ∙ y # B) ⊢C → (Δ ∙ y # B) ⊢S γ > Γ
 
   wkT (ob _) Γ,y:B⊢ = ob Γ,y:B⊢
-  wkT (ar Γ⊢t:A Γ⊢u:A) Γ,y:B⊢ = ar (wkt Γ⊢t:A Γ,y:B⊢) (wkt Γ⊢u:A Γ,y:B⊢)
+  wkT (ar Γ⊢A Γ⊢t:A Γ⊢u:A) Γ,y:B⊢ = ar (wkT Γ⊢A Γ,y:B⊢) (wkt Γ⊢t:A Γ,y:B⊢) (wkt Γ⊢u:A Γ,y:B⊢)
   wkt (var Γ⊢C x∈Γ) Γ,y:B⊢ = var Γ,y:B⊢ (inl x∈Γ)
   wkt (tm i Γ⊢γ:Δ) Γ,y:B⊢ = tm i (wkS Γ⊢γ:Δ Γ,y:B⊢)
   wkS (es _) Δ,y:B⊢ = es Δ,y:B⊢
@@ -73,7 +73,7 @@ module Globular-TT.Rules (index : Set) (rule : index → Σ GSeTT.Typed-Syntax.C
   Δ⊢γ:Γ→Δ⊢ : ∀ {Δ Γ γ} → Δ ⊢S γ > Γ → Δ ⊢C
 
   Γ⊢A→Γ⊢ (ob Γ⊢) = Γ⊢
-  Γ⊢A→Γ⊢ (ar Γ⊢t:A Γ⊢u:A) = Γ⊢t:A→Γ⊢ Γ⊢t:A
+  Γ⊢A→Γ⊢ (ar Γ⊢A Γ⊢t:A Γ⊢u:A) = Γ⊢t:A→Γ⊢ Γ⊢t:A
   Γ⊢t:A→Γ⊢ (var Γ⊢ _) = Γ⊢
   Γ⊢t:A→Γ⊢ (tm i Γ⊢γ:Δ) = Δ⊢γ:Γ→Δ⊢ Γ⊢γ:Δ
   Δ⊢γ:Γ→Δ⊢ (es Δ⊢) = Δ⊢

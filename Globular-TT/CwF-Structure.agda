@@ -12,6 +12,10 @@ module Globular-TT.CwF-Structure (index : Set) (rule : index → Σ GSeTT.Typed-
   open import Globular-TT.Syntax index
   open import Globular-TT.Rules index rule
 
+  A∈Γ→Γ⊢A : ∀ {Γ x A} →  Γ ⊢C → x # A ∈ Γ → Γ ⊢T A
+  A∈Γ→Γ⊢A Γ+⊢@(cc Γ⊢ Γ⊢B) (inl A∈Γ) = wkT (A∈Γ→Γ⊢A Γ⊢ A∈Γ) Γ+⊢
+  A∈Γ→Γ⊢A Γ+⊢@(cc Γ⊢ Γ⊢A) (inr (idp , idp)) = wkT Γ⊢A Γ+⊢
+
 
   {- cut-admissibility -}
   -- notational shortcut : if A = B a term of type A is also of type B
@@ -35,10 +39,9 @@ module Globular-TT.CwF-Structure (index : Set) (rule : index → Σ GSeTT.Typed-
   [∘]t : ∀ {Γ Δ Θ A t γ δ} → Γ ⊢t t # A → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → ((t [ γ ]Pre-Tm) [ δ ]Pre-Tm) == (t [ γ ∘ δ ]Pre-Tm)
   ∘-admissibility : ∀ {Γ Δ Θ γ δ} → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → Θ ⊢S (γ ∘ δ) > Γ
   ∘-associativity : ∀ {Γ Δ Θ Ξ γ δ θ} → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → Ξ ⊢S θ > Θ → ((γ ∘ δ) ∘ θ) == (γ ∘ (δ ∘ θ))
-  Γ⊢t:A→Γ⊢A : ∀ {Γ A t} → Γ ⊢t t # A → Γ ⊢T A
 
   wk[]T (ob Γ⊢) _ = idp
-  wk[]T (ar Γ⊢t:A Γ⊢u:A) Δ⊢γ+:Γ+ = ⇒= (wk[]T (Γ⊢t:A→Γ⊢A Γ⊢t:A) Δ⊢γ+:Γ+)  (wk[]t Γ⊢t:A Δ⊢γ+:Γ+) (wk[]t Γ⊢u:A Δ⊢γ+:Γ+)
+  wk[]T (ar Γ⊢A Γ⊢t:A Γ⊢u:A) Δ⊢γ+:Γ+ = ⇒= (wk[]T Γ⊢A Δ⊢γ+:Γ+) (wk[]t Γ⊢t:A Δ⊢γ+:Γ+) (wk[]t Γ⊢u:A Δ⊢γ+:Γ+)
   wk[]t {x = x} (var {x = y} Γ⊢ y∈Γ) Δ⊢γ+:Γ+             with (eqdecℕ y x)
   ...                                                    | inr _ = idp
   wk[]t (var Γ⊢ l∈Γ) (sc Δ⊢γ:Γ (cc _ _) _) | inl idp = ⊥-elim (lΓ∉Γ Γ⊢ l∈Γ)
@@ -48,18 +51,18 @@ module Globular-TT.CwF-Structure (index : Set) (rule : index → Σ GSeTT.Typed-
 
 
   []T (ob Γ⊢) Δ⊢γ:Γ = ob (Δ⊢γ:Γ→Δ⊢ Δ⊢γ:Γ)
-  []T (ar Γ⊢t:A Γ⊢u:A) Δ⊢γ:Γ = ar ([]t Γ⊢t:A Δ⊢γ:Γ) ([]t Γ⊢u:A Δ⊢γ:Γ)
+  []T (ar Γ⊢A Γ⊢t:A Γ⊢u:A) Δ⊢γ:Γ = ar ([]T Γ⊢A Δ⊢γ:Γ) ([]t Γ⊢t:A Δ⊢γ:Γ) ([]t Γ⊢u:A Δ⊢γ:Γ)
   []t {t = .(Tm-constructor i _)} (tm i x) Δ⊢γ:Γ = trT ([∘]T (GTy _ _ (snd (snd (rule i)))) x Δ⊢γ:Γ ^) (tm i (∘-admissibility x Δ⊢γ:Γ))
   []t {Γ = (Γ ∙ _ # _)} {t = Var x} (var Γ+⊢@(cc Γ⊢ _) (inl x∈Γ)) Δ⊢γ+:Γ+@(sc Δ⊢γ:Γ _ _) with (eqdecℕ x (C-length Γ))
   ...                                                                                     | inl idp = ⊥-elim (lΓ∉Γ Γ⊢ x∈Γ)
-  ...                                                                                     | inr _ = trT (wk[]T (Γ⊢t:A→Γ⊢A (var Γ⊢ x∈Γ)) Δ⊢γ+:Γ+ ^) ([]t (var Γ⊢ x∈Γ) Δ⊢γ:Γ)
+  ...                                                                                     | inr _ = trT (wk[]T (A∈Γ→Γ⊢A Γ⊢ x∈Γ) Δ⊢γ+:Γ+ ^) ([]t (var Γ⊢ x∈Γ) Δ⊢γ:Γ)
   []t {Γ = (Γ ∙ _ # _)} {t = Var x} (var Γ+⊢@(cc Γ⊢ Γ⊢A) (inr (idp , idp))) Δ⊢γ+:Γ+@(sc Δ⊢γ:Γ x₁ Δ⊢t:A[γ]) with (eqdecℕ x (C-length Γ))
   ...                                                                                     | inl idp = trT (wk[]T Γ⊢A Δ⊢γ+:Γ+ ^) Δ⊢t:A[γ]
   ...                                                                                     | inr x≠x = ⊥-elim (x≠x idp)
 
 
   [∘]T (ob _) _ _ = idp
-  [∘]T (ar Γ⊢t:A Γ⊢u:A) Δ⊢γ:Γ Θ⊢δ:Δ = ⇒= ([∘]T (Γ⊢t:A→Γ⊢A Γ⊢t:A) Δ⊢γ:Γ Θ⊢δ:Δ) ([∘]t Γ⊢t:A Δ⊢γ:Γ Θ⊢δ:Δ) ([∘]t Γ⊢u:A Δ⊢γ:Γ Θ⊢δ:Δ)
+  [∘]T (ar Γ⊢A Γ⊢t:A Γ⊢u:A) Δ⊢γ:Γ Θ⊢δ:Δ = ⇒= ([∘]T Γ⊢A Δ⊢γ:Γ Θ⊢δ:Δ) ([∘]t Γ⊢t:A Δ⊢γ:Γ Θ⊢δ:Δ) ([∘]t Γ⊢u:A Δ⊢γ:Γ Θ⊢δ:Δ)
   [∘]t (tm i x) Δ⊢γ:Γ Θ⊢δ:Δ = Tm-constructor= idp (∘-associativity x Δ⊢γ:Γ Θ⊢δ:Δ )
   [∘]t (var {x = x} Γ,y:A⊢ x∈Γ+) (sc {x = y} Δ⊢γ:Γ _ Δ⊢t:A[γ]) Θ⊢δ:Δ with (eqdecℕ x y )
   ...                                                                | inl idp = idp
@@ -72,8 +75,7 @@ module Globular-TT.CwF-Structure (index : Set) (rule : index → Σ GSeTT.Typed-
   ∘-associativity (es _) _ _ = idp
   ∘-associativity (sc Δ⊢γ:Γ _ Δ⊢t:A[γ]) Θ⊢δ:Δ Ξ⊢θ:Θ = <,>= (∘-associativity Δ⊢γ:Γ Θ⊢δ:Δ Ξ⊢θ:Θ) idp ([∘]t Δ⊢t:A[γ] Θ⊢δ:Δ Ξ⊢θ:Θ)
 
-
-
+  Γ⊢t:A→Γ⊢A : ∀ {Γ A t} → Γ ⊢t t # A → Γ ⊢T A
   Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc Γ⊢ Γ⊢A) (inl y∈Γ)) = wkT (Γ⊢t:A→Γ⊢A (var Γ⊢ y∈Γ)) Γ,x:A⊢
   Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc _ _) (inr (idp , idp))) = Γ,x:A⊢→Γ,x:A⊢A Γ,x:A⊢
   Γ⊢t:A→Γ⊢A (tm i Γ⊢γ:Δ) = []T (GTy (fst (fst (rule i))) (fst (snd (rule i))) (snd (snd (rule i)))) Γ⊢γ:Δ
