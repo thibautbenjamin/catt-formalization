@@ -46,8 +46,8 @@ module Prelude where
 
   data _==_ {i} {A : Set i} (a : A) : A → Set i where
     idp : a == a
-
   {-# BUILTIN EQUALITY _==_ #-}
+  {-# BUILTIN REWRITE _==_ #-}
 
   infixl 20 _>>_
 
@@ -60,7 +60,7 @@ module Prelude where
   coe : ∀ {a} {A B : Set a} → A == B → A → B
   coe idp x = x
 
-  coe^ : ∀ {a} {A B : Set a} (p : A == B) {a : A} {b : B} → a == (coe (p ^) b) → (coe p a) == b 
+  coe^ : ∀ {a} {A B : Set a} (p : A == B) {a : A} {b : B} → a == (coe (p ^) b) → (coe p a) == b
   coe^ idp q = q
 
   coe= : ∀ {a} {A B : Set a} (p : A == B) {a b : A} → a == b → coe p a == coe p b
@@ -68,6 +68,9 @@ module Prelude where
 
   ap : ∀ {i j} {A : Set i} {C : Set j} {M N : A} (f : A → C) → M == N → (f M) == (f N)
   ap f idp = idp
+
+  transport : ∀ {i j} {A : Set i} {B : A → Set j} {a a' : A} (pₐ : a == a') → B a → B a'
+  transport pₐ b = coe (ap _ pₐ) b
 
   hfiber : ∀ {i} {A B : Set i} (f : A → B) (b : B) → Set i
   hfiber {A = A} f b = Σ A (λ a → f a == b)
@@ -79,14 +82,20 @@ module Prelude where
   syntax PathOver B p u v =
     u == v [ B ↓ p ]
 
-  ×= :  ∀ {A B : Set}  {a a' : A} {b b' : B} → a == a' → b == b' → (a , b) == (a' , b')
+  ×= : ∀{i j} {A : Set i} {B : Set j}  {a a' : A} {b b' : B} → a == a' → b == b' → (a , b) == (a' , b')
   ×= idp idp = idp
+
+  Σ= : ∀ {i j} {A : Set i} {B : A → Set j}  {a a' : A} {b : B a} {b' : B a'} → (pₐ : a == a') → transport pₐ b == b' → (a , b) == (a' , b')
+  Σ= idp idp = idp
 
   Σ-r : ∀ {i j k} {A : Set i} {B : A → Set j} (C : Σ A B → Set k) → A → Set (j ⊔ k)
   Σ-r {A = A} {B = B} C a = Σ (B a) (λ b → C (a , b))
 
   Σ-in : ∀ {i j k} {A : Set i} {B : A → Set j} (C : (a : A) → B a → Set k) → A → Set (j ⊔ k)
   Σ-in {A = A} {B = B} C a = Σ (B a) (λ b → C a b)
+
+  fst-is-inj : ∀ {i j} {A : Set i} {B : A → Set j} {x y : Σ A B} → x == y → fst x == fst y
+  fst-is-inj idp = idp
 
 
   is-contr : Set → Set
@@ -149,6 +158,10 @@ module Prelude where
   O≠S : (n : ℕ) → (O ≠ S n)
   O≠S n p = S≠O n (p ^)
 
+  n≠Sn : (n : ℕ) → (n ≠ S n)
+  n≠Sn O ()
+  n≠Sn (S n) n=Sn = n≠Sn n (S-is-inj _ _ n=Sn)
+
   eqdecℕ : eqdec ℕ
   eqdecℕ O O = inl idp
   eqdecℕ O (S b) = inr (O≠S b)
@@ -205,3 +218,11 @@ module Prelude where
 
   if_≡_then_else_ : ∀ {i} {A : Set i} → ℕ → ℕ → A → A → A
   if v ≡ w then A else B = ifdec (v == w) > (eqdecℕ v w) then A else B
+
+  record is-equiv {i j} {A : Set i} {B : Set j} (f : A → B) : Set (i ⊔ j)
+    where
+    field
+      g : B → A
+      f-g : (b : B) → f (g b) == b
+      g-f : (a : A) → g (f a) == a
+      adj : (a : A) → ap f (g-f a) == f-g (f a)

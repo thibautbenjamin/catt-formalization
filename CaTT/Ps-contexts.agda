@@ -3,6 +3,7 @@
 open import Prelude
 open import GSeTT.Syntax
 open import GSeTT.Rules
+open import GSeTT.Disks
 
 {- PS-contexts -}
 module CaTT.Ps-contexts where
@@ -28,38 +29,9 @@ module CaTT.Ps-contexts where
   Γ⊢psx:A→Γ⊢x:A (pse Γ⊢psx:A) with (cc (Γ⊢t:A→Γ⊢ (Γ⊢psx:A→Γ⊢x:A Γ⊢psx:A)) (Γ⊢t:A→Γ⊢A (Γ⊢psx:A→Γ⊢x:A Γ⊢psx:A)))
   ...                          | Γ,y:A⊢ = var (cc Γ,y:A⊢ (ar (wkt (Γ⊢psx:A→Γ⊢x:A Γ⊢psx:A) Γ,y:A⊢) (var Γ,y:A⊢ (inr (idp , idp))))) (inr (idp , idp))
 
+  {- Eric's trick : is a src-var -}
+  data ∂⁻var : ∀ {Γ} → Γ ⊢ps → ℕ → Set where
 
-  {- Dimension of a type and aof a context -}
-  -- probably move this over to GSeTT
-  dim : Pre-Ty → ℕ
-  dim ∗ = O
-  dim (⇒ A t u) = S (dim A)
-
-  -- By convention, the dimension of the empty context is 0
-  dimC : Pre-Ctx → ℕ
-  dimC nil = O
-  dimC (Γ :: (x , A)) with (dec-≤ (dim A) (dimC Γ))
-  ...                         | inl _ = dimC Γ
-  ...                         | inr _ = dim A
-
-  {- Disk and sphere -}
-  n-src : ℕ → ℕ
-  n-tgt : ℕ → ℕ
-  n⇒ : ℕ → Pre-Ty
-
-  n-src O = O
-  n-src (S n) = S (n-tgt n)
-  n-tgt n = S (n-src n)
-
-  n⇒ O = ⇒ ∗ (Var (n-src O)) (Var (n-tgt O))
-  n⇒ (S n) = ⇒ (n⇒ n) (Var (n-src (S n))) (Var (n-tgt (S n)))
-
-  𝕊 : ℕ → Pre-Ctx
-  𝔻 : ℕ → Pre-Ctx
-
-  𝕊 O = nil
-  𝕊 (S n) = (𝔻 n) :: (length (𝔻 n) , n⇒ n)
-  𝔻 n = (𝕊 n) :: (length (𝕊 n) , n⇒ n)
 
 
   {- source and target -}
@@ -78,6 +50,23 @@ module CaTT.Ps-contexts where
   ...                                             | inl _ = ∂⁻-aux i Γ Γ⊢psx
   ...                                             | inr _  with (length (∂-aux i Γ Γ⊢psx))
   ...                                                      | n = (∂⁻-aux i Γ Γ⊢psx :: (x , Var n)) :: (f , Var (S n))
+
+  -- technical lemmas : need to use rewriting
+  private
+    lemma1 : ∀ {x A} → (i : ℕ) → (Γ : Pre-Ctx) → (Γ⊢psx : Γ ⊢ps x # A) → (Var (length (∂-aux i Γ Γ⊢psx))) ↦ (Var (length Γ) [ ∂⁻-aux i Γ Γ⊢psx ]Pre-Tm)
+    lemma1 = {!!}
+    {-# REWRITE lemma1 #-}
+
+  ∂-aux⊢psx : ∀ {x A} → (i : ℕ) → (Γ : Pre-Ctx) → (Γ⊢psx : Γ ⊢ps x # A) → ∂-aux i Γ Γ⊢psx ⊢ps (x [ ∂⁻-aux i Γ Γ⊢psx ]Pre-Tm) # (A [ ∂⁻-aux i Γ Γ⊢psx ]Pre-Ty)
+  ∂-aux⊢psx i .(nil :: (0 , ∗)) pss = pss
+  ∂-aux⊢psx i Γ (psd Γ⊢psx) = psd (∂-aux⊢psx i Γ Γ⊢psx)
+  ∂-aux⊢psx i ((Γ :: (x , A)) :: (f , B)) (pse Γ⊢psx) with (dec-≤ i (dim A))
+  ...                                                 | inl _ = {!∂-aux⊢psx i Γ Γ⊢psx!}
+  ...                                                 | inr _ with (eqdecℕ (S (length Γ)) (S (length Γ)))
+  ...                                                         | inl _ = {!pse ?!}
+  ...                                                         | inr x≠x = ⊥-elim (x≠x idp)
+
+
 
 
   ∂i : ℕ → (Γ : Pre-Ctx) → Γ ⊢ps → Pre-Ctx

@@ -28,6 +28,20 @@ module GSeTT.Syntax where
   Var= : ∀ {v w} → v == w → Var v == Var w
   Var= idp = idp
 
+  {- Dimension of a type and aof a context -}
+  -- Careful: dimension of ∗ should be -1
+  dim : Pre-Ty → ℕ
+  dim ∗ = O
+  dim (⇒ A t u) = S (dim A)
+
+  -- Careful: dimension of the empty context should be -1
+  dimC : Pre-Ctx → ℕ
+  dimC nil = O
+  dimC (Γ :: (x , A)) with (dec-≤ (dim A) (dimC Γ))
+  ...                         | inl _ = dimC Γ
+  ...                         | inr _ = dim A
+
+
 
   {- Action of substitutions on types and terms on a syntactical level -}
   _[_]Pre-Ty : Pre-Ty → Pre-Sub → Pre-Ty
