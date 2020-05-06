@@ -5,17 +5,16 @@ open import Prelude
 import GSeTT.Syntax
 import GSeTT.Rules
 open import GSeTT.Typed-Syntax
-
+import Globular-TT.Syntax
 
 {- Structure of CwF of a globular type theory : Cut admissibility is significantly harder and has to be proved together with it -}
-module Globular-TT.CwF-Structure (index : Set) (rule : index → Σ GSeTT.Typed-Syntax.Ctx (λ Γ → Ty Γ)) where
+module Globular-TT.CwF-Structure (index : Set) (rule : index → GSeTT.Typed-Syntax.Ctx × (Globular-TT.Syntax.Pre-Ty index)) where
   open import Globular-TT.Syntax index
   open import Globular-TT.Rules index rule
 
   A∈Γ→Γ⊢A : ∀ {Γ x A} →  Γ ⊢C → x # A ∈ Γ → Γ ⊢T A
   A∈Γ→Γ⊢A Γ+⊢@(cc Γ⊢ Γ⊢B) (inl A∈Γ) = wkT (A∈Γ→Γ⊢A Γ⊢ A∈Γ) Γ+⊢
   A∈Γ→Γ⊢A Γ+⊢@(cc Γ⊢ Γ⊢A) (inr (idp , idp)) = wkT Γ⊢A Γ+⊢
-
 
   {- cut-admissibility -}
   -- notational shortcut : if A = B a term of type A is also of type B
@@ -45,14 +44,14 @@ module Globular-TT.CwF-Structure (index : Set) (rule : index → Σ GSeTT.Typed-
   wk[]t {x = x} (var {x = y} Γ⊢ y∈Γ) Δ⊢γ+:Γ+             with (eqdecℕ y x)
   ...                                                    | inr _ = idp
   wk[]t (var Γ⊢ l∈Γ) (sc Δ⊢γ:Γ (cc _ _) _) | inl idp = ⊥-elim (lΓ∉Γ Γ⊢ l∈Γ)
-  wk[]t (tm i Γ⊢θ:Θ) Δ⊢γ+:Γ+ = Tm-constructor= idp (wk[]S Γ⊢θ:Θ Δ⊢γ+:Γ+)
+  wk[]t (tm i _ Γ⊢θ:Θ) Δ⊢γ+:Γ+ = Tm-constructor= idp (wk[]S Γ⊢θ:Θ Δ⊢γ+:Γ+)
   wk[]S (es _) _ = idp
   wk[]S (sc Γ⊢θ:Θ _ Γ⊢t:A[θ]) Δ⊢γ+:Γ+ = <,>= (wk[]S Γ⊢θ:Θ Δ⊢γ+:Γ+) idp (wk[]t Γ⊢t:A[θ] Δ⊢γ+:Γ+)
 
 
   []T (ob Γ⊢) Δ⊢γ:Γ = ob (Δ⊢γ:Γ→Δ⊢ Δ⊢γ:Γ)
   []T (ar Γ⊢A Γ⊢t:A Γ⊢u:A) Δ⊢γ:Γ = ar ([]T Γ⊢A Δ⊢γ:Γ) ([]t Γ⊢t:A Δ⊢γ:Γ) ([]t Γ⊢u:A Δ⊢γ:Γ)
-  []t {t = .(Tm-constructor i _)} (tm i x) Δ⊢γ:Γ = trT ([∘]T (GTy _ _ (snd (snd (rule i)))) x Δ⊢γ:Γ ^) (tm i (∘-admissibility x Δ⊢γ:Γ))
+  []t {t = .(Tm-constructor i _)} (tm i Ci⊢Ti x) Δ⊢γ:Γ = trT ([∘]T Ci⊢Ti x Δ⊢γ:Γ ^) (tm i Ci⊢Ti (∘-admissibility x Δ⊢γ:Γ))
   []t {Γ = (Γ ∙ _ # _)} {t = Var x} (var Γ+⊢@(cc Γ⊢ _) (inl x∈Γ)) Δ⊢γ+:Γ+@(sc Δ⊢γ:Γ _ _) with (eqdecℕ x (C-length Γ))
   ...                                                                                     | inl idp = ⊥-elim (lΓ∉Γ Γ⊢ x∈Γ)
   ...                                                                                     | inr _ = trT (wk[]T (A∈Γ→Γ⊢A Γ⊢ x∈Γ) Δ⊢γ+:Γ+ ^) ([]t (var Γ⊢ x∈Γ) Δ⊢γ:Γ)
@@ -63,7 +62,7 @@ module Globular-TT.CwF-Structure (index : Set) (rule : index → Σ GSeTT.Typed-
 
   [∘]T (ob _) _ _ = idp
   [∘]T (ar Γ⊢A Γ⊢t:A Γ⊢u:A) Δ⊢γ:Γ Θ⊢δ:Δ = ⇒= ([∘]T Γ⊢A Δ⊢γ:Γ Θ⊢δ:Δ) ([∘]t Γ⊢t:A Δ⊢γ:Γ Θ⊢δ:Δ) ([∘]t Γ⊢u:A Δ⊢γ:Γ Θ⊢δ:Δ)
-  [∘]t (tm i x) Δ⊢γ:Γ Θ⊢δ:Δ = Tm-constructor= idp (∘-associativity x Δ⊢γ:Γ Θ⊢δ:Δ )
+  [∘]t (tm i Ci⊢Ti x) Δ⊢γ:Γ Θ⊢δ:Δ = Tm-constructor= idp (∘-associativity x Δ⊢γ:Γ Θ⊢δ:Δ )
   [∘]t (var {x = x} Γ,y:A⊢ x∈Γ+) (sc {x = y} Δ⊢γ:Γ _ Δ⊢t:A[γ]) Θ⊢δ:Δ with (eqdecℕ x y )
   ...                                                                | inl idp = idp
   [∘]t (var Γ,y:A⊢ (inr (idp , idp))) (sc Δ⊢γ:Γ _ Δ⊢t:A[γ]) Θ⊢δ:Δ | inr x≠x = ⊥-elim (x≠x idp)
@@ -78,7 +77,7 @@ module Globular-TT.CwF-Structure (index : Set) (rule : index → Σ GSeTT.Typed-
   Γ⊢t:A→Γ⊢A : ∀ {Γ A t} → Γ ⊢t t # A → Γ ⊢T A
   Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc Γ⊢ Γ⊢A) (inl y∈Γ)) = wkT (Γ⊢t:A→Γ⊢A (var Γ⊢ y∈Γ)) Γ,x:A⊢
   Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc _ _) (inr (idp , idp))) = Γ,x:A⊢→Γ,x:A⊢A Γ,x:A⊢
-  Γ⊢t:A→Γ⊢A (tm i Γ⊢γ:Δ) = []T (GTy (fst (fst (rule i))) (fst (snd (rule i))) (snd (snd (rule i)))) Γ⊢γ:Δ
+  Γ⊢t:A→Γ⊢A (tm i Ci⊢Ti Γ⊢γ:Δ) = []T Ci⊢Ti Γ⊢γ:Δ
 
   {- action of identity on types terms and substitutions is trivial (true on syntax) -}
   [id]T : ∀ Γ A → (A [ Pre-id Γ ]Pre-Ty) == A

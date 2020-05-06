@@ -5,10 +5,17 @@ open import Prelude
 import GSeTT.Syntax
 import GSeTT.Rules
 open import GSeTT.Typed-Syntax
+import Globular-TT.Syntax
 
-
-module Globular-TT.Rules (index : Set) (rule : index → Σ GSeTT.Typed-Syntax.Ctx (λ Γ → Ty Γ)) where
+module Globular-TT.Rules (index : Set) (rule : index → GSeTT.Typed-Syntax.Ctx × (Globular-TT.Syntax.Pre-Ty index)) where
   open import Globular-TT.Syntax index
+
+  {- Notational shortcuts : the context corresponding to an index -}
+  Ci : index → Pre-Ctx
+  Ci i = GPre-Ctx (fst (fst (rule i)))
+
+  Ti : index → Pre-Ty
+  Ti i = snd (rule i)
 
   data _⊢C : Pre-Ctx → Set₁
   data _⊢T_ : Pre-Ctx → Pre-Ty → Set₁
@@ -25,7 +32,7 @@ module Globular-TT.Rules (index : Set) (rule : index → Σ GSeTT.Typed-Syntax.C
 
   data _⊢t_#_ where
     var : ∀ {Γ x A} → Γ ⊢C → x # A ∈ Γ → Γ ⊢t (Var x) # A
-    tm : ∀ {Δ γ} → (i : index) → Δ ⊢S γ > GPre-Ctx (fst (fst (rule i))) → Δ ⊢t Tm-constructor i γ # ((GPre-Ty (fst (snd (rule i)))) [ γ ]Pre-Ty)
+    tm : ∀ {Δ γ} → (i : index) → Ci i ⊢T Ti i → Δ ⊢S γ > Ci i → Δ ⊢t Tm-constructor i γ # (Ti i [ γ ]Pre-Ty)
 
   data _⊢S_>_ where
     es : ∀ {Δ} → Δ ⊢C → Δ ⊢S <> > ⊘
@@ -62,7 +69,7 @@ module Globular-TT.Rules (index : Set) (rule : index → Σ GSeTT.Typed-Syntax.C
   wkT (ob _) Γ,y:B⊢ = ob Γ,y:B⊢
   wkT (ar Γ⊢A Γ⊢t:A Γ⊢u:A) Γ,y:B⊢ = ar (wkT Γ⊢A Γ,y:B⊢) (wkt Γ⊢t:A Γ,y:B⊢) (wkt Γ⊢u:A Γ,y:B⊢)
   wkt (var Γ⊢C x∈Γ) Γ,y:B⊢ = var Γ,y:B⊢ (inl x∈Γ)
-  wkt (tm i Γ⊢γ:Δ) Γ,y:B⊢ = tm i (wkS Γ⊢γ:Δ Γ,y:B⊢)
+  wkt (tm i Ci⊢Ti Γ⊢γ:Δ) Γ,y:B⊢ = tm i Ci⊢Ti (wkS Γ⊢γ:Δ Γ,y:B⊢)
   wkS (es _) Δ,y:B⊢ = es Δ,y:B⊢
   wkS (sc Δ⊢γ:Γ Γ,x:A⊢ Δ⊢t:A[γ]) Δ,y:B⊢ = sc (wkS Δ⊢γ:Γ Δ,y:B⊢) Γ,x:A⊢ (wkt Δ⊢t:A[γ] Δ,y:B⊢)
 
@@ -75,7 +82,7 @@ module Globular-TT.Rules (index : Set) (rule : index → Σ GSeTT.Typed-Syntax.C
   Γ⊢A→Γ⊢ (ob Γ⊢) = Γ⊢
   Γ⊢A→Γ⊢ (ar Γ⊢A Γ⊢t:A Γ⊢u:A) = Γ⊢t:A→Γ⊢ Γ⊢t:A
   Γ⊢t:A→Γ⊢ (var Γ⊢ _) = Γ⊢
-  Γ⊢t:A→Γ⊢ (tm i Γ⊢γ:Δ) = Δ⊢γ:Γ→Δ⊢ Γ⊢γ:Δ
+  Γ⊢t:A→Γ⊢ (tm i _ Γ⊢γ:Δ) = Δ⊢γ:Γ→Δ⊢ Γ⊢γ:Δ
   Δ⊢γ:Γ→Δ⊢ (es Δ⊢) = Δ⊢
   Δ⊢γ:Γ→Δ⊢ (sc Δ⊢γ:Γ Γ,x:A⊢ Δ⊢t:A[γ]) = Δ⊢γ:Γ→Δ⊢ Δ⊢γ:Γ
 
