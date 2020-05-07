@@ -216,8 +216,23 @@ module Prelude where
   ifdec b > inl x then A else B = A
   ifdec b > inr x then A else B = B
 
+  iftrue : ∀ {i j}{A : Set i} {B : Set j} → (H : dec B) → (a : A) {a' : A} → B → (ifdec B > H then a else a') == a
+  iftrue (inl _) a b = idp
+  iftrue (inr ¬B) a b = ⊥-elim (¬B b)
+
+  iffalse : ∀ {i j}{A : Set i} {B : Set j} → (H : dec B) → {a : A} (a' : A) → ¬ B → (ifdec B > H then a else a') == a'
+  iffalse (inl b) a' ¬B = ⊥-elim (¬B b)
+  iffalse (inr ¬B) a' b = idp
+
+
   if_≡_then_else_ : ∀ {i} {A : Set i} → ℕ → ℕ → A → A → A
   if v ≡ w then A else B = ifdec (v == w) > (eqdecℕ v w) then A else B
+
+  if= : ∀ {i} {A : Set i} {n m : ℕ} (p : n == m) (a : A) {a' : A} → (if n ≡ m then a else a') == a
+  if= p a = iftrue (eqdecℕ _ _) a p
+
+  if≠ : ∀ {i} {A : Set i} {n m : ℕ} (p : n ≠ m) {a : A} (a' : A) → (if n ≡ m then a else a') == a'
+  if≠ p a' = iffalse (eqdecℕ _ _) a' p
 
   record is-equiv {i j} {A : Set i} {B : Set j} (f : A → B) : Set (i ⊔ j)
     where
