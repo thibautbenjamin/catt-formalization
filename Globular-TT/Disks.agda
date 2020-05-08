@@ -2,10 +2,11 @@
 
 open import Agda.Primitive
 open import Prelude
+import GSeTT.Typed-Syntax
 import Globular-TT.Syntax
 
 {- Disk and Sphere contexts - properties -}
-module Globular-TT.Disks (index : Set) (rule : index → (Globular-TT.Syntax.Pre-Ctx index) × (Globular-TT.Syntax.Pre-Ty index)) where
+module Globular-TT.Disks (index : Set) (rule : index → GSeTT.Typed-Syntax.Ctx × (Globular-TT.Syntax.Pre-Ty index)) where
   open import Globular-TT.Syntax index
   open import Globular-TT.Rules index rule
   open import Globular-TT.CwF-Structure index rule
@@ -81,11 +82,6 @@ module Globular-TT.Disks (index : Set) (rule : index → (Globular-TT.Syntax.Pre
       let Γ⊢χt = (sc χ Γ⊢A ⊢ (𝔻⊢(dim A)) (trT ⇒[χ Γ⊢A ] Γ⊢t:A)) in
       let A=⇒[γt] = ⇒[χ Γ⊢A ] >> (wk[]T (𝕊⊢⇒ (dim A)) Γ⊢χt ^) in
       ⇒= (A=⇒[γt] >> (wk[]T (wkT (𝕊⊢⇒ (dim A)) (𝔻⊢ (dim A))) (sc Γ⊢χt (𝕊⊢ (S (dim A))) (trT A=⇒[γt] Γ⊢u:A)) ^)) idp idp
-
-    -- TODO : move this at the right place
-    dim[] : ∀ (A : Pre-Ty) (γ : Pre-Sub) → dim (A [ γ ]Pre-Ty) == dim A
-    dim[] ∗ γ = idp
-    dim[] (⇒ A x x₁) γ = S= (dim[] A γ)
 
     dim-Ty-n : ∀ {Γ} (n : ℕ) → (γ : Pre-Sub) → (Γ⊢γ:Sn : Γ ⊢S γ > 𝕊 n) → dim (fst (Ty-n ((n , γ), Γ⊢γ:Sn))) == n
     dim-Ty-n n γ Γ⊢γ:Sn = dim[] (n⇒ n) γ >> (dim⇒ n)

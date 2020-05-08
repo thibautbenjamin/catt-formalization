@@ -2,6 +2,7 @@
 
 open import Agda.Primitive
 open import Prelude
+import GSeTT.Syntax
 
 {- Syntax for a globular type theory, with arbitrary term constructors -}
 module Globular-TT.Syntax (index : Set) where
@@ -47,10 +48,6 @@ module Globular-TT.Syntax (index : Set) where
   ∙= : ∀ {Γ Δ x y A B} → Γ == Δ → x == y → A == B → (Γ ∙ x # A) == (Δ ∙ y # B)
   ∙= idp idp idp = idp
 
-  {- dimension of types -}
-  dim : Pre-Ty → ℕ
-  dim ∗ = O
-  dim (⇒ A t u) = S (dim A)
 
   {- Action of substitutions on types and terms and substitutions on a syntactical level -}
   _[_]Pre-Ty : Pre-Ty → Pre-Sub → Pre-Ty
@@ -70,6 +67,20 @@ module Globular-TT.Syntax (index : Set) where
   _ # _ ∈ ⊘ = ⊥
   x # A ∈ (Γ ∙ y # B) = (x # A ∈ Γ) + ((x == y) × (A == B))
 
+
+  {- dimension of types -}
+  dim : Pre-Ty → ℕ
+  dim ∗ = O
+  dim (⇒ A t u) = S (dim A)
+
+  dim[] : ∀ (A : Pre-Ty) (γ : Pre-Sub) → dim (A [ γ ]Pre-Ty) == dim A
+  dim[] ∗ γ = idp
+  dim[] (⇒ A x x₁) γ = S= (dim[] A γ)
+
+  dimC : Pre-Ctx → ℕ
+  dimC ⊘ = O
+  dimC (Γ ∙ x # A) = max (dimC Γ) (dim A)
+
   {- Identity and canonical projection -}
   Pre-id : ∀ (Γ : Pre-Ctx) → Pre-Sub
   Pre-id ⊘ = <>
@@ -80,12 +91,22 @@ module Globular-TT.Syntax (index : Set) where
 
 
   {- Translation of GSeTT to a globular-TT -}
-  -- GPre-Ctx : GSeTT.Syntax.Pre-Ctx → Pre-Ctx
-  -- GPre-Ty : GSeTT.Syntax.Pre-Ty → Pre-Ty
-  -- GPre-Tm : GSeTT.Syntax.Pre-Tm → Pre-Tm
+  GPre-Ctx : GSeTT.Syntax.Pre-Ctx → Pre-Ctx
+  GPre-Ty : GSeTT.Syntax.Pre-Ty → Pre-Ty
+  GPre-Tm : GSeTT.Syntax.Pre-Tm → Pre-Tm
 
-  -- GPre-Ctx nil = ⊘
-  -- GPre-Ctx (Γ :: (x , A)) = (GPre-Ctx Γ) ∙ x # (GPre-Ty A)
-  -- GPre-Ty GSeTT.Syntax.∗ = ∗
-  -- GPre-Ty (GSeTT.Syntax.⇒ A t u) = ⇒ (GPre-Ty A) (GPre-Tm t) (GPre-Tm u)
-  -- GPre-Tm (GSeTT.Syntax.Var x) = Var x
+  GPre-Ctx nil = ⊘
+  GPre-Ctx (Γ :: (x , A)) = (GPre-Ctx Γ) ∙ x # (GPre-Ty A)
+  GPre-Ty GSeTT.Syntax.∗ = ∗
+  GPre-Ty (GSeTT.Syntax.⇒ A t u) = ⇒ (GPre-Ty A) (GPre-Tm t) (GPre-Tm u)
+  GPre-Tm (GSeTT.Syntax.Var x) = Var x
+
+  {- Depth of a term -}
+  depth : Pre-Tm → ℕ
+  depthS : Pre-Sub → ℕ
+
+  depth (Var x) = O
+  depth (Tm-constructor i γ) = S (depthS γ)
+
+  depthS <> = O
+  depthS < γ , x ↦ t > = max (depthS γ) (depth t)

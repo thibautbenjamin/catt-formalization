@@ -2,10 +2,11 @@
 
 open import Agda.Primitive
 open import Prelude
+import GSeTT.Typed-Syntax
 import Globular-TT.Syntax
 
 {- Structure of CwF of a globular type theory : Cut admissibility is significantly harder and has to be proved together with it -}
-module Globular-TT.CwF-Structure (index : Set) (rule : index → (Globular-TT.Syntax.Pre-Ctx index) × (Globular-TT.Syntax.Pre-Ty index)) where
+module Globular-TT.CwF-Structure (index : Set) (rule : index → GSeTT.Typed-Syntax.Ctx × (Globular-TT.Syntax.Pre-Ty index)) where
   open import Globular-TT.Syntax index
   open import Globular-TT.Rules index rule
 

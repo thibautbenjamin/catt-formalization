@@ -198,6 +198,29 @@ module Prelude where
   _<_ : ℕ → ℕ → Set
   n < m = (n ≤ m) × (n ≠ m)
 
+  max : ℕ → ℕ → ℕ
+  max n m with dec-≤ n m
+  ...     | inl _ = n
+  ...     | inr _ = m
+
+
+  ≤-= : ∀ {n m k} → n ≤ m → m == k → n ≤ k
+  ≤-= n≤m idp = n≤m
+
+  =-≤ : ∀ {n m k} → n == m → m ≤ k → n ≤ k
+  =-≤ idp m≤k = m≤k
+
+
+  ≤T : ∀ {n m k} → n ≤ m → m ≤ k → n ≤ k
+  ≤T = {!!}
+
+  n≤max : ∀ n m → n ≤ max n m
+  n≤max = {!!}
+
+  m≤max : ∀ n m → m ≤ max n m
+  m≤max = {!!}
+
+
   data list {i} : Set i → Set (lsuc i) where
     nil : ∀{A} → list A
     _::_ : ∀ {A} → list A → (a : A) → list A
