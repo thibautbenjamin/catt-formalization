@@ -5,12 +5,12 @@ open import Prelude
 import GSeTT.Syntax
 
 {- Syntax for a globular type theory, with arbitrary term constructors -}
-module Globular-TT.Syntax (index : Set) where
+module Globular-TT.Syntax {l} (index : Set l) where
 
-  data Pre-Ty : Set₁
-  data Pre-Tm : Set₁
-  data Pre-Sub : Set₁
-  data Pre-Ctx : Set₁
+  data Pre-Ty : Set (lsuc l)
+  data Pre-Tm : Set (lsuc l)
+  data Pre-Sub : Set (lsuc l)
+  data Pre-Ctx : Set (lsuc l)
 
   data Pre-Ty where
     ∗ : Pre-Ty
@@ -63,7 +63,7 @@ module Globular-TT.Syntax (index : Set) where
   < γ , x ↦ t > ∘ δ = < γ ∘ δ , x ↦ t [ δ ]Pre-Tm >
 
 
-  _#_∈_ : ℕ → Pre-Ty → Pre-Ctx → Set₁
+  _#_∈_ : ℕ → Pre-Ty → Pre-Ctx → Set (lsuc l)
   _ # _ ∈ ⊘ = ⊥
   x # A ∈ (Γ ∙ y # B) = (x # A ∈ Γ) + ((x == y) × (A == B))
 

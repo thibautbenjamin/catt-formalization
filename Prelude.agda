@@ -98,14 +98,25 @@ module Prelude where
   fst-is-inj idp = idp
 
 
-  is-contr : Set → Set
+  is-contr : ∀ {i} → Set i → Set i
   is-contr A = Σ A (λ x → ((y : A) → x == y))
 
-  is-prop : Set → Set
+  is-prop : ∀ {i} → Set i → Set i
   is-prop A = ∀ (x y : A) → is-contr (x == y)
 
-  is-set : Set → Set
+  is-set : ∀{i} → Set i → Set i
   is-set A = ∀ (x y : A) → is-prop (x == y)
+
+  has-all-paths : ∀ {i} → Set i → Set i
+  has-all-paths A = ∀ (a b : A) → a == b
+
+  has-all-paths-is-prop : ∀ {i} → {A : Set i} → has-all-paths A → is-prop A
+  has-all-paths-is-prop = {!!}
+
+  is-prop-has-all-paths : ∀ {i} → {A : Set i} → is-prop A → has-all-paths A
+  is-prop-has-all-paths = {!!}
+
+
 
   data ⊥ {i} : Set i where
 
@@ -132,6 +143,8 @@ module Prelude where
   eqdec : ∀ {i} → Set i → Set i
   eqdec A = ∀ (a b : A) → dec (a == b)
 
+  eqdec-is-set : ∀ {i} {A : Set i} → eqdec A → is-set A
+  eqdec-is-set = {!!}
 
   -- Stuff about ℕ inspired from HoTT-Agda
   S= : ∀{n m} → n == m → S n == S m
@@ -177,6 +190,10 @@ module Prelude where
   n≤n : ∀ (n : ℕ) → n ≤ n
   n≤n O = 0≤ O
   n≤n (S n) = S≤ (n≤n n)
+
+  n≤Sn : ∀ (n : ℕ) → n ≤ S n
+  n≤Sn O = 0≤ _
+  n≤Sn (S n) = S≤ (n≤Sn _)
 
   Sn≰n : ∀ (n : ℕ) → ¬ (S n ≤ n)
   Sn≰n .(S _) (S≤ Sn≤n) = Sn≰n _ Sn≤n
@@ -234,6 +251,10 @@ module Prelude where
   length : ∀ {i} {A : Set i} → list A → ℕ
   length nil = 0
   length (l :: _) = S (length l)
+
+  _++_ : ∀ {i} {A : Set i} → list A → list A → list A
+  l ++ nil = l
+  l ++ (l' :: a) = (l ++ l') :: a
 
   ifdec_>_then_else_ : ∀ {i j} {A : Set i} (B : Set j) → (dec B) → A → A → A
   ifdec b > inl x then A else B = A

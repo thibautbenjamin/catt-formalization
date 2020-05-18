@@ -1,14 +1,15 @@
-{-# OPTIONS --rewriting --allow-unsolved-metas #-}
+{-# OPTIONS --rewriting #-}
 
 open import Agda.Primitive
 open import Prelude
 import GSeTT.Rules
 import GSeTT.Typed-Syntax
 import Globular-TT.Syntax
+import Globular-TT.Rules
 
 {- Decidability of type cheking for the type theory for globular sets -}
-module Globular-TT.Dec-Type-Checking (index : Set) (rule : index → GSeTT.Typed-Syntax.Ctx × (Globular-TT.Syntax.Pre-Ty index))
-                                                   (assumption : ∀ i → (Globular-TT.Syntax.dimC index) ((Globular-TT.Syntax.GPre-Ctx index) (fst (fst (rule i)))) ≤ (Globular-TT.Syntax.dim index) (snd (rule i)))
+module Globular-TT.Dec-Type-Checking {l} (index : Set l) (rule : index → GSeTT.Typed-Syntax.Ctx × (Globular-TT.Syntax.Pre-Ty index))
+                                                   (assumption : Globular-TT.Rules.well-founded index rule)
                                                    (eqdec-index : eqdec index) where
   open import Globular-TT.Syntax index
   open import Globular-TT.Rules index rule
@@ -77,7 +78,7 @@ module Globular-TT.Dec-Type-Checking (index : Set) (rule : index → GSeTT.Typed
                                                     with dec-G⊢T (fst (rule i)) n (Ti i) (=-≤ (dim[] _ _ ^) dimA≤n)
   ...                                                 | inr Ci⊬Ti = inr λ{(tm _ Ci⊢Ti _) → Ci⊬Ti Ci⊢Ti}
   ...                                                 | inl Ci⊢Ti with dec-G⊢S Γ (fst (rule i)) n d γ
-                                                                               (≤T (≤-= (assumption i)  (dim[] _ _ ^)) dimA≤n)         -- dim Ci ≤ dim A
+                                                                               (≤T (≤-= (assumption i Ci⊢Ti) (dim[] _ _ ^)) dimA≤n)    -- dim Ci ≤ dim A
                                                                                dγ≤d                                                    -- depth γ ≤ d
   ...                                                             | inr Γ⊬γ = inr λ{(tm _ _ Γ⊢γ) → Γ⊬γ Γ⊢γ}
   ...                                                             | inl Γ⊢γ = inl (tm i Ci⊢Ti Γ⊢γ)

@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting #-}
+{-# OPTIONS --rewriting --allow-unsolved-metas #-}
 
 open import Agda.Primitive
 open import Prelude
@@ -8,10 +8,8 @@ import Globular-TT.Syntax
 
 
 {- Type theory for globular sets -}
-module Globular-TT.Uniqueness-Derivations
-  (index : Set) (rule : index → GSeTT.Typed-Syntax.Ctx × (Globular-TT.Syntax.Pre-Ty index))
-  (assumption : ∀ i → (Globular-TT.Syntax.dimC index) ((Globular-TT.Syntax.GPre-Ctx index) (fst (fst (rule i)))) ≤ (Globular-TT.Syntax.dim index) (snd (rule i)))
-  (eqdec-index : eqdec index) where
+module Globular-TT.Uniqueness-Derivations {l}
+  (index : Set l) (rule : index → GSeTT.Typed-Syntax.Ctx × (Globular-TT.Syntax.Pre-Ty index)) where
 
   open import Globular-TT.Syntax index
   open import Globular-TT.Rules index rule
@@ -53,8 +51,12 @@ module Globular-TT.Uniqueness-Derivations
   has-all-paths-⊢S {Δ} {Γ} {<>} (es Δ⊢) (es Δ⊢')= ap es (has-all-paths-⊢C Δ⊢ Δ⊢')
   has-all-paths-⊢S {Δ} {Γ} {< γ , x ↦ t >} (sc Δ⊢γ Γ+⊢ Δ⊢t) (sc Δ⊢'γ Γ+⊢' Δ⊢'t) = ap³ sc (has-all-paths-⊢S Δ⊢γ Δ⊢'γ) (has-all-paths-⊢C Γ+⊢ Γ+⊢') (has-all-paths-⊢t Δ⊢t Δ⊢'t)
 
-  is-contr-⊢C : ∀ Γ → is-contr (Γ ⊢C)
-  is-contr-⊢T : ∀ Γ A → is-contr (Γ ⊢T A)
-  is-contr-⊢t : ∀ Γ A t → is-contr (Γ ⊢t t # A)
-  is-contr-⊢S : ∀ Δ Γ γ → is-contr (Δ ⊢S γ > Γ)
+  is-prop-⊢C : ∀ Γ → is-prop (Γ ⊢C)
+  is-prop-⊢T : ∀ Γ A → is-prop (Γ ⊢T A)
+  is-prop-⊢t : ∀ Γ A t → is-prop (Γ ⊢t t # A)
+  is-prop-⊢S : ∀ Δ Γ γ → is-prop (Δ ⊢S γ > Γ)
 
+  is-prop-⊢C = {!!}
+  is-prop-⊢T = {!!}
+  is-prop-⊢t = {!!}
+  is-prop-⊢S = {!!}

@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting #-}
+{-# OPTIONS --rewriting --allow-unsolved-metas #-}
 
 open import Agda.Primitive
 open import Prelude
@@ -6,7 +6,7 @@ import GSeTT.Typed-Syntax
 import Globular-TT.Syntax
 
 {- Disk and Sphere contexts - properties -}
-module Globular-TT.Disks (index : Set) (rule : index → GSeTT.Typed-Syntax.Ctx × (Globular-TT.Syntax.Pre-Ty index)) where
+module Globular-TT.Disks {l} (index : Set l) (rule : index → GSeTT.Typed-Syntax.Ctx × (Globular-TT.Syntax.Pre-Ty index)) where
   open import Globular-TT.Syntax index
   open import Globular-TT.Rules index rule
   open import Globular-TT.CwF-Structure index rule

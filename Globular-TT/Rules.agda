@@ -8,7 +8,7 @@ open import GSeTT.Typed-Syntax
 import Globular-TT.Syntax
 
 
-module Globular-TT.Rules (index : Set) (rule : index → GSeTT.Typed-Syntax.Ctx × (Globular-TT.Syntax.Pre-Ty index)) where
+module Globular-TT.Rules {l} (index : Set l) (rule : index → GSeTT.Typed-Syntax.Ctx × (Globular-TT.Syntax.Pre-Ty index)) where
   open import Globular-TT.Syntax index
 
   {- Notational shortcuts : the context corresponding to an index -}
@@ -18,10 +18,10 @@ module Globular-TT.Rules (index : Set) (rule : index → GSeTT.Typed-Syntax.Ctx 
   Ti : index → Pre-Ty
   Ti i = snd (rule i)
 
-  data _⊢C : Pre-Ctx → Set₁
-  data _⊢T_ : Pre-Ctx → Pre-Ty → Set₁
-  data _⊢t_#_ : Pre-Ctx → Pre-Tm → Pre-Ty → Set₁
-  data _⊢S_>_ : Pre-Ctx → Pre-Sub → Pre-Ctx → Set₁
+  data _⊢C : Pre-Ctx → Set (lsuc l)
+  data _⊢T_ : Pre-Ctx → Pre-Ty → Set (lsuc l)
+  data _⊢t_#_ : Pre-Ctx → Pre-Tm → Pre-Ty → Set (lsuc l)
+  data _⊢S_>_ : Pre-Ctx → Pre-Sub → Pre-Ctx → Set (lsuc l)
 
   data _⊢C where
     ec : ⊘ ⊢C
@@ -99,3 +99,6 @@ module Globular-TT.Rules (index : Set) (rule : index → GSeTT.Typed-Syntax.Ctx 
 
   -- The proposition Γ⊢t:A→Γ⊢A is slightly harder and is moved in CwF-Struture since it depends on lemmas there
 
+  -- Type epressing that the rules are well-founded (useful to show that judgments are decidable)
+  well-founded : Set (lsuc l)
+  well-founded = ∀ (i : index) → Ci i ⊢T Ti i → dimC (Ci i) ≤ dim (Ti i)
