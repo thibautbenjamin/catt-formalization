@@ -37,6 +37,10 @@ module CaTT.CaTT where
    well-foundedness ((Γ , A) , Afull) Γ⊢A = {!!}
 
    eqdecJ : eqdec J
-   eqdecJ ((Γ , A) , Afull) ((Γ' , A') , A'full) = {!!}
+   eqdecJ ((Γ , A) , Afull) ((Γ' , A') , A'full) with eqdec-ps Γ Γ' | eqdec-Ty A A'
+   ...                                           | inl idp | inl idp = inl (ap (λ X → ((Γ , A) , X)) (is-prop-has-all-paths (is-prop-full Γ A) Afull A'full))
+   ...                                           | inr Γ≠Γ' | _ = inr λ{idp → Γ≠Γ' idp}
+   ...                                           | inl idp | inr A≠A' = inr λ{idp → A≠A' idp}
 
-   open import Globular-TT.Dec-Type-Checking J rule well-foundedness {!!}
+
+   open import Globular-TT.Dec-Type-Checking J rule well-foundedness eqdecJ
