@@ -110,8 +110,11 @@ module Prelude where
   has-all-paths : ∀ {i} → Set i → Set i
   has-all-paths A = ∀ (a b : A) → a == b
 
+  has-all-paths-idp : ∀ {i} (A : Set i) (pathsA : has-all-paths A) (a : A) → pathsA a a == idp
+  has-all-paths-idp A pathsA a = {!pathsA!}
+
   has-all-paths-is-prop : ∀ {i} → {A : Set i} → has-all-paths A → is-prop A
-  has-all-paths-is-prop = {!!}
+  has-all-paths-is-prop pathsA x y = pathsA x y , λ {idp → {!!}}
 
   is-prop-has-all-paths : ∀ {i} → {A : Set i} → is-prop A → has-all-paths A
   is-prop-has-all-paths = {!!}
@@ -182,6 +185,9 @@ module Prelude where
   eqdecℕ (S a) (S b) with (eqdecℕ a b)
   ...                 | inl idp = inl idp
   ...                 | inr a≠b = inr (S-≠ a≠b)
+
+  is-setℕ : is-set ℕ
+  is-setℕ = {!!}
 
   data _≤_ : ℕ → ℕ → Set where
     0≤ : ∀ n → O ≤ n

@@ -4,6 +4,7 @@ open import Agda.Primitive
 open import Prelude
 open import GSeTT.Syntax
 open import GSeTT.Rules
+open import GSeTT.Uniqueness-Derivations
 
 {- Disk and Sphere contexts - properties -}
 module GSeTT.Disks where
@@ -159,9 +160,11 @@ module GSeTT.Disks where
                (×= (ap n-src (dim[] (n⇒ n) _ >> (dim⇒ n))) idp))
                (×= (S= (ap n-src (dim[] (n⇒ n) _ >> (dim⇒ n)))) idp)
 
+  is-set-Ty : ∀ Γ → is-set (Σ Pre-Ty (λ A → Γ ⊢T A))
+  is-set-Ty = {!!}
 
   Ty-classifier : ∀ Γ → is-equiv (Ty-n {Γ})
   is-equiv.g (Ty-classifier Γ) (A , Γ⊢A) = (dim A , χ A), χ Γ⊢A ⊢
-  is-equiv.f-g (Ty-classifier Γ) (A , Γ⊢A) = Σ= (⇒[χ Γ⊢A ] ^) {!!} -- TODO : prove and use that this type is a prop
-  is-equiv.g-f (Ty-classifier Γ) ((n , γ), Γ⊢γ:Sn) = Σ= (×= (dim-Ty-n n γ Γ⊢γ:Sn) (χTy-n n γ Γ⊢γ:Sn)) {!!} -- TODO : again use the fact that it is a prop
-  is-equiv.adj (Ty-classifier Γ) a = {!!} -- TODO : use the fact that types are prop
+  is-equiv.f-g (Ty-classifier Γ) (A , Γ⊢A) = Σ= (⇒[χ Γ⊢A ] ^) (has-all-paths-⊢T _ _)
+  is-equiv.g-f (Ty-classifier Γ) ((n , γ), Γ⊢γ:Sn) = Σ= (×= (dim-Ty-n n γ Γ⊢γ:Sn) (χTy-n n γ Γ⊢γ:Sn)) (has-all-paths-⊢S _ _)
+  is-equiv.adj (Ty-classifier Γ) ((n , γ) , Γ⊢γ:Sn) = (is-prop-has-all-paths (is-set-Ty Γ _ _)) _ _ 
