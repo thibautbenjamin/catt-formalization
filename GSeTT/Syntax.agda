@@ -47,10 +47,10 @@ module GSeTT.Syntax where
   _[_]Pre-Ty : Pre-Ty → Pre-Sub → Pre-Ty
   _[_]Pre-Tm : Pre-Tm → Pre-Sub → Pre-Tm
 
-  ∗ [ σ ]Pre-Ty = ∗
-  ⇒ A t u [ σ ]Pre-Ty = ⇒ (A [ σ ]Pre-Ty) (t [ σ ]Pre-Tm) (u [ σ ]Pre-Tm)
+  ∗ [ γ ]Pre-Ty = ∗
+  ⇒ A t u [ γ ]Pre-Ty = ⇒ (A [ γ ]Pre-Ty) (t [ γ ]Pre-Tm) (u [ γ ]Pre-Tm)
   Var x [ nil ]Pre-Tm = Var x
-  Var x [ σ :: (v , t) ]Pre-Tm = if x ≡ v then t else ((Var x) [ σ ]Pre-Tm)
+  Var x [ γ :: (v , t) ]Pre-Tm = if x ≡ v then t else ((Var x) [ γ ]Pre-Tm)
 
   _∘_ : Pre-Sub → Pre-Sub → Pre-Sub
   nil ∘ γ = nil
