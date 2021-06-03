@@ -15,7 +15,6 @@ module CaTT.Fullness where
 
   data _is-full-in_ : Ty → ps-ctx → Set₁
 
-
   data Ty where
     ∗ : Ty
     ⇒ : Ty → Tm → Tm → Ty
@@ -26,33 +25,52 @@ module CaTT.Fullness where
     <> : Sub
     <_,_↦_> : Sub → ℕ → Tm → Sub
 
-  lvarT : Ty → list ℕ
-  lvart : Tm → list ℕ
-  lvarS : Sub → list ℕ
+  -- lvarT : Ty → list ℕ
+  -- lvart : Tm → list ℕ
+  -- lvarS : Sub → list ℕ
 
-  lvarT ∗ = nil
-  lvarT (⇒ A t u) = (lvarT A ++ lvart t) ++ lvart u
-  lvart (v x) = nil :: x
-  lvart (coh _ _ _ γ) = lvarS γ
-  lvarS <> = nil
-  lvarS < γ , _ ↦ t > = lvarS γ ++ lvart t
+  -- lvarT ∗ = nil
+  -- lvarT (⇒ A t u) = (lvarT A ++ lvart t) ++ lvart u
+  -- lvart (v x) = nil :: x
+  -- lvart (coh _ _ _ γ) = lvarS γ
+  -- lvarS <> = nil
+  -- lvarS < γ , _ ↦ t > = lvarS γ ++ lvart t
+
+  -- varT : Ty → set
+  -- varT A = set-of-list (lvarT A)
+
+  -- vart : Tm → set
+  -- vart t = set-of-list (lvart t)
 
   varT : Ty → set
-  varT A = set-of-list (lvarT A)
-
   vart : Tm → set
-  vart t = set-of-list (lvart t)
+  varS : Sub → set
+
+  varT ∗ = Ø
+  varT (⇒ A t u) = (varT A) ∪-set ((vart t) ∪-set (vart u))
+  vart (v x) = singleton x
+  vart (coh Γ A Afull γ) = varS γ
+  varS <> = Ø
+  varS < γ , x ↦ t > = (varS γ) ∪-set (vart t)
+
 
   data _is-full-in_ where
-    side-cond₁ : ∀ Γ A t u → (src-var _ (snd Γ)) == ((varT A) ∪-set (vart t)) → (tgt-var _ (snd Γ)) == ((varT A) ∪-set (vart u)) → (⇒ A t u) is-full-in Γ
-    side-cond₂ : ∀ Γ A →  (varC (fst Γ)) == (varT A) → A is-full-in Γ
+    side-cond₁ : ∀ Γ A t u → (src-var _ (snd Γ)) ⊂ ((varT A) ∪-set (vart t)) → (tgt-var _ (snd Γ)) ⊂ ((varT A) ∪-set (vart u)) → (⇒ A t u) is-full-in Γ
+    side-cond₂ : ∀ Γ A →  (varC (fst Γ)) ⊂ (varT A) → A is-full-in Γ
+
+  side-cond₁= : ∀ Γ A t u ∂⁻-full₁ ∂⁻-full₂ ∂⁺-full₁ ∂⁺-full₂ → ∂⁻-full₁ == ∂⁻-full₂ → ∂⁺-full₁ == ∂⁺-full₂ → side-cond₁ Γ A t u ∂⁻-full₁ ∂⁺-full₁ == side-cond₁ Γ A t u ∂⁻-full₂ ∂⁺-full₂
+  side-cond₁= Γ A t u ∂⁻-full₁ .∂⁻-full₁ ∂⁺-full₁ .∂⁺-full₁ idp idp = idp
+
+  has-all-paths-is-full : ∀ Γ A → has-all-paths (A is-full-in Γ)
+  has-all-paths-is-full Γ .(⇒ A t u) (side-cond₁ .Γ A t u x x₁) (side-cond₁ .Γ .A .t .u x₂ x₃) = ap² (λ ∂⁻ → λ ∂⁺ → side-cond₁ Γ A t u ∂⁻ ∂⁺) (is-prop-has-all-paths (is-prop-⊂ (src-var (fst Γ) (snd Γ)) (varT A ∪-set vart t)) x x₂) (is-prop-has-all-paths (is-prop-⊂ (tgt-var (fst Γ) (snd Γ)) (varT A ∪-set vart u)) x₁ x₃)
+  has-all-paths-is-full Γ .(⇒ A t u) (side-cond₁ .Γ A t u x x₁) (side-cond₂ .Γ .(⇒ A t u) x₂) = {!!} --absurd case
+  has-all-paths-is-full Γ .(⇒ A t u) (side-cond₂ .Γ .(⇒ A t u) x) (side-cond₁ .Γ A t u x₁ x₂) = {!!} -- absurd case
+  has-all-paths-is-full Γ A (side-cond₂ .Γ .A x) (side-cond₂ .Γ .A x₁) = ap (side-cond₂ Γ A) (is-prop-has-all-paths (is-prop-⊂ (varC (fst Γ)) (varT A)) x x₁)
 
   is-prop-full : ∀ Γ A → is-prop (A is-full-in Γ)
-  is-prop-full = {!!}
+  is-prop-full Γ A = has-all-paths-is-prop (has-all-paths-is-full Γ A)
 
   -- TODO : move this at the right place
-  eqdec-ps : eqdec ps-ctx
-  eqdec-ps = {!!}
   eqdec-Ty : eqdec Ty
   eqdec-Tm : eqdec Tm
   eqdec-Sub : eqdec Sub

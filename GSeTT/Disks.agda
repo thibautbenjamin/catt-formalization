@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --allow-unsolved-metas #-}
+{-# OPTIONS --rewriting --without-K --allow-unsolved-metas #-}
 
 open import Agda.Primitive
 open import Prelude

@@ -69,6 +69,16 @@ module Prelude where
   ap : ∀ {i j} {A : Set i} {C : Set j} {M N : A} (f : A → C) → M == N → (f M) == (f N)
   ap f idp = idp
 
+  ap² : ∀ {i j k} {A : Set i} {B : Set k} {C : Set j} {a a' : A} {b b' : B} (f : A → B → C) → a == a' →  b == b' → (f a b) == (f a' b')
+  ap² f idp idp = idp
+
+  ap³ : ∀ {i j k l} {A : Set i} {B : Set k} {C : Set j} {D : Set l} {a a' : A} {b b' : B} {c c' : C} (f : A → B → C → D) → a == a' →  b == b' → c == c' → (f a b c) == (f a' b' c')
+  ap³ f idp idp idp = idp
+
+  ap⁴ : ∀ {i j k l m} {A : Set i} {B : Set k} {C : Set j} {D : Set l} {E : Set m} {a a' : A} {b b' : B} {c c' : C} {d d' : D} (f : A → B → C → D → E) → a == a' →  b == b' → c == c' → d == d' → (f a b c d) == (f a' b' c' d')
+  ap⁴ f idp idp idp idp = idp
+
+
   transport : ∀ {i j} {A : Set i} {B : A → Set j} {a a' : A} (pₐ : a == a') → B a → B a'
   transport pₐ b = coe (ap _ pₐ) b
 
@@ -88,15 +98,21 @@ module Prelude where
   Σ= : ∀ {i j} {A : Set i} {B : A → Set j}  {a a' : A} {b : B a} {b' : B a'} → (pₐ : a == a') → transport pₐ b == b' → (a , b) == (a' , b')
   Σ= idp idp = idp
 
+  ,= : ∀ {i j} {A : Set i} {B : Set j}  {a a' : A} {b b' : B} → a == a' → b == b' → (a , b) == (a' , b')
+  ,= idp idp = idp
+
+
   Σ-r : ∀ {i j k} {A : Set i} {B : A → Set j} (C : Σ A B → Set k) → A → Set (j ⊔ k)
   Σ-r {A = A} {B = B} C a = Σ (B a) (λ b → C (a , b))
 
   Σ-in : ∀ {i j k} {A : Set i} {B : A → Set j} (C : (a : A) → B a → Set k) → A → Set (j ⊔ k)
   Σ-in {A = A} {B = B} C a = Σ (B a) (λ b → C a b)
 
+  =, : ∀ {i j} {A : Set i} {B : Set j} {a a' : A} {b b' : B} → (a , b) == (a' , b') → (a == a') × (b == b')
+  =, = {!!}
+
   fst-is-inj : ∀ {i j} {A : Set i} {B : A → Set j} {x y : Σ A B} → x == y → fst x == fst y
   fst-is-inj idp = idp
-
 
   is-contr : ∀ {i} → Set i → Set i
   is-contr A = Σ A (λ x → ((y : A) → x == y))
@@ -178,6 +194,11 @@ module Prelude where
   n≠Sn O ()
   n≠Sn (S n) n=Sn = n≠Sn n (S-is-inj _ _ n=Sn)
 
+  Sn≠n : (n : ℕ) → (S n ≠ n)
+  Sn≠n O ()
+  Sn≠n (S n) Sn=n = Sn≠n n (S-is-inj _ _ Sn=n)
+
+
   eqdecℕ : eqdec ℕ
   eqdecℕ O O = inl idp
   eqdecℕ O (S b) = inr (O≠S b)
@@ -204,6 +225,9 @@ module Prelude where
   Sn≰n : ∀ (n : ℕ) → ¬ (S n ≤ n)
   Sn≰n .(S _) (S≤ Sn≤n) = Sn≰n _ Sn≤n
 
+  Sn≰0 : ∀ (n : ℕ) → ¬ (S n ≤ O)
+  Sn≰0 n ()
+
   n≤m→n≤Sm : ∀ {n m : ℕ} → n ≤ m → n ≤ S m
   n≤m→n≤Sm (0≤ n) = 0≤ (S n)
   n≤m→n≤Sm (S≤ n≤m) = S≤ (n≤m→n≤Sm n≤m)
@@ -218,8 +242,14 @@ module Prelude where
   ...               | inl n≤m = inl (S≤ n≤m)
   ...               | inr n≰m = inr λ {(S≤ n≤m) → n≰m n≤m}
 
+  -- _<_ : ℕ → ℕ → Set
+  -- n < m = (n ≤ m) × (n ≠ m)
+
   _<_ : ℕ → ℕ → Set
-  n < m = (n ≤ m) × (n ≠ m)
+  n < m = S n ≤ m
+
+  ≤×≠→< : ∀ {n m} → n ≤ m → n ≠ m → n < m
+  ≤×≠→< = {!!}
 
   max : ℕ → ℕ → ℕ
   max n m with dec-≤ n m
@@ -250,6 +280,10 @@ module Prelude where
 
   ::= : ∀ {i} {A : Set i} {l l' : list A} {a a' : A} → l == l' → a == a' → (l :: a) == (l' :: a')
   ::= idp idp = idp
+
+
+  =:: : ∀ {i} {A : Set i} {a b : A} {l k} → (l :: a) == (k :: b) → (l == k) × (a == b)
+  =:: = {!!}
 
   cons≠nil : ∀ {i} {A : Set i} {l : list A} {a : A} → (l :: a) ≠ nil
   cons≠nil = {!!}
@@ -291,3 +325,7 @@ module Prelude where
       f-g : (b : B) → f (g b) == b
       g-f : (a : A) → g (f a) == a
       adj : (a : A) → ap f (g-f a) == f-g (f a)
+
+  -- logical equivalence
+  _↔_ : ∀{i j} (A : Set i) (B : Set j) → Set (i ⊔ j)
+  A ↔ B = (A → B) × (B → A)

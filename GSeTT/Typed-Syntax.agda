@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --allow-unsolved-metas #-}
+{-# OPTIONS --rewriting --without-K --allow-unsolved-metas #-}
 
 open import Agda.Primitive
 open import Prelude
@@ -12,10 +12,10 @@ module GSeTT.Typed-Syntax where
   Ctx : Set₁
   Ctx = Σ Pre-Ctx (λ Γ → Γ ⊢C)
 
-  Ty : Ctx → Set
+  Ty : Ctx → Set₁
   Ty (Γ , _) = Σ Pre-Ty (λ A → Γ ⊢T A)
 
-  Tm : ∀ (Γ : Ctx) → Ty Γ → Set
+  Tm : ∀ (Γ : Ctx) → Ty Γ → Set₁
   Tm (Γ , _) (A , _) = Σ Pre-Tm (λ t → Γ ⊢t t # A)
 
   Sub : ∀ (Δ : Ctx) (Γ : Ctx) → Set₁

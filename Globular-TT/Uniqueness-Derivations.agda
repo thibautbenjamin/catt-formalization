@@ -14,12 +14,6 @@ module Globular-TT.Uniqueness-Derivations {l}
   open import Globular-TT.Syntax index
   open import Globular-TT.Rules index rule
 
-  ap² : ∀ {i j k} {A : Set i} {B : Set k} {C : Set j} {a a' : A} {b b' : B} (f : A → B → C) → a == a' →  b == b' → (f a b) == (f a' b')
-  ap² f idp idp = idp
-
-  ap³ : ∀ {i j k l} {A : Set i} {B : Set k} {C : Set j} {D : Set l} {a a' : A} {b b' : B} {c c' : C} (f : A → B → C → D) → a == a' →  b == b' → c == c' → (f a b c) == (f a' b' c')
-  ap³ f idp idp idp = idp
-
   lΓ≤n→n∉Γ : ∀ {Γ A} n → Γ ⊢C → C-length Γ ≤ n →  ¬ (n # A ∈ Γ)
   lΓ≤n→n∉Γ n (cc Γ⊢ Γ⊢A) Sl≤n (inl x) = lΓ≤n→n∉Γ n Γ⊢ (≤T (n≤Sn _) Sl≤n) x
   lΓ≤n→n∉Γ n (cc Γ⊢ Γ⊢A) Sl≤n (inr (idp , idp)) = Sn≰n _ Sl≤n
@@ -60,3 +54,7 @@ module Globular-TT.Uniqueness-Derivations {l}
   is-prop-⊢T = {!!}
   is-prop-⊢t = {!!}
   is-prop-⊢S = {!!}
+
+
+  unique-type : ∀ {Γ t u A B} → (Γ ⊢t t # A) → (Γ ⊢t u # B) →  t == u → A == B
+  unique-type = {!!}

@@ -7,7 +7,6 @@ import GSeTT.Rules
 open import GSeTT.Typed-Syntax
 import Globular-TT.Syntax
 
-
 module Globular-TT.Rules {l} (index : Set l) (rule : index → GSeTT.Typed-Syntax.Ctx × (Globular-TT.Syntax.Pre-Ty index)) where
   open import Globular-TT.Syntax index
 

@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --without-K #-}
+{-# OPTIONS --rewriting --without-K --allow-unsolved-metas #-}
 
 --
 -- Implementation of Sets using lists
@@ -32,6 +32,12 @@ module Sets {i} (A : Set i) (eqdecA : eqdec A) where
   Ø : set
   Ø = nil , valid-nil
 
+  valid-singleton : ∀ (x : A) → valid (nil :: x)
+  valid-singleton x y (inr p) (inr q) = ap inr (is-prop-has-all-paths (eqdec-is-set eqdecA y x) p q)
+
+  singleton : ∀ A → set
+  singleton x = (nil :: x) , valid-singleton x
+
   add-carrier : list A → A → list A
   add-carrier l a with dec-∈-list a l
   ...             | inl _ = l
@@ -55,8 +61,11 @@ module Sets {i} (A : Set i) (eqdecA : eqdec A) where
   _∈-set_ : A → set → Set i
   a ∈-set s = a ∈-list (fst s)
 
-  is-prop-∈-set : ∀ a s → has-all-paths (a ∈-set s)
-  is-prop-∈-set a s = snd s a
+  has-all-paths-∈-set : ∀ a s → has-all-paths (a ∈-set s)
+  has-all-paths-∈-set a s = snd s a
+
+  is-prop-∈-set : ∀ a s → is-prop (a ∈-set s)
+  is-prop-∈-set a s = has-all-paths-is-prop (has-all-paths-∈-set a s)
 
   add+ : set → list A → set
   add+ s nil = s
@@ -90,3 +99,33 @@ module Sets {i} (A : Set i) (eqdecA : eqdec A) where
   ∈-list-∈-set a (l :: b) a∈l+       | inl idp with dec-∈-list b (fst (add+ Ø l))
   ...                                           | inl a∈l = a∈l
   ...                                           | inr _ = inr idp
+
+-- Not that these are not *really* sets : the order matters
+-- In particular the identity types are not correct
+
+  _⊂_ : set → set → Set i
+  A ⊂ B = ∀ x → x ∈-set A → x ∈-set B
+
+
+  -- Move this in the Prelude... Prove it with cubical?
+  funext : ∀ {i} {A B : Set i} (f g : A → B) → (∀ x → f x == g x) → f == g
+  funext = {!!}
+
+  funext-dep : ∀ {i} {A : Set i} {B : A → Set i} (f g : ∀ a → B a) → (∀ a → f a == g a) → f == g
+  funext-dep = {!!}
+
+
+  has-all-paths-→ : ∀ {i} (A B : Set i) → has-all-paths B → has-all-paths (A → B)
+  has-all-paths-→ A B paths-B f g = funext f g (λ x → paths-B (f x) (g x))
+
+  has-all-paths-∀ : ∀ {i} (A : Set i) (B : A → Set i) → (∀ a → has-all-paths (B a)) → has-all-paths (∀ a →  B a)
+  has-all-paths-∀ A B paths-B f g = funext-dep f g λ a → paths-B a (f a) (g a)
+
+  is-prop-→ : ∀ {i} A B →  is-prop {i} B → is-prop (A → B)
+  is-prop-→ A B prop-B = has-all-paths-is-prop (has-all-paths-→ A B (is-prop-has-all-paths prop-B))
+
+  is-prop-∀ : ∀ {i} (A : Set i) (B : A →  Set i) →  (∀ a → is-prop (B a)) → is-prop (∀ a → B a)
+  is-prop-∀ A B prop-B = has-all-paths-is-prop (has-all-paths-∀ A B (λ a → is-prop-has-all-paths (prop-B a)))
+
+  is-prop-⊂ : ∀ A B → is-prop (A ⊂ B)
+  is-prop-⊂ A B = is-prop-∀ _ _ λ a → is-prop-→ _ _ (is-prop-∈-set a B)
