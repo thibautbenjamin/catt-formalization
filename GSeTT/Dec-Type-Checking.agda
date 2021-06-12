@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --without-K --allow-unsolved-metas #-}
+{-# OPTIONS --rewriting --without-K #-}
 
 open import Agda.Primitive
 open import Prelude
@@ -52,22 +52,20 @@ module GSeTT.Dec-Type-Checking where
     Δ⊢γ+:Γ+→Δ⊢γ : ∀ {Δ Γ x A γ y t} → Δ ⊢S (γ :: (y , t)) > (Γ :: (x , A)) → Δ ⊢S γ > Γ
     Δ⊢γ+:Γ+→Δ⊢γ (sc Δ⊢γ:Γ _ _ idp) = Δ⊢γ:Γ
 
-
-  -- This requires same techniques as for ℕ
   eqdec-Ty : eqdec Pre-Ty
   eqdec-Tm : eqdec Pre-Tm
 
   eqdec-Ty ∗ ∗ = inl idp
-  eqdec-Ty ∗ (⇒ _ _ _) = inr {!!}
-  eqdec-Ty (⇒ _ _ _) ∗ = inr {!!}
+  eqdec-Ty ∗ (⇒ _ _ _) = inr λ{()}
+  eqdec-Ty (⇒ _ _ _) ∗ = inr λ{()}
   eqdec-Ty (⇒ A t u) (⇒ B t' u') with eqdec-Ty A B | eqdec-Tm t t' | eqdec-Tm u u'
   ...                                      | inl idp       | inl idp       | inl idp      = inl idp
-  ...                                      | inl idp       | inl idp       | inr u≠u'     = inr {!!}
-  ...                                      | inl idp       | inr _         | _            = inr {!!}
-  ...                                      | inr _         | _             | _            = inr {!!}
+  ...                                      | inl idp       | inl idp       | inr u≠u'     = inr λ p → u≠u' (snd (=⇒ p))
+  ...                                      | inl idp       | inr t≠t'      | _            = inr λ p → t≠t' (snd (fst (=⇒ p)))
+  ...                                      | inr A≠B       | _             | _            = inr λ p → A≠B (fst (fst (=⇒ p)))
   eqdec-Tm (Var x) (Var y) with eqdecℕ x y
   ...                               | inl idp = inl idp
-  ...                               | inr x≠y = {!!}
+  ...                               | inr x≠y = inr λ p → x≠y (=Var p)
 
 
   dec-∈ : ∀ Γ x A → dec (x # A ∈ Γ)

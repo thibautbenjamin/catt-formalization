@@ -29,6 +29,8 @@ module Prelude where
     O : ℕ
     S : ℕ → ℕ
 
+  id : ∀ {i} {A : Set i} → A → A
+  id x = x
 
   {-# BUILTIN NATURAL ℕ #-}
 
@@ -228,6 +230,9 @@ module Prelude where
   Sn≰0 : ∀ (n : ℕ) → ¬ (S n ≤ O)
   Sn≰0 n ()
 
+  ≤S : ∀ (n m : ℕ) → n ≤ S m → (n ≤ m) + (n == S m)
+  ≤S = {!!}
+
   n≤m→n≤Sm : ∀ {n m : ℕ} → n ≤ m → n ≤ S m
   n≤m→n≤Sm (0≤ n) = 0≤ (S n)
   n≤m→n≤Sm (S≤ n≤m) = S≤ (n≤m→n≤Sm n≤m)
@@ -329,3 +334,22 @@ module Prelude where
   -- logical equivalence
   _↔_ : ∀{i j} (A : Set i) (B : Set j) → Set (i ⊔ j)
   A ↔ B = (A → B) × (B → A)
+
+  funext : ∀ {i} {A B : Set i} (f g : A → B) → (∀ x → f x == g x) → f == g
+  funext = {!!}
+
+  funext-dep : ∀ {i} {A : Set i} {B : A → Set i} (f g : ∀ a → B a) → (∀ a → f a == g a) → f == g
+  funext-dep = {!!}
+
+
+  _∈-list_ : ∀ {i} {A : Set i} → A → list A → Set i
+  x ∈-list nil = ⊥
+  x ∈-list (l :: a) = (x ∈-list l) + (x == a)
+
+  dec-∈-list : ∀ {i} {A : Set i} → eqdec A →  ∀ (a : A) (l : list A) → dec (a ∈-list l)
+  dec-∈-list eqdecA a nil = inr λ{()}
+  dec-∈-list eqdecA a (l :: b) with eqdecA a b
+  ...                    | inl idp = inl (inr idp)
+  ...                    | inr a≠b with dec-∈-list eqdecA a l
+  ...                             | inl a∈l = inl (inl a∈l)
+  ...                             | inr a∉l = inr λ{(inl a∈l) → a∉l a∈l; (inr a=b) → a≠b a=b}

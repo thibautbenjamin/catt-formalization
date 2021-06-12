@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --without-K --allow-unsolved-metas #-}
+{-# OPTIONS --rewriting --without-K #-}
 
 --
 -- Implementation of Sets using lists
@@ -7,20 +7,6 @@
 open import Prelude
 
 module Sets {i} (A : Set i) (eqdecA : eqdec A) where
-
-  -- TODO : move this in Prelude
-  _∈-list_ : A → list A → Set i
-  x ∈-list nil = ⊥
-  x ∈-list (l :: a) = (x ∈-list l) + (x == a)
-
-  dec-∈-list : ∀ a l → dec (a ∈-list l)
-  dec-∈-list a nil = inr λ{()}
-  dec-∈-list a (l :: b) with eqdecA a b
-  ...                    | inl idp = inl (inr idp)
-  ...                    | inr a≠b with dec-∈-list a l
-  ...                             | inl a∈l = inl (inl a∈l)
-  ...                             | inr a∉l = inr λ{(inl a∈l) → a∉l a∈l; (inr a=b) → a≠b a=b}
-
   valid : list A → Set i
   valid l = ∀ x → has-all-paths (x ∈-list l)
 
@@ -39,12 +25,12 @@ module Sets {i} (A : Set i) (eqdecA : eqdec A) where
   singleton x = (nil :: x) , valid-singleton x
 
   add-carrier : list A → A → list A
-  add-carrier l a with dec-∈-list a l
+  add-carrier l a with dec-∈-list eqdecA a l
   ...             | inl _ = l
   ...             | inr _ = l :: a
 
   add-valid : ∀ (s : set) a → valid (add-carrier (fst s) a)
-  add-valid (l , valid-l) a x b b' with dec-∈-list a l
+  add-valid (l , valid-l) a x b b' with dec-∈-list eqdecA a l
   ...                                     | inl x∈l = valid-l x b b'
   ...                                     | inr x∉l with eqdecA x a
   add-valid (l , valid-l) a .a (inl x∈l) b' | inr x∉l | inl idp = ⊥-elim (x∉l x∈l)
@@ -82,7 +68,7 @@ module Sets {i} (A : Set i) (eqdecA : eqdec A) where
   -- -- but being in the set is a proposition
   -- -- achieves the construction of propositional truncation in a reduced way
   ∈-set-∈-list : ∀ a l → a ∈-set set-of-list l → a ∈-list l
-  ∈-set-∈-list a (l :: b) a∈s with dec-∈-list b (fst (add+ Ø l))
+  ∈-set-∈-list a (l :: b) a∈s with dec-∈-list eqdecA b (fst (add+ Ø l))
   ...                          | inl _ = inl (∈-set-∈-list a l a∈s)
   ...                          | inr _ with eqdecA a b
   ...                                   | inl idp = inr idp
@@ -93,27 +79,18 @@ module Sets {i} (A : Set i) (eqdecA : eqdec A) where
   ∈-list-∈-set : ∀ a l → a ∈-list l → a ∈-set (set-of-list l)
   ∈-list-∈-set a (l :: b) a∈l+ with eqdecA a b
   ∈-list-∈-set a (l :: b) (inr a=b)  | inr a≠b = ⊥-elim (a≠b a=b)
-  ∈-list-∈-set a (l :: b) (inl a∈l)  | inr a≠b with dec-∈-list b (fst (add+ Ø l))
+  ∈-list-∈-set a (l :: b) (inl a∈l)  | inr a≠b with dec-∈-list eqdecA b (fst (add+ Ø l))
   ...                                            | inl _ = ∈-list-∈-set a l a∈l
   ...                                            | inr _ = inl (∈-list-∈-set a l a∈l)
-  ∈-list-∈-set a (l :: b) a∈l+       | inl idp with dec-∈-list b (fst (add+ Ø l))
+  ∈-list-∈-set a (l :: b) a∈l+       | inl idp with dec-∈-list eqdecA b (fst (add+ Ø l))
   ...                                           | inl a∈l = a∈l
   ...                                           | inr _ = inr idp
 
--- Not that these are not *really* sets : the order matters
--- In particular the identity types are not correct
+  -- Note that these are not *really* sets : the order matters
+  -- In particular the identity types are not correct
 
   _⊂_ : set → set → Set i
   A ⊂ B = ∀ x → x ∈-set A → x ∈-set B
-
-
-  -- Move this in the Prelude... Prove it with cubical?
-  funext : ∀ {i} {A B : Set i} (f g : A → B) → (∀ x → f x == g x) → f == g
-  funext = {!!}
-
-  funext-dep : ∀ {i} {A : Set i} {B : A → Set i} (f g : ∀ a → B a) → (∀ a → f a == g a) → f == g
-  funext-dep = {!!}
-
 
   has-all-paths-→ : ∀ {i} (A B : Set i) → has-all-paths B → has-all-paths (A → B)
   has-all-paths-→ A B paths-B f g = funext f g (λ x → paths-B (f x) (g x))
@@ -129,3 +106,12 @@ module Sets {i} (A : Set i) (eqdecA : eqdec A) where
 
   is-prop-⊂ : ∀ A B → is-prop (A ⊂ B)
   is-prop-⊂ A B = is-prop-∀ _ _ λ a → is-prop-→ _ _ (is-prop-∈-set a B)
+
+  _≗_ : set → set → Set i
+  A ≗ B = (A ⊂ B) × (B ⊂ A)
+
+  has-all-paths-≗ : ∀ A B → has-all-paths (A ≗ B)
+  has-all-paths-≗ A B (A⊂B , B⊂A) (A⊂'B , B⊂'A) = ,= (is-prop-has-all-paths (is-prop-⊂ A B) A⊂B A⊂'B) ((is-prop-has-all-paths (is-prop-⊂ B A) B⊂A B⊂'A))
+
+  is-prop-≗ : ∀ A B → is-prop (A ≗ B)
+  is-prop-≗ A B = has-all-paths-is-prop (has-all-paths-≗ A B)

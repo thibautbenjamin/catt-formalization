@@ -87,7 +87,7 @@ module Globular-TT.Dec-Type-Checking {l} (index : Set l) (rule : index → GSeTT
   dec-G⊢S Δ (nil , _) _ _ <> (0≤ _) _ = inl (es (GCtx _ (snd Δ)))
   dec-G⊢S Δ ((Γ :: _) , _) _ _ <> _ _ = inr λ {()}
   dec-G⊢S Δ (nil , _) _ _ < γ , x ↦ t > _ _ = inr λ {()}
-  dec-G⊢S Δ ((Γ :: (y , A)) , Γ+⊢@(GSeTT.Rules.cc Γ⊢ Γ⊢A)) n d < γ , x ↦ t > dimΓ+≤n dγ+≤d with dec-G⊢S Δ (Γ , Γ⊢) n d γ
+  dec-G⊢S Δ ((Γ :: (y , A)) , Γ+⊢@(GSeTT.Rules.cc Γ⊢ Γ⊢A idp)) n d < γ , x ↦ t > dimΓ+≤n dγ+≤d with dec-G⊢S Δ (Γ , Γ⊢) n d γ
                                                                                                       (≤T (n≤max (dimC (GPre-Ctx Γ)) (dim (GPre-Ty A))) dimΓ+≤n) -- dim Γ ≤ n
                                                                                                       (≤T (n≤max (depthS γ) (depth t)) dγ+≤d)                    -- depth γ ≤ d
                                                                                           | dec-G⊢t Δ n d ((GPre-Ty A) [ γ ]Pre-Ty) t
@@ -142,7 +142,7 @@ module Globular-TT.Dec-Type-Checking {l} (index : Set l) (rule : index → GSeTT
   ...             | inr Δ⊬ = inr λ{(es Δ⊢) → Δ⊬ Δ⊢}
   dec-⊢S:G Δ (nil , _) < γ , x ↦ x₁ > = inr λ{()}
   dec-⊢S:G Δ ((Γ :: _) , _) <> = inr λ{()}
-  dec-⊢S:G Δ ((Γ :: (v , A)) , Γ+⊢@(GSeTT.Rules.cc Γ⊢ Γ⊢A)) < γ , x ↦ t > with dec-⊢S:G Δ (Γ , Γ⊢) γ | dec-⊢t Δ ((GPre-Ty A) [ γ ]Pre-Ty) t | eqdecℕ x (length Γ)
+  dec-⊢S:G Δ ((Γ :: (v , A)) , Γ+⊢@(GSeTT.Rules.cc Γ⊢ Γ⊢A idp)) < γ , x ↦ t > with dec-⊢S:G Δ (Γ , Γ⊢) γ | dec-⊢t Δ ((GPre-Ty A) [ γ ]Pre-Ty) t | eqdecℕ x (length Γ)
   ...                                                                | inl Δ⊢γ | inl Δ⊢t | inl idp = inl (sc Δ⊢γ (GCtx _ Γ+⊢) Δ⊢t)
   ...                                                                | inr Δ⊬γ | _ | _ = inr λ{(sc Δ⊢γ _ _) → Δ⊬γ Δ⊢γ}
   ...                                                                | inl _ | inr Δ⊬t | _ = inr λ{(sc _ _ Δ⊢t) → Δ⊬t Δ⊢t}

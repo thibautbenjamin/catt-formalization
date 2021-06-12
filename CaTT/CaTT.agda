@@ -1,7 +1,8 @@
-{-# OPTIONS #-}
+{-# OPTIONS --allow-unsolved-metas #-}
 
 open import Prelude
 open import CaTT.Ps-contexts
+open import CaTT.Uniqueness-Derivations-Ps
 open import CaTT.Fullness
 import GSeTT.Typed-Syntax
 

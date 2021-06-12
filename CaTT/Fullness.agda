@@ -5,6 +5,7 @@ open import GSeTT.Syntax
 open import GSeTT.Rules
 open import GSeTT.Disks
 open import CaTT.Ps-contexts
+open import CaTT.Uniqueness-Derivations-Ps
 open import Sets ℕ eqdecℕ
 
 module CaTT.Fullness where
@@ -42,6 +43,9 @@ module CaTT.Fullness where
   -- vart : Tm → set
   -- vart t = set-of-list (lvart t)
 
+  varC : Pre-Ctx → set
+  varC = {!!}
+
   varT : Ty → set
   vart : Tm → set
   varS : Sub → set
@@ -53,19 +57,19 @@ module CaTT.Fullness where
   varS <> = Ø
   varS < γ , x ↦ t > = (varS γ) ∪-set (vart t)
 
-
+  -- TODO : Modify the first condition so that it does not use additional variables
   data _is-full-in_ where
-    side-cond₁ : ∀ Γ A t u → (src-var _ (snd Γ)) ⊂ ((varT A) ∪-set (vart t)) → (tgt-var _ (snd Γ)) ⊂ ((varT A) ∪-set (vart u)) → (⇒ A t u) is-full-in Γ
-    side-cond₂ : ∀ Γ A →  (varC (fst Γ)) ⊂ (varT A) → A is-full-in Γ
+    side-cond₁ : ∀ Γ A t u → (src-var Γ) ≗ ((varT A) ∪-set (vart t)) → (tgt-var Γ) ≗ ((varT A) ∪-set (vart u)) → (⇒ A t u) is-full-in Γ
+    side-cond₂ : ∀ Γ A →  (varC (fst Γ)) ≗ (varT A) → A is-full-in Γ
 
   side-cond₁= : ∀ Γ A t u ∂⁻-full₁ ∂⁻-full₂ ∂⁺-full₁ ∂⁺-full₂ → ∂⁻-full₁ == ∂⁻-full₂ → ∂⁺-full₁ == ∂⁺-full₂ → side-cond₁ Γ A t u ∂⁻-full₁ ∂⁺-full₁ == side-cond₁ Γ A t u ∂⁻-full₂ ∂⁺-full₂
   side-cond₁= Γ A t u ∂⁻-full₁ .∂⁻-full₁ ∂⁺-full₁ .∂⁺-full₁ idp idp = idp
 
   has-all-paths-is-full : ∀ Γ A → has-all-paths (A is-full-in Γ)
-  has-all-paths-is-full Γ .(⇒ A t u) (side-cond₁ .Γ A t u x x₁) (side-cond₁ .Γ .A .t .u x₂ x₃) = ap² (λ ∂⁻ → λ ∂⁺ → side-cond₁ Γ A t u ∂⁻ ∂⁺) (is-prop-has-all-paths (is-prop-⊂ (src-var (fst Γ) (snd Γ)) (varT A ∪-set vart t)) x x₂) (is-prop-has-all-paths (is-prop-⊂ (tgt-var (fst Γ) (snd Γ)) (varT A ∪-set vart u)) x₁ x₃)
+  has-all-paths-is-full Γ .(⇒ A t u) (side-cond₁ .Γ A t u x x₁) (side-cond₁ .Γ .A .t .u x₂ x₃) = {!!} -- ap² (λ ∂⁻ → λ ∂⁺ → side-cond₁ Γ A t u ∂⁻ ∂⁺) (is-prop-has-all-paths (is-prop-⊂ (src-var (fst Γ) (snd Γ)) (varT A ∪-set vart t)) x x₂) (is-prop-has-all-paths (is-prop-⊂ (tgt-var (fst Γ) (snd Γ)) (varT A ∪-set vart u)) x₁ x₃)
   has-all-paths-is-full Γ .(⇒ A t u) (side-cond₁ .Γ A t u x x₁) (side-cond₂ .Γ .(⇒ A t u) x₂) = {!!} --absurd case
   has-all-paths-is-full Γ .(⇒ A t u) (side-cond₂ .Γ .(⇒ A t u) x) (side-cond₁ .Γ A t u x₁ x₂) = {!!} -- absurd case
-  has-all-paths-is-full Γ A (side-cond₂ .Γ .A x) (side-cond₂ .Γ .A x₁) = ap (side-cond₂ Γ A) (is-prop-has-all-paths (is-prop-⊂ (varC (fst Γ)) (varT A)) x x₁)
+  has-all-paths-is-full Γ A (side-cond₂ .Γ .A x) (side-cond₂ .Γ .A x₁) = {!!} -- ap (side-cond₂ Γ A) (is-prop-has-all-paths (is-prop-⊂ (varC (fst Γ)) (varT A)) x x₁)
 
   is-prop-full : ∀ Γ A → is-prop (A is-full-in Γ)
   is-prop-full Γ A = has-all-paths-is-prop (has-all-paths-is-full Γ A)

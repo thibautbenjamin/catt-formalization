@@ -99,16 +99,6 @@ module GSeTT.Rules where
   wk[]t {x = x} (var {x = y} Γ⊢ y∈Γ) Δ⊢γ+:Γ+ | inr _ = idp
   wk[]t (var {Γ = Γ} Γ⊢ x∈Γ) Δ⊢γ+:Γ+ | inl idp = ⊥-elim (lΓ∉Γ Γ⊢ (transport {B = λ n → n # _ ∈ Γ} (Γ+⊢l (Δ⊢γ:Γ→Γ⊢ Δ⊢γ+:Γ+)) x∈Γ))
 
-
-  {- cut-admissibility : action of substitutions preserves derivability -}
-  []T : ∀ {Γ A Δ γ} → Γ ⊢T A → Δ ⊢S γ > Γ → Δ ⊢T (A [ γ ]Pre-Ty)
-  []t : ∀ {Γ A t Δ γ} → Γ ⊢t t # A → Δ ⊢S γ > Γ → Δ ⊢t (t [ γ ]Pre-Tm) # (A [ γ ]Pre-Ty)
-
-  []T (ob Γ⊢) Δ⊢γ:Γ = ob (Δ⊢γ:Γ→Δ⊢ Δ⊢γ:Γ)
-  []T (ar Γ⊢t:A Γ⊢u:A) Δ⊢γ:Γ = ar ([]t Γ⊢t:A Δ⊢γ:Γ) ([]t Γ⊢u:A Δ⊢γ:Γ)
-  []t {Γ = (Γ :: _)} {t = Var x} (var Γ+⊢@(cc Γ⊢ _ idp) (inl x∈Γ)) Δ⊢γ+:Γ+@(sc Δ⊢γ:Γ _ _ idp) with (eqdecℕ x (length Γ))
-  ...                                                                                     | inl idp = ⊥-elim (lΓ∉Γ Γ⊢ x∈Γ)
-  ...                                                                                     | inr _ = trT (wk[]T (Γ⊢t:A→Γ⊢A (var Γ⊢ x∈Γ)) Δ⊢γ+:Γ+ ^) ([]t (var Γ⊢ x∈Γ) Δ⊢γ:Γ)
-  []t {Γ = (Γ :: _)} {t = Var x} (var Γ+⊢@(cc Γ⊢ Γ⊢A idp) (inr (idp , idp))) Δ⊢γ+:Γ+@(sc Δ⊢γ:Γ x₁ Δ⊢t:A[γ] idp) with (eqdecℕ x (length Γ))
-  ...                                                                                     | inl _ = trT (wk[]T Γ⊢A Δ⊢γ+:Γ+ ^) Δ⊢t:A[γ]
-  ...                                                                                     | inr x≠x = ⊥-elim (x≠x idp)
+  dim[] : ∀ (A : Pre-Ty) (γ : Pre-Sub) → dim (A [ γ ]Pre-Ty) == dim A
+  dim[] ∗ γ = idp
+  dim[] (⇒ A x x₁) γ = S= (dim[] A γ)

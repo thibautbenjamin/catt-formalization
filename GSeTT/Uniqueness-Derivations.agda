@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --without-K --allow-unsolved-metas #-}
+{-# OPTIONS --rewriting --without-K #-}
 
 open import Agda.Primitive
 open import Prelude
@@ -41,7 +41,6 @@ module GSeTT.Uniqueness-Derivations where
   is-prop-⊢T Γ A = has-all-paths-is-prop has-all-paths-⊢T
   is-prop-⊢t Γ A t = has-all-paths-is-prop has-all-paths-⊢t
   is-prop-⊢S Γ Δ γ = has-all-paths-is-prop has-all-paths-⊢S
-
 
   Γ⊢→length∉ : ∀ {Γ A n} → length Γ ≤ n → Γ ⊢C → ¬ (n # A ∈ Γ)
   Γ⊢→length∉ {.(_ :: (length _ , _))} Sl≤n (cc Γ⊢ x₁ idp) (inl n∈Γ) = Γ⊢→length∉ (Sn≤m→n≤m Sl≤n) Γ⊢ n∈Γ

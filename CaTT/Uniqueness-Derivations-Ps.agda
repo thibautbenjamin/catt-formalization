@@ -55,7 +55,7 @@ module CaTT.Uniqueness-Derivations-Ps where
   has-all-paths-⊢psx (pse a) (pse b) = ap pse (has-all-paths-⊢psx a b)
 
   has-all-paths-⊢ps : ∀ Γ → has-all-paths (Γ ⊢ps)
-  has-all-paths-⊢ps Γ (ps Γ⊢psx₁) (ps Γ⊢psx₂) = ap ps (has-all-paths-⊢psx Γ⊢psx₁ Γ⊢psx₂)
+  has-all-paths-⊢ps Γ (ps Γ⊢psx₁) (ps Γ⊢psx₂) = {!!} -- ap ps (has-all-paths-⊢psx Γ⊢psx₁ Γ⊢psx₂)
 
   is-prop-⊢ps : ∀ Γ → is-prop (Γ ⊢ps)
   is-prop-⊢ps Γ = has-all-paths-is-prop (has-all-paths-⊢ps Γ)
@@ -64,3 +64,5 @@ module CaTT.Uniqueness-Derivations-Ps where
   eqdec-ps (Γ , Γ⊢ps) (Δ , Δ⊢ps) with eqdec-PreCtx Γ Δ
   ... | inl idp = inl (Σ= idp (is-prop-has-all-paths (is-prop-⊢ps Γ) _ _))
   ... | inr Γ≠Δ = inr λ{idp → Γ≠Δ idp}
+
+
