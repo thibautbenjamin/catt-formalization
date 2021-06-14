@@ -40,24 +40,21 @@ module CaTT.CaTT where
    dim-tm : ∀ {Γ x A} → Γ ⊢t Var x # A → ℕ
    dim-tm {Γ} {x} {A} _ = dim A
 
-   ∈-set-∪ : ∀ {x} A B → x ∈-set (A ∪-set B) → (x ∈-set A) + (x ∈-set B)
-   ∈-set-∪ = {!!}
-
-   ∈-singleton : ∀ {x y} → y ∈-set singleton x → y == x
-   ∈-singleton = {!!}
-
    dim-∈-var : ∀ {Γ A x B} → Γ ⊢t Var x # B → Γ ⊢T (Ty→Pre-Ty A) → x ∈-set varT A → dim B < dim (Ty→Pre-Ty A)
    dim-∈-var-t : ∀ {Γ t A x B} → Γ ⊢t Var x # B → Γ ⊢t (Tm→Pre-Tm t) # (Ty→Pre-Ty A) → x ∈-set vart t → dim B ≤ dim (Ty→Pre-Ty A)
 
-   dim-∈-var {Γ} {A⇒@(⇒ A t u)} {x} {B} Γ⊢x (ar Γ⊢A Γ⊢t Γ⊢u) x∈A⇒ with ∈-set-∪ (varT A) (vart t ∪-set vart u) x∈A⇒
-   ... | inl x∈A = n≤m→n≤Sm (dim-∈-var Γ⊢x Γ⊢A x∈A)
-   ... | inr x∈t∪u with ∈-set-∪ (vart t) (vart u) x∈t∪u
-   ... | inl x∈t = S≤ (dim-∈-var-t Γ⊢x Γ⊢t x∈t)
-   ... | inr x∈u = S≤ (dim-∈-var-t Γ⊢x Γ⊢u x∈u)
+   -- dim-∈-var {Γ} {A⇒@(⇒ A t u)} {x} {B} Γ⊢x (ar Γ⊢A Γ⊢t Γ⊢u) x∈A⇒ with ∈-∪ (varT A) (vart t ∪-set vart u) x∈A⇒
+   -- ... | inl x∈A = n≤m→n≤Sm (dim-∈-var Γ⊢x Γ⊢A x∈A)
+   -- ... | inr x∈t∪u with ∈-∪ (vart t) (vart u) x∈t∪u
+   -- ... | inl x∈t = S≤ (dim-∈-var-t Γ⊢x Γ⊢t x∈t)
+   -- ... | inr x∈u = S≤ (dim-∈-var-t Γ⊢x Γ⊢u x∈u)
 
-   dim-∈-var-t {t = v x} Γ⊢x Γ⊢t x∈t with unique-type Γ⊢x Γ⊢t (ap Var (∈-singleton x∈t))
-   ... | idp = n≤n _
-   dim-∈-var-t {t = coh Γ A x γ} Γ⊢x Γ⊢t x∈t = {!!}
+   -- dim-∈-var-t {t = v x} Γ⊢x Γ⊢t x∈t with unique-type Γ⊢x Γ⊢t (ap Var (∈-singleton x∈t))
+   -- ... | idp = n≤n _
+   -- dim-∈-var-t {t = coh Γ A x γ} Γ⊢x Γ⊢t x∈t = {!!}
+
+   dim-∈-var = {!!}
+   dim-∈-var-t = {!!}
 
    -- techincal : a full term contains a variable of dimension at least one minus the dimension of the context
    full-term-have-max-variables : ∀ {Γ A Γ⊢ps} → A is-full-in ((Γ , Γ⊢ps)) →
@@ -69,7 +66,7 @@ module CaTT.CaTT where
    ... |((x , B) , Γ⊢x) , (x∈Γ , dimΓ≤Sdimx) = ≤T dimΓ≤Sdimx (dim-∈-var Γ⊢x Γ⊢A x∈Γ)
 
    eqdecJ : eqdec J
-   eqdecJ ((Γ , A) , Afull) ((Γ' , A') , A'full) with eqdec-ps Γ Γ' | eqdec-Ty A A'
+   eqdecJ ((Γ , A) , Afull) ((Γ' , A') , A'full) with eqdec-ps Γ Γ' | CaTT.Fullness.eqdec-Ty A A'
    ...                                           | inl idp | inl idp = inl (ap (λ X → ((Γ , A) , X)) (is-prop-has-all-paths (is-prop-full Γ A) Afull A'full))
    ...                                           | inr Γ≠Γ' | _ = inr λ{idp → Γ≠Γ' idp}
    ...                                           | inl idp | inr A≠A' = inr λ{idp → A≠A' idp}

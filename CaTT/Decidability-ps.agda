@@ -35,7 +35,7 @@ module CaTT.Decidability-ps where
 
 
 
-  𝔻0-var : ∀ x A → 𝔻 0 ⊢t (Var x) # A → x == 0
+  𝔻0-var : ∀ x A → Pre-𝔻 0 ⊢t (Var x) # A → x == 0
   𝔻0-var x A (var _ (inr (idp , _))) = idp
 
   ⊢psx→⊢ps : ∀ {Γ x A} → Γ ⊢ps x # A → Γ ⊢ps
@@ -79,7 +79,7 @@ module CaTT.Decidability-ps where
   ... | inl idp | inl idp with eqdecℕ x (S (length Γ))
   ... | inr x≠SlΓ = {!!}
   ... | inl idp with eqdec-PreTy A (⇒ B' (Var a) (Var y'))
-  ... | inl idp = inl (pse Γ⊢ps)
+  ... | inl idp = inl (pse Γ⊢ps idp idp idp idp idp)
   ... | inr A≠⇒ = inr λ Γ+⊢ps → A≠⇒ (unique-type (psvar Γ+⊢ps) (var (psv Γ+⊢ps) (inr (idp , idp))) idp)
 
   Γ⊢psx→x≤lΓ : ∀ {Γ x A} → Γ ⊢ps x # A → x ≤ length Γ

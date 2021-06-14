@@ -80,12 +80,21 @@ module Prelude where
   ap⁴ : ∀ {i j k l m} {A : Set i} {B : Set k} {C : Set j} {D : Set l} {E : Set m} {a a' : A} {b b' : B} {c c' : C} {d d' : D} (f : A → B → C → D → E) → a == a' →  b == b' → c == c' → d == d' → (f a b c d) == (f a' b' c' d')
   ap⁴ f idp idp idp idp = idp
 
-
   ap⁵ : ∀ {i j k l m n} {A : Set i} {B : Set k} {C : Set j} {D : Set l} {E : Set m} {F : Set n} {a a' : A} {b b' : B} {c c' : C} {d d' : D} {e e' : E} (f : A → B → C → D → E → F) → a == a' →  b == b' → c == c' → d == d' → e == e' → (f a b c d e) == (f a' b' c' d' e')
   ap⁵ f idp idp idp idp idp = idp
 
+  ap⁶ : ∀ {i j k l m n o} {A : Set i} {B : Set k} {C : Set j} {D : Set l} {E : Set m} {F : Set n} {G : Set o} {a a' : A} {b b' : B} {c c' : C} {d d' : D} {e e' : E} {f f' : F} (α : A → B → C → D → E → F → G) → a == a' →  b == b' → c == c' → d == d' → e == e' → f == f' → (α a b c d e f) == (α a' b' c' d' e' f')
+  ap⁶ f idp idp idp idp idp idp = idp
+
+  ap⁷ : ∀ {i j k l m n o p} {A : Set i} {B : Set k} {C : Set j} {D : Set l} {E : Set m} {F : Set n} {G : Set o} {H : Set p} {a a' : A} {b b' : B} {c c' : C} {d d' : D} {e e' : E} {f f' : F} {g g' : G} (α : A → B → C → D → E → F → G → H) → a == a' →  b == b' → c == c' → d == d' → e == e' → f == f' → g == g' → (α a b c d e f g) == (α a' b' c' d' e' f' g')
+  ap⁷ f idp idp idp idp idp idp idp = idp
+
+
   transport : ∀ {i j} {A : Set i} {B : A → Set j} {a a' : A} (pₐ : a == a') → B a → B a'
   transport pₐ b = coe (ap _ pₐ) b
+
+  transport₂ : ∀ {i j k} {A : Set i} {B : Set j} {C : A → B → Set k} {a a' : A} {b b' : B} (pₐ : a == a') (q : b == b') → C a b → C a' b'
+  transport₂ pₐ q c = coe (ap² _ pₐ q) c
 
   hfiber : ∀ {i} {A B : Set i} (f : A → B) (b : B) → Set i
   hfiber {A = A} f b = Σ A (λ a → f a == b)
@@ -105,7 +114,6 @@ module Prelude where
 
   ,= : ∀ {i j} {A : Set i} {B : Set j}  {a a' : A} {b b' : B} → a == a' → b == b' → (a , b) == (a' , b')
   ,= idp idp = idp
-
 
   Σ-r : ∀ {i j k} {A : Set i} {B : A → Set j} (C : Σ A B → Set k) → A → Set (j ⊔ k)
   Σ-r {A = A} {B = B} C a = Σ (B a) (λ b → C (a , b))
@@ -229,6 +237,10 @@ module Prelude where
   n≤n O = 0≤ O
   n≤n (S n) = S≤ (n≤n n)
 
+
+  Sn≰n-t : ∀ {n m} → n == m → ¬ (S n ≤ m)
+  Sn≰n-t = {!!}
+
   n≤Sn : ∀ (n : ℕ) → n ≤ S n
   n≤Sn O = 0≤ _
   n≤Sn (S n) = S≤ (n≤Sn _)
@@ -255,9 +267,6 @@ module Prelude where
   dec-≤ (S n) (S m) with (dec-≤ n m)
   ...               | inl n≤m = inl (S≤ n≤m)
   ...               | inr n≰m = inr λ {(S≤ n≤m) → n≰m n≤m}
-
-  -- _<_ : ℕ → ℕ → Set
-  -- n < m = (n ≤ m) × (n ≠ m)
 
   _<_ : ℕ → ℕ → Set
   n < m = S n ≤ m

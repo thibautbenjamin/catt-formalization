@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting #-}
+{-# OPTIONS --rewriting --without-K #-}
 
 open import Prelude
 open import GSeTT.Syntax
@@ -43,16 +43,6 @@ module CaTT.Relation where
 
   Γ⊢x:A→x∈Γ : ∀ {Γ x A} → Γ ⊢t (Var x) # A → x ∈ Γ
   Γ⊢x:A→x∈Γ (var _ x#A∈Γ) = x#A∈Γ→x∈Γ x#A∈Γ
-
-
-  -- TODO : cleanup and unite these two lemmas
-  x∉ : ∀ {Γ x} → Γ ⊢C → length Γ ≤ x → (∀ {A} → ¬ (Γ ⊢t (Var x) # A))
-  x∉ (cc Γ⊢ _ idp) l≤x (var _ (inl x∈Γ)) = x∉ Γ⊢ (Sn≤m→n≤m l≤x) (var Γ⊢ x∈Γ)
-  x∉ (cc Γ⊢ _ idp) l≤x (var _ (inr (idp , idp))) = Sn≰n _ l≤x
-
-  l∉ : ∀ {Γ x} → Γ ⊢C → length Γ ≤ x → ¬ (x ∈ Γ)
-  l∉ (cc Γ⊢ _ idp) l≤x (inl x∈Γ) = l∉ Γ⊢ (Sn≤m→n≤m l≤x) x∈Γ
-  l∉ (cc Γ⊢ _ idp) l≤x (inr idp) = Sn≰n _ l≤x
 
   data _,_⟿_ : Pre-Ctx → ℕ → ℕ → Set₁ where -- y is an iterated target of x in Γ
     ∂⁺⟿ : ∀{Γ x a y A} → Γ ⊢t (Var x) # (⇒ A (Var a) (Var y)) → Γ , x ⟿ y
@@ -115,9 +105,9 @@ module CaTT.Relation where
   no-loop pss (var _ (inl ())) idp
   no-loop pss (var _ (inr ())) idp
   no-loop (psd Γ⊢psf) Γ⊢x idp = no-loop Γ⊢psf Γ⊢x idp
-  no-loop (pse Γ⊢psb) (var _ (inl (inl x∈Γ))) idp = no-loop Γ⊢psb (var (Γ⊢psx:A→Γ⊢ Γ⊢psb) x∈Γ) idp
-  no-loop (pse Γ⊢psb) (var _ (inl (inr (idp , idp)))) idp = no-loop Γ⊢psb (Γ⊢psx:A→Γ⊢x:A Γ⊢psb) idp
-  no-loop (pse Γ⊢psb) (var _ (inr (idp , idp))) idp = x∉ (Γ⊢psx:A→Γ⊢ Γ⊢psb) (n≤n _) (Γ⊢psx:A→Γ⊢x:A Γ⊢psb)
+  no-loop (pse Γ⊢psb idp idp idp idp idp) (var _ (inl (inl x∈Γ))) idp = no-loop Γ⊢psb (var (Γ⊢psx:A→Γ⊢ Γ⊢psb) x∈Γ) idp
+  no-loop (pse Γ⊢psb idp idp idp idp idp) (var _ (inl (inr (idp , idp)))) idp = no-loop Γ⊢psb (Γ⊢psx:A→Γ⊢x:A Γ⊢psb) idp
+  no-loop (pse Γ⊢psb idp idp idp idp idp) (var _ (inr (idp , idp))) idp = x∉ (Γ⊢psx:A→Γ⊢ Γ⊢psb) (n≤n _) (Γ⊢psx:A→Γ⊢x:A Γ⊢psb)
 
   dangling-is-not-a-source : ∀ {Γ x A} → Γ ⊢ps x # A → (∀ f z {B} →  ¬ (Γ ⊢t Var f # ⇒ B (Var x) (Var z)))
   post-dangling-is-not-a-source : ∀ {Γ x A} → Γ ⊢ps x # A → (∀ {y B} f z → Γ , x ⟿ y →  ¬ (Γ ⊢t (Var f) # ⇒ B (Var y) (Var z)))
@@ -125,21 +115,21 @@ module CaTT.Relation where
   dangling-is-not-a-source pss _ _ (var _ (inl ()))
   dangling-is-not-a-source pss _ _ (var _ (inr ()))
   dangling-is-not-a-source {x = x} (psd Γ⊢ps) t u Γ⊢t = post-dangling-is-not-a-source Γ⊢ps t u  (∂⁺⟿ (psvar Γ⊢ps)) Γ⊢t
-  dangling-is-not-a-source (pse Γ⊢ps) _ _ (var _ (inl (inl x∈Γ))) = x∉ (psv Γ⊢ps) (n≤Sn _) (Γ⊢src (Γ⊢t:A→Γ⊢A (var (psv Γ⊢ps) x∈Γ)))
-  dangling-is-not-a-source (pse Γ⊢ps) _ _ (var _ (inl (inr (idp , idp)))) = x∉ (psv Γ⊢ps) (n≤Sn _) (Γ⊢src (Γ⊢t:A→Γ⊢A (psvar Γ⊢ps)))
-  dangling-is-not-a-source (pse Γ⊢ps) _ _ (var _ (inr (idp , idp))) = x∉ (psv Γ⊢ps) (n≤Sn _) (psvar Γ⊢ps)
+  dangling-is-not-a-source (pse Γ⊢ps idp idp idp idp idp) _ _ (var _ (inl (inl x∈Γ))) = x∉ (psv Γ⊢ps) (n≤Sn _) (Γ⊢src (Γ⊢t:A→Γ⊢A (var (psv Γ⊢ps) x∈Γ)))
+  dangling-is-not-a-source (pse Γ⊢ps idp idp idp idp idp) _ _ (var _ (inl (inr (idp , idp)))) = x∉ (psv Γ⊢ps) (n≤Sn _) (Γ⊢src (Γ⊢t:A→Γ⊢A (psvar Γ⊢ps)))
+  dangling-is-not-a-source (pse Γ⊢ps idp idp idp idp idp) _ _ (var _ (inr (idp , idp))) = x∉ (psv Γ⊢ps) (n≤Sn _) (psvar Γ⊢ps)
   post-dangling-is-not-a-source pss t u x⟿y Γ⊢t = 𝔻0-⟿ _ x⟿y
   post-dangling-is-not-a-source (psd Γ⊢ps) t u x⟿y Γ⊢t = post-dangling-is-not-a-source Γ⊢ps t u (T⟿ (∂⁺⟿ (psvar Γ⊢ps)) x⟿y) Γ⊢t
-  post-dangling-is-not-a-source Γ+⊢@(pse Γ⊢ps) t u (∂⁺⟿ Γ⊢Sl) Γ⊢t with unique-type Γ⊢Sl (psvar Γ+⊢) idp
-  post-dangling-is-not-a-source (pse Γ⊢ps) _ _ (∂⁺⟿ Γ⊢Sl) (var _ (inl (inl t∈Γ))) | idp = x∉ (psv Γ⊢ps) (n≤n _) (Γ⊢src (Γ⊢t:A→Γ⊢A (var (psv Γ⊢ps) t∈Γ)))
-  post-dangling-is-not-a-source (pse Γ⊢ps) _ _ (∂⁺⟿ Γ⊢Sl) (var _ (inl (inr (idp , idp)))) | idp = x∉ (psv Γ⊢ps) (n≤n _) (Γ⊢src (Γ⊢t:A→Γ⊢A (psvar Γ⊢ps)))
-  post-dangling-is-not-a-source (pse Γ⊢ps) _ _ (∂⁺⟿ Γ⊢Sl) (var _ (inr (idp , idp))) | idp = x∉ (psv Γ⊢ps) (n≤n _) (psvar Γ⊢ps)
-  post-dangling-is-not-a-source Γ+⊢@(pse Γ⊢ps) t u (x⟿∂⁺ Γ⊢Sl x⟿y) Γ⊢t with unique-type Γ⊢Sl (psvar Γ+⊢) idp
-  post-dangling-is-not-a-source (pse Γ⊢ps) _ _ (x⟿∂⁺ Γ⊢Sl x⟿y) (var Γ+⊢ (inl (inl t∈Γ))) | idp =
+  post-dangling-is-not-a-source Γ+⊢@(pse Γ⊢ps idp idp idp idp idp) t u (∂⁺⟿ Γ⊢Sl) Γ⊢t with unique-type Γ⊢Sl (psvar Γ+⊢) idp
+  post-dangling-is-not-a-source (pse Γ⊢ps idp idp idp idp idp) _ _ (∂⁺⟿ Γ⊢Sl) (var _ (inl (inl t∈Γ))) | idp = x∉ (psv Γ⊢ps) (n≤n _) (Γ⊢src (Γ⊢t:A→Γ⊢A (var (psv Γ⊢ps) t∈Γ)))
+  post-dangling-is-not-a-source (pse Γ⊢ps idp idp idp idp idp) _ _ (∂⁺⟿ Γ⊢Sl) (var _ (inl (inr (idp , idp)))) | idp = x∉ (psv Γ⊢ps) (n≤n _) (Γ⊢src (Γ⊢t:A→Γ⊢A (psvar Γ⊢ps)))
+  post-dangling-is-not-a-source (pse Γ⊢ps idp idp idp idp idp) _ _ (∂⁺⟿ Γ⊢Sl) (var _ (inr (idp , idp))) | idp = x∉ (psv Γ⊢ps) (n≤n _) (psvar Γ⊢ps)
+  post-dangling-is-not-a-source Γ+⊢@(pse Γ⊢ps idp idp idp idp idp) t u (x⟿∂⁺ Γ⊢Sl x⟿y) Γ⊢t with unique-type Γ⊢Sl (psvar Γ+⊢) idp
+  post-dangling-is-not-a-source (pse Γ⊢ps idp idp idp idp idp) _ _ (x⟿∂⁺ Γ⊢Sl x⟿y) (var Γ+⊢ (inl (inl t∈Γ))) | idp =
          post-dangling-is-not-a-source Γ⊢ps _ _ (//⟿ (var Γ+⊢ (inl (inr (idp , idp)))) (psvar Γ⊢ps) x⟿y) (var (psv Γ⊢ps) t∈Γ)
-  post-dangling-is-not-a-source (pse Γ⊢ps)  _ _ (x⟿∂⁺ Γ⊢Sl x⟿y) (var Γ+⊢ (inl (inr (idp , idp)))) | idp with ⟿-is-tgt (var Γ+⊢ (inl (inr (idp , idp)))) x⟿y
+  post-dangling-is-not-a-source (pse Γ⊢ps  idp idp idp idp idp)  _ _ (x⟿∂⁺ Γ⊢Sl x⟿y) (var Γ+⊢ (inl (inr (idp , idp)))) | idp with ⟿-is-tgt (var Γ+⊢ (inl (inr (idp , idp)))) x⟿y
   ... | idp = no-loop Γ⊢ps (psvar Γ⊢ps) idp
-  post-dangling-is-not-a-source (pse Γ⊢ps) _ _ (x⟿∂⁺ Γ⊢Sl x⟿y) (var Γ++⊢@(cc Γ+⊢ _ idp) (inr (idp , idp))) | idp = n≮n _ (⟿dim (var Γ++⊢ (inl (inr (idp , idp)))) (wkt (wkt (psvar Γ⊢ps) Γ+⊢) Γ++⊢) x⟿y)
+  post-dangling-is-not-a-source (pse Γ⊢ps idp idp idp idp idp) _ _ (x⟿∂⁺ Γ⊢Sl x⟿y) (var Γ++⊢@(cc Γ+⊢ _ p) (inr (idp , idp))) | idp = n≮n _ (⟿dim (var Γ++⊢ (inl (inr (idp , idp)))) (wkt (wkt (psvar Γ⊢ps) Γ+⊢) Γ++⊢) x⟿y)
 
   ⊢psx-◃₀→⟿ : ∀ {Γ x a A} → Γ ⊢ps x # A → Γ , x ◃₀ a → Γ , x ⟿ a
   ⊢psx-◃₀→⟿ Γ⊢psx (◃∂⁻ Γ⊢a) = ⊥-elim (dangling-is-not-a-source Γ⊢psx _ _ Γ⊢a)
@@ -161,30 +151,30 @@ module CaTT.Relation where
   psx-◃-linear→ : ∀ {Γ x A} → Γ ⊢ps x # A → (∀ a b → a ∈ Γ → b ∈ Γ → (((Γ , a ◃ b) + (Γ , b ◃ a)) + (a == b)))
   psx-◃-linear→ pss .0 .0 (inr idp) (inr idp) = inr idp
   psx-◃-linear→ (psd Γ⊢psx) a b a∈Γ b∈Γ = psx-◃-linear→ Γ⊢psx a b a∈Γ b∈Γ
-  psx-◃-linear→ Γ++⊢ps@(pse Γ⊢psx) a b (inl (inl a∈Γ)) (inl (inl b∈Γ)) with psx-◃-linear→ Γ⊢psx a b a∈Γ b∈Γ
+  psx-◃-linear→ Γ++⊢ps@(pse Γ⊢psx idp idp idp idp idp) a b (inl (inl a∈Γ)) (inl (inl b∈Γ)) with psx-◃-linear→ Γ⊢psx a b a∈Γ b∈Γ
   ... | inl (inl a◃b) = inl (inl (WW◃ (psv Γ++⊢ps) a◃b))
   ... | inl (inr b◃a) = inl (inr (WW◃ (psv Γ++⊢ps) b◃a))
   ... | inr idp = inr idp
-  psx-◃-linear→ Γ++⊢ps@(pse {x = x} Γ⊢psx) a .(length _) (inl (inl a∈Γ)) (inl (inr idp)) with psx-◃-linear→ Γ⊢psx a x a∈Γ (Γ⊢x:A→x∈Γ (psvar Γ⊢psx)) -- a ∈ Γ , b = y
+  psx-◃-linear→ Γ++⊢ps@(pse {x = x} Γ⊢psx idp idp idp idp idp) a .(length _) (inl (inl a∈Γ)) (inl (inr idp)) with psx-◃-linear→ Γ⊢psx a x a∈Γ (Γ⊢x:A→x∈Γ (psvar Γ⊢psx)) -- a ∈ Γ , b = y
   ... | inl (inl a◃x) = inl (inl (◃-trans (WW◃ (psv Γ++⊢ps) a◃x) (◃T (gen (◃∂⁻ (psvar Γ++⊢ps))) ((◃∂⁺ (psvar Γ++⊢ps)))))) -- a ◃ x
   ... | inl (inr x◃a) = inl (inr (⟿→◃ (//⟿ (psvar Γ⊢psx) (var (psv Γ++⊢ps) (inl (inr (idp , idp)))) (⊢psx-◃→⟿ Γ⊢psx x◃a)))) -- x ◃ a
   ... | inr idp = inl (inl (◃T (gen (◃∂⁻ (psvar Γ++⊢ps))) (◃∂⁺ (psvar Γ++⊢ps)))) -- a = x
-  psx-◃-linear→ Γ++⊢ps@(pse {x = x} Γ⊢psx) a .(S (length _)) (inl (inl a∈Γ)) (inr idp) with psx-◃-linear→ Γ⊢psx a x a∈Γ (Γ⊢x:A→x∈Γ (psvar Γ⊢psx)) -- a ∈ Γ , b = f (**)
+  psx-◃-linear→ Γ++⊢ps@(pse {x = x} Γ⊢psx idp idp idp idp idp) a .(S (length _)) (inl (inl a∈Γ)) (inr idp) with psx-◃-linear→ Γ⊢psx a x a∈Γ (Γ⊢x:A→x∈Γ (psvar Γ⊢psx)) -- a ∈ Γ , b = f (**)
   ... | inl (inl a◃x) = inl (inl (◃T (WW◃ (psv Γ++⊢ps) a◃x) (◃∂⁻ (psvar Γ++⊢ps)))) -- a ◃ x
   ... | inl (inr x◃a) = inl (inr (⟿→◃ (x⟿∂⁺ (psvar Γ++⊢ps) (//⟿ (psvar Γ⊢psx) (var (psv Γ++⊢ps) (inl (inr (idp , idp)))) (⊢psx-◃→⟿ Γ⊢psx x◃a))))) -- x ◃ a
   ... | inr idp = inl (inl (gen (◃∂⁻ (psvar Γ++⊢ps)))) -- a = x
-  psx-◃-linear→ Γ++⊢ps@(pse {x = x} Γ⊢psx) .(length _) b (inl (inr idp)) (inl (inl b∈Γ)) with psx-◃-linear→ Γ⊢psx b x b∈Γ (Γ⊢x:A→x∈Γ (psvar Γ⊢psx)) -- a = y, b ∈ Γ
+  psx-◃-linear→ Γ++⊢ps@(pse {x = x} Γ⊢psx idp idp idp idp idp) .(length _) b (inl (inr idp)) (inl (inl b∈Γ)) with psx-◃-linear→ Γ⊢psx b x b∈Γ (Γ⊢x:A→x∈Γ (psvar Γ⊢psx)) -- a = y, b ∈ Γ
   ... | inl (inl b◃x) = inl (inr (◃-trans (WW◃ (psv Γ++⊢ps) b◃x) (◃T (gen (◃∂⁻ (psvar Γ++⊢ps))) (◃∂⁺ (psvar Γ++⊢ps))))) -- b ◃ x
   ... | inl (inr x◃b) = inl (inl (⟿→◃ (//⟿ (psvar Γ⊢psx) (var (psv Γ++⊢ps) (inl (inr (idp , idp)))) (⊢psx-◃→⟿ Γ⊢psx x◃b)))) -- x ◃ b
   ... | inr idp = inl (inr (◃T (gen (◃∂⁻ (psvar Γ++⊢ps))) (◃∂⁺ (psvar Γ++⊢ps)))) -- b = x
-  psx-◃-linear→ (pse Γ⊢psx) .(length _) .(length _) (inl (inr idp)) (inl (inr idp)) = inr idp
-  psx-◃-linear→ Γ++⊢ps@(pse Γ⊢psx) .(length _) .(S (length _)) (inl (inr idp)) (inr idp) = inl (inr (gen (◃∂⁺ (psvar Γ++⊢ps)))) -- a = y, b = f
-  psx-◃-linear→ Γ++⊢ps@(pse {x = x} Γ⊢psx) .(S (length _)) b (inr idp) (inl (inl b∈Γ)) with psx-◃-linear→ Γ⊢psx b x b∈Γ (Γ⊢x:A→x∈Γ (psvar Γ⊢psx)) -- a = f b ∈ Γ
+  psx-◃-linear→ (pse Γ⊢psx idp idp idp idp idp) .(length _) .(length _) (inl (inr idp)) (inl (inr idp)) = inr idp
+  psx-◃-linear→ Γ++⊢ps@(pse Γ⊢psx idp idp idp idp idp) .(length _) .(S (length _)) (inl (inr idp)) (inr idp) = inl (inr (gen (◃∂⁺ (psvar Γ++⊢ps)))) -- a = y, b = f
+  psx-◃-linear→ Γ++⊢ps@(pse {x = x} Γ⊢psx  idp idp idp idp idp) .(S (length _)) b (inr idp) (inl (inl b∈Γ)) with psx-◃-linear→ Γ⊢psx b x b∈Γ (Γ⊢x:A→x∈Γ (psvar Γ⊢psx)) -- a = f b ∈ Γ
   ... | inl (inl b◃x) = inl (inr (◃T (WW◃ (psv Γ++⊢ps) b◃x) (◃∂⁻ (psvar Γ++⊢ps)))) -- b ◃ x
   ... | inl (inr x◃b) = inl (inl (⟿→◃ (x⟿∂⁺ (psvar Γ++⊢ps) (//⟿ (psvar Γ⊢psx) (var (psv Γ++⊢ps) (inl (inr (idp , idp)))) (⊢psx-◃→⟿ Γ⊢psx x◃b)))))  -- x ◃ b
   ... | inr idp = inl (inr (gen (◃∂⁻ (psvar Γ++⊢ps)))) -- b = x
-  psx-◃-linear→ Γ++⊢ps@(pse Γ⊢psx) .(S (length _)) .(length _) (inr idp) (inl (inr idp)) = inl (inl (gen (◃∂⁺ (psvar Γ++⊢ps)))) -- a = f, b = y
-  psx-◃-linear→ (pse Γ⊢psx) .(S (length _)) .(S (length _)) (inr idp) (inr idp) = inr idp
+  psx-◃-linear→ Γ++⊢ps@(pse Γ⊢psx idp idp idp idp idp) .(S (length _)) .(length _) (inr idp) (inl (inr idp)) = inl (inl (gen (◃∂⁺ (psvar Γ++⊢ps)))) -- a = f, b = y
+  psx-◃-linear→ (pse Γ⊢psx idp idp idp idp idp) .(S (length _)) .(S (length _)) (inr idp) (inr idp) = inr idp
 
   strengthen : ∀ {Γ x A y B} → (Γ :: (y , B)) ⊢t Var x # A → x ∈ Γ → Γ ⊢t Var x # A
   strengthen (var (cc Γ⊢ _ idp) (inl x#A∈Γ)) x∈Γ = var Γ⊢ x#A∈Γ
@@ -202,27 +192,27 @@ module CaTT.Relation where
   ◃∈ (◃T _ z◃₀x) = ◃₀∈ z◃₀x
 
   WWpsx : ∀ {Γ x A} → (Γ⊢ps : Γ ⊢ps x # A) → Γ++ Γ⊢ps ⊢t (Var x) # A
-  WWpsx Γ⊢ps = wkt (wkt (psvar Γ⊢ps) (cc (psv Γ⊢ps) (Γ⊢t:A→Γ⊢A (psvar Γ⊢ps)) idp)) (psv (pse Γ⊢ps))
+  WWpsx Γ⊢ps = wkt (wkt (psvar Γ⊢ps) (cc (psv Γ⊢ps) (Γ⊢t:A→Γ⊢A (psvar Γ⊢ps)) idp)) (psv (pse Γ⊢ps idp idp idp idp idp))
 
   dangling-◃₀ : ∀ {Γ x A a} → (Γ⊢ps : Γ ⊢ps x # A) → Γ++ Γ⊢ps , S (length Γ) ◃₀ a → a == length Γ
-  dangling-◃₀ Γ⊢ps (◃∂⁻ Γ⊢a) = ⊥-elim (dangling-is-not-a-source (pse Γ⊢ps) _ _ Γ⊢a)
+  dangling-◃₀ Γ⊢ps (◃∂⁻ Γ⊢a) = ⊥-elim (dangling-is-not-a-source (pse Γ⊢ps idp idp idp idp idp) _ _ Γ⊢a)
   dangling-◃₀ Γ⊢ps (◃∂⁺ (var _ (inl (inl Sl∈Γ)))) = ⊥-elim (l∉ (psv Γ⊢ps) (n≤Sn _) (x#A∈Γ→x∈Γ Sl∈Γ))
   dangling-◃₀ Γ⊢ps (◃∂⁺ (var _ (inl (inr (Sl=l , idp))))) = ⊥-elim (Sn≠n _ Sl=l)
-  dangling-◃₀ Γ⊢ps (◃∂⁺ (var _ (inr (idp , idp)))) = idp
+  dangling-◃₀ Γ⊢ps (◃∂⁺ (var _ (inr (_ , idp)))) = idp
 
   ◃₀-dangling : ∀ {Γ x A a} → (Γ⊢ps : Γ ⊢ps x # A) → Γ++ Γ⊢ps , a ◃₀ S (length Γ)  → a == x
-  ◃₀-dangling Γ⊢ps (◃∂⁻ Γ+⊢Sl) with unique-type Γ+⊢Sl (psvar (pse Γ⊢ps)) idp
+  ◃₀-dangling Γ⊢ps (◃∂⁻ Γ+⊢Sl) with unique-type Γ+⊢Sl (psvar (pse Γ⊢ps idp idp idp idp idp)) idp
   ... | idp = idp
   ◃₀-dangling Γ⊢ps (◃∂⁺ (var x (inl (inl a∈Γ)))) = ⊥-elim (x∉ (psv Γ⊢ps) (n≤Sn _) (Γ⊢tgt (Γ⊢t:A→Γ⊢A (var (psv Γ⊢ps) a∈Γ))))
   ◃₀-dangling Γ⊢ps (◃∂⁺ (var x (inl (inr (idp , idp))))) = ⊥-elim (x∉ (psv Γ⊢ps) (n≤Sn _) (Γ⊢tgt (Γ⊢t:A→Γ⊢A (psvar Γ⊢ps))))
   ◃₀-dangling Γ⊢ps (◃∂⁺ (var x (inr (idp , abs)))) = ⊥-elim (Sn≠n _ (=Var (snd (=⇒ abs))))
 
   ◃₀-dangling-tgt : ∀ {Γ x A a} → (Γ⊢ps : Γ ⊢ps x # A) → Γ++ Γ⊢ps , a ◃₀ length Γ  → (a == S (length Γ)) + (Γ++ Γ⊢ps , a ◃₀ x)
-  ◃₀-dangling-tgt Γ⊢ps (◃∂⁻ Γ+⊢l) with unique-type Γ+⊢l (var (psv (pse Γ⊢ps)) (inl (inr (idp , idp)))) idp
+  ◃₀-dangling-tgt Γ⊢ps (◃∂⁻ Γ+⊢l) with unique-type Γ+⊢l (var (psv (pse Γ⊢ps idp idp idp idp idp)) (inl (inr (idp , idp)))) idp
   ... | idp = inr (◃∂⁻ (WWpsx Γ⊢ps))
   ◃₀-dangling-tgt Γ⊢ps (◃∂⁺ (var x (inl (inl a∈Γ)))) = ⊥-elim (x∉ (psv Γ⊢ps) (n≤n _) (Γ⊢tgt (Γ⊢t:A→Γ⊢A (var (psv Γ⊢ps) a∈Γ))))
   ◃₀-dangling-tgt Γ⊢ps (◃∂⁺ (var x (inl (inr (idp , idp))))) = ⊥-elim (x∉ (psv Γ⊢ps) (n≤n _) (Γ⊢tgt (Γ⊢t:A→Γ⊢A (psvar Γ⊢ps))))
-  ◃₀-dangling-tgt Γ⊢ps (◃∂⁺ (var x (inr (idp , idp)))) = inl idp
+  ◃₀-dangling-tgt Γ⊢ps (◃∂⁺ (var x (inr (p , _)))) = inl p
 
   ◃-dangling : ∀ {Γ x A a} → (Γ⊢ps : Γ ⊢ps x # A) → Γ++ Γ⊢ps , a ◃ S (length Γ)  → (a == x) + (Γ++ Γ⊢ps , a ◃ x)
   ◃-dangling Γ⊢ps (gen x◃₀Sl) with ◃₀-dangling Γ⊢ps x◃₀Sl
@@ -247,9 +237,9 @@ module CaTT.Relation where
 
   -- useful particular case
   strengthen-◃₀-dangling : ∀ {Γ x A a} → (Γ⊢ps : Γ ⊢ps x # A) → Γ++ Γ⊢ps , length Γ ◃₀ a → Γ , x ◃₀ a
-  strengthen-◃₀-dangling Γ⊢ps (◃∂⁻ Γ⊢a) = ⊥-elim (post-dangling-is-not-a-source (pse Γ⊢ps) _ _ (∂⁺⟿ (psvar (pse Γ⊢ps))) Γ⊢a)
+  strengthen-◃₀-dangling Γ⊢ps (◃∂⁻ Γ⊢a) = ⊥-elim (post-dangling-is-not-a-source (pse Γ⊢ps idp idp idp idp idp) _ _ (∂⁺⟿ (psvar (pse Γ⊢ps idp idp idp idp idp))) Γ⊢a)
   strengthen-◃₀-dangling Γ⊢ps (◃∂⁺ (var _ (inl (inl l∈Γ)))) = ⊥-elim (l∉ (psv Γ⊢ps) (n≤n _) (x#A∈Γ→x∈Γ l∈Γ))
-  strengthen-◃₀-dangling Γ⊢ps (◃∂⁺ (var _ (inl (inr (idp , idp))))) = ◃∂⁺ (psvar Γ⊢ps)
+  strengthen-◃₀-dangling Γ⊢ps (◃∂⁺ (var _ (inl (inr (_ , idp))))) = ◃∂⁺ (psvar Γ⊢ps)
   strengthen-◃₀-dangling Γ⊢ps (◃∂⁺ (var _ (inr (l=Sl , _)))) = ⊥-elim (Sn≠n _ (l=Sl ^))
 
   ∈-dangling : ∀ {Γ x A} → Γ ⊢ps x # A → x ∈ Γ
@@ -287,9 +277,9 @@ module CaTT.Relation where
   psx-◃-linear← : ∀ {Γ z A} → Γ ⊢ps z # A → (∀ x → x ∈ Γ →  ¬ (Γ , x ◃ x))
   psx-◃-linear← pss .0 (inr idp) x◃x = 𝔻0-◃ 0 x◃x
   psx-◃-linear← (psd Γ⊢psz) x x∈Γ x◃x = psx-◃-linear← Γ⊢psz x x∈Γ x◃x
-  psx-◃-linear← (pse Γ⊢psz) x (inl (inl x∈Γ)) x◃x = psx-◃-linear← Γ⊢psz x x∈Γ (pse-◃-elim Γ⊢psz x∈Γ x∈Γ x◃x)
-  psx-◃-linear← Γ+⊢ps@(pse Γ⊢psz) x (inl (inr idp)) x◃x = ⊥-elim (Sn≰n _ (⟿dim (var (psv Γ+⊢ps) (inl (inr (idp , idp)))) (var (psv Γ+⊢ps) (inl (inr (idp , idp)))) (⊢psx-◃→⟿+ Γ+⊢ps (∂⁺⟿ (psvar Γ+⊢ps)) x◃x)))
-  psx-◃-linear← Γ+⊢ps@(pse Γ⊢psz) x (inr idp) x◃x = ⊥-elim (Sn≰n _ (⟿dim (psvar Γ+⊢ps) (psvar Γ+⊢ps) (⊢psx-◃→⟿ Γ+⊢ps x◃x)))
+  psx-◃-linear← (pse Γ⊢psz idp idp idp idp idp) x (inl (inl x∈Γ)) x◃x = psx-◃-linear← Γ⊢psz x x∈Γ (pse-◃-elim Γ⊢psz x∈Γ x∈Γ x◃x)
+  psx-◃-linear← Γ+⊢ps@(pse Γ⊢psz idp idp idp idp idp) x (inl (inr idp)) x◃x = ⊥-elim (Sn≰n _ (⟿dim (var (psv Γ+⊢ps) (inl (inr (idp , idp)))) (var (psv Γ+⊢ps) (inl (inr (idp , idp)))) (⊢psx-◃→⟿+ Γ+⊢ps (∂⁺⟿ (psvar Γ+⊢ps)) x◃x)))
+  psx-◃-linear← Γ+⊢ps@(pse Γ⊢psz idp idp idp idp idp) x (inr idp) x◃x = ⊥-elim (Sn≰n _ (⟿dim (psvar Γ+⊢ps) (psvar Γ+⊢ps) (⊢psx-◃→⟿ Γ+⊢ps x◃x)))
 
   ◃-linear : Pre-Ctx → Set₁
   ◃-linear Γ = ∀ x y → x ∈ Γ → y ∈ Γ → (x ≠ y) ↔ ((Γ , x ◃ y) + (Γ , y ◃ x))

@@ -58,8 +58,8 @@ module Sets {i} (A : Set i) (eqdecA : eqdec A) where
   add+ s (l :: a) = add (add+ s l) a
 
   -- -- Very inefficient implementation of the union of sets
-  _∪-set_ : set → set → set
-  s ∪-set s' = add+ s (fst s')
+  -- _∪-set_ : set → set → set
+  -- s ∪-set s' = add+ s (fst s')
 
   set-of-list : list A → set
   set-of-list l = add+ Ø l
@@ -85,9 +85,12 @@ module Sets {i} (A : Set i) (eqdecA : eqdec A) where
   ∈-list-∈-set a (l :: b) a∈l+       | inl idp with dec-∈-list eqdecA b (fst (add+ Ø l))
   ...                                           | inl a∈l = a∈l
   ...                                           | inr _ = inr idp
-
   -- Note that these are not *really* sets : the order matters
   -- In particular the identity types are not correct
+
+  _∪-set_ : set → set → set
+  (s , _) ∪-set (s' , _) = set-of-list (s ++ s')
+
 
   _⊂_ : set → set → Set i
   A ⊂ B = ∀ x → x ∈-set A → x ∈-set B
@@ -115,3 +118,74 @@ module Sets {i} (A : Set i) (eqdecA : eqdec A) where
 
   is-prop-≗ : ∀ A B → is-prop (A ≗ B)
   is-prop-≗ A B = has-all-paths-is-prop (has-all-paths-≗ A B)
+
+  dec-∈ : ∀ A a → dec (a ∈-set A)
+  dec-∈ (A , _) a with dec-∈-list eqdecA a A
+  ... | inl a∈A = inl a∈A
+  ... | inr a∉A = inr a∉A
+
+  ∈++₁ : ∀ l l' (a : A) → a ∈-list l → a ∈-list (l ++ l')
+  ∈++₁ l nil a x = x
+  ∈++₁ l (l' :: a₁) a x = inl (∈++₁ l l' a x)
+
+  ∈++₂ : ∀ l l' (a : A) → a ∈-list l' → a ∈-list (l ++ l')
+  ∈++₂ l (l' :: a₁) a (inl a∈l') = inl (∈++₂ l l' a a∈l')
+  ∈++₂ l (l' :: a₁) a (inr idp) = inr idp
+
+  ∈++ : ∀ l l' (a : A) → a ∈-list (l ++ l') → (a ∈-list l) + (a ∈-list l')
+  ∈++ l nil a x = inl x
+  ∈++ l (l' :: a₁) a (inl x) with ∈++ l l' a x
+  ... | inl a∈l = inl a∈l
+  ... | inr a∈l' = inr (inl a∈l')
+  ∈++ l (l' :: a₁) a (inr p) = inr (inr p)
+
+
+  ∈-∪₁ : ∀ {A B a} → a ∈-set A → (a ∈-set (A ∪-set B))
+  ∈-∪₁ {A , _} {B = nil , _} {a} a∈A = ∈-list-∈-set a (A ++ nil) a∈A
+  ∈-∪₁ {A , _} {(B :: b) , _} {a} a∈A = ∈-list-∈-set a (A ++ (B :: b)) (inl (∈++₁ A B a a∈A))
+
+  ∈-∪₂ : ∀ {A B a} → a ∈-set B  → (a ∈-set (A ∪-set B))
+  ∈-∪₂ {A , _} {B = nil , _} {a} ()
+  ∈-∪₂ {A , _} {(B :: b) , _} {a} (inl a∈B) = ∈-list-∈-set a (A ++ (B :: b)) (inl (∈++₂ A B a a∈B))
+  ∈-∪₂ {A , _} {(B :: b) , _} {a} (inr idp) = ∈-list-∈-set a (A ++ (B :: b)) (inr idp)
+
+  ∉-∪ : ∀ {A B a} → ¬ (a ∈-set A) → ¬ (a ∈-set B) → ¬ (a ∈-set (A ∪-set B))
+  ∉-∪ {A , _} {B , _} {a} a∉A a∉B a∈A∪B with ∈++ A B a (∈-set-∈-list _ _ a∈A∪B)
+  ... | inl x = a∉A x
+  ... | inr x = a∉B x
+
+  ∈-∪ : ∀ {A B a} →  a ∈-set (A ∪-set B) → (a ∈-set A) + (a ∈-set B)
+  ∈-∪ {A , _} {B , _} {a} a∈A∪B with ∈++ A B a (∈-set-∈-list _ _ a∈A∪B)
+  ... | inl x = inl x
+  ... | inr x = inr x
+
+
+  ⊂-∪ : ∀ {A B C D} → A ⊂ B → C ⊂ D → (A ∪-set C) ⊂ (B ∪-set D)
+  ⊂-∪ {A} {B} {C} {D} A⊂B C⊂D a a∈A∪C with dec-∈ A a | dec-∈ C a
+  ... | inl a∈A | _ = ∈-∪₁ {B} {D} {a} (A⊂B _ a∈A)
+  ... | inr a∉A | inl a∈C = ∈-∪₂ {B} {D} {a} (C⊂D _ a∈C)
+  ... | inr a∉A | inr a∉C = ⊥-elim (∉-∪ {A} {C} {a} a∉A a∉C a∈A∪C)
+
+  ∪-factor : ∀ A B C → (A ∪-set (B ∪-set C)) ≗ ((A ∪-set B) ∪-set (A ∪-set C))
+  fst (∪-factor A B C) x x∈A∪B∪C with ∈-∪ {A} {B ∪-set C} {x} x∈A∪B∪C
+  ... | inl x∈A = ∈-∪₁ {A ∪-set B} {A ∪-set C} {x} (∈-∪₁ {A} {B} {x} x∈A)
+  ... | inr x∈A∪B with ∈-∪ {B} {C} {x} x∈A∪B
+  ... | inl x∈B = ∈-∪₁ {A ∪-set B} {A ∪-set C} {x} (∈-∪₂ {A} {B} {x} x∈B)
+  ... | inr x∈C = ∈-∪₂ {A ∪-set B} {A ∪-set C} {x} (∈-∪₂ {A} {C} {x} x∈C)
+  snd (∪-factor A B C) x x∈A∪B∪A∪C with ∈-∪ {A ∪-set B} {A ∪-set C} {x} x∈A∪B∪A∪C
+  snd (∪-factor A B C) x x∈A∪B∪A∪C | inl x∈A∪B with ∈-∪ {A} {B} {x} x∈A∪B
+  ... | inl x∈A = ∈-∪₁ {A} {B ∪-set C} {x} x∈A
+  ... | inr x∈B = ∈-∪₂ {A} {B ∪-set C} {x} (∈-∪₁ {B} {C} {x} x∈B)
+  snd (∪-factor A B C) x x∈A∪B∪A∪C | inr x∈A∪C with ∈-∪ {A} {C} {x} x∈A∪C
+  ... | inl x∈A = ∈-∪₁ {A} {B ∪-set C} {x} x∈A
+  ... | inr x∈C = ∈-∪₂ {A} {B ∪-set C} {x} (∈-∪₂ {B} {C} {x} x∈C)
+
+  ≗-⊂ : ∀ {A B C} → A ≗ B → B ⊂ C → A ⊂ C
+  ≗-⊂ (A⊂B , _) B⊂C _ a∈A = B⊂C _ (A⊂B _ a∈A)
+
+  ⊂-trans : ∀ {A B C} → A ⊂ B → B ⊂ C → A ⊂ C
+  ⊂-trans A⊂B B⊂C _ a∈A = B⊂C _ (A⊂B _ a∈A)
+
+
+  ∈-singleton : ∀ a → a ∈-set (singleton a)
+  ∈-singleton a = inr idp
