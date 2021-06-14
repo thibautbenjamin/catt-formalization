@@ -81,6 +81,9 @@ module Prelude where
   ap⁴ f idp idp idp idp = idp
 
 
+  ap⁵ : ∀ {i j k l m n} {A : Set i} {B : Set k} {C : Set j} {D : Set l} {E : Set m} {F : Set n} {a a' : A} {b b' : B} {c c' : C} {d d' : D} {e e' : E} (f : A → B → C → D → E → F) → a == a' →  b == b' → c == c' → d == d' → e == e' → (f a b c d e) == (f a' b' c' d' e')
+  ap⁵ f idp idp idp idp idp = idp
+
   transport : ∀ {i j} {A : Set i} {B : A → Set j} {a a' : A} (pₐ : a == a') → B a → B a'
   transport pₐ b = coe (ap _ pₐ) b
 
@@ -157,6 +160,12 @@ module Prelude where
   data Bool : Set where
     true : Bool
     false : Bool
+
+  inl= : ∀ {i j} {A : Set i} {B : Set j} {a b : A} → a == b → _==_ {i ⊔ j} {A + B} (inl a) (inl b)
+  inl= idp = idp
+
+  inr= : ∀ {i j} {A : Set i} {B : Set j} {a b : B} → a == b → _==_ {i ⊔ j} {A + B} (inr a) (inr b)
+  inr= idp = idp
 
   dec : ∀ {i} → Set i → Set i
   dec A = A + (¬ A)

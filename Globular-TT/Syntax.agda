@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting #-}
+{-# OPTIONS --rewriting --without-K #-}
 
 open import Agda.Primitive
 open import Prelude
@@ -36,14 +36,23 @@ module Globular-TT.Syntax {l} (index : Set l) where
   ⇒= : ∀ {A B t t' u u'} → A == B → t == t' → u == u' → ⇒ A t u == ⇒ B t' u'
   ⇒= idp idp idp = idp
 
+  =⇒ : ∀ {A B t t' u u'} → ⇒ A t u == ⇒ B t' u' → ((A == B) × (t == t')) × (u == u')
+  =⇒ idp = (idp , idp) , idp
+
   Var= : ∀ {v w} → v == w → Var v == Var w
   Var= idp = idp
 
   Tm-constructor= : ∀ {i j γ δ} → i == j → γ == δ → (Tm-constructor i γ) == (Tm-constructor j δ)
   Tm-constructor= idp idp = idp
 
+  =Tm-constructor : ∀ {i j γ δ} → (Tm-constructor i γ) == (Tm-constructor j δ) → i == j × γ == δ
+  =Tm-constructor idp = idp , idp
+
   <,>= : ∀ {γ δ x y t u} → γ == δ → x == y → t == u → < γ , x ↦ t > == < δ , y ↦ u >
   <,>= idp idp idp = idp
+
+  =<,> : ∀ {γ δ x y t u} → < γ , x ↦ t > == < δ , y ↦ u > → ((γ == δ) × (x == y)) × (t == u)
+  =<,> idp = (idp , idp) , idp
 
   ∙= : ∀ {Γ Δ x y A B} → Γ == Δ → x == y → A == B → (Γ ∙ x # A) == (Δ ∙ y # B)
   ∙= idp idp idp = idp
