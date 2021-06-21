@@ -21,6 +21,9 @@ module CaTT.Relation where
     gen : Γ , x ◃₀ y → Γ , x ◃ y
     ◃T : ∀{z} → Γ , x ◃ z → Γ , z ◃₀ y → Γ , x ◃ y
 
+  rel : ∀ Γ x y → Set₁
+  rel Γ x y = Γ , x ◃ y
+
   W◃₀ : ∀ {Γ x y z A} → (Γ :: (z , A)) ⊢C → Γ , x ◃₀ y → (Γ :: (z , A)) , x ◃₀ y
   W◃₀ Γ+⊢ (◃∂⁻ Γ⊢x) = ◃∂⁻ (wkt Γ⊢x Γ+⊢)
   W◃₀ Γ+⊢ (◃∂⁺ Γ⊢x) = ◃∂⁺ (wkt Γ⊢x Γ+⊢)
@@ -190,6 +193,15 @@ module CaTT.Relation where
   ◃∈ : ∀ {Γ x a} → Γ , x ◃ a → a ∈ Γ
   ◃∈ (gen x◃₀a) = ◃₀∈ x◃₀a
   ◃∈ (◃T _ z◃₀x) = ◃₀∈ z◃₀x
+
+  ∈◃₀ : ∀ {Γ x a} → Γ , x ◃₀ a → x ∈ Γ
+  ∈◃₀ (◃∂⁻ Γ⊢a) = Γ⊢x:A→x∈Γ (Γ⊢src (Γ⊢t:A→Γ⊢A Γ⊢a))
+  ∈◃₀ (◃∂⁺ Γ⊢x) = Γ⊢x:A→x∈Γ Γ⊢x
+
+  ∈◃ : ∀ {Γ x a} → Γ , x ◃ a → x ∈ Γ
+  ∈◃ (gen x◃₀a) = ∈◃₀ x◃₀a
+  ∈◃ (◃T x◃z _) = ∈◃ x◃z
+
 
   WWpsx : ∀ {Γ x A} → (Γ⊢ps : Γ ⊢ps x # A) → Γ++ Γ⊢ps ⊢t (Var x) # A
   WWpsx Γ⊢ps = wkt (wkt (psvar Γ⊢ps) (cc (psv Γ⊢ps) (Γ⊢t:A→Γ⊢A (psvar Γ⊢ps)) idp)) (psv (pse Γ⊢ps idp idp idp idp idp))
