@@ -31,7 +31,7 @@ module CaTT.Ps-contexts where
 
 
   ps↓ : ∀ {Γ x y} → (Γ⊢ps₁ : Γ ⊢ps x # ∗) → (Γ⊢ps₂ : Γ ⊢ps y # ∗)
-                  → (p : x == y)  → transport p Γ⊢ps₁ == Γ⊢ps₂ → (ps Γ⊢ps₁) == (ps Γ⊢ps₂)
+                  → (p : x == y)  → transport {B = λ z → Γ ⊢ps z # ∗} p Γ⊢ps₁ == Γ⊢ps₂ → (ps Γ⊢ps₁) == (ps Γ⊢ps₂)
   ps↓ _ _ idp idp = idp
 
 

@@ -56,10 +56,16 @@ module CaTT.CaTT where
    dim-∈-var = {!!}
    dim-∈-var-t = {!!}
 
+   max-src-var : ∀ Γ → (Γ⊢ps : Γ ⊢ps) → Σ (Σ (ℕ × Pre-Ty) (λ {(x , B) → GPre-Ctx Γ ⊢t Var x # B})) (λ {((x , B) , Γ⊢x) → (x ∈-set (src-var (Γ , Γ⊢ps))) × (dimC (GPre-Ctx Γ) == S (dim-tm Γ⊢x))})
+   max-src-var = {!!}
+
    -- techincal : a full term contains a variable of dimension at least one minus the dimension of the context
    full-term-have-max-variables : ∀ {Γ A Γ⊢ps} → A is-full-in ((Γ , Γ⊢ps)) →
      Σ (Σ (ℕ × Pre-Ty) (λ {(x , B) → GPre-Ctx Γ ⊢t Var x # B})) (λ {((x , B) , Γ⊢x) → (x ∈-set varT A) × (dimC (GPre-Ctx Γ) ≤ S (dim-tm Γ⊢x))})
-   full-term-have-max-variables = {!!}
+   full-term-have-max-variables {Γ} {_} {Γ⊢ps} (side-cond₁ .(_ , _) A t u (incl , _) _) with max-src-var Γ Γ⊢ps
+   ... | ((x , B) , Γ⊢x) , (x∈src , dimΓ=Sdimx) = ((x , B) , Γ⊢x) , ({!incl _ x∈src!} , transport {B = λ x → (dimC (GPre-Ctx Γ)) ≤ x} dimΓ=Sdimx (n≤n _))
+   full-term-have-max-variables {Γ} {_} {Γ⊢ps} (side-cond₂ .(_ , _) _ incl) with max-var {Γ} Γ⊢ps
+   ... | (x , B) , (x∈Γ , dimx) = ((x , (GPre-Ty B)) , {!var ? x∈Γ!}) , {!!}
 
    well-foundedness : well-founded
    well-foundedness ((Γ , A) , Afull) Γ⊢A with full-term-have-max-variables Afull

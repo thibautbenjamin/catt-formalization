@@ -296,6 +296,8 @@ module Prelude where
   m≤max : ∀ n m → m ≤ max n m
   m≤max = {!!}
 
+  ℕ-trichotomy : ∀ n m → ((n < m) + (m < n)) + (n == m)
+  ℕ-trichotomy = {!!}
 
   data list {i} : Set i → Set (lsuc i) where
     nil : ∀{A} → list A
