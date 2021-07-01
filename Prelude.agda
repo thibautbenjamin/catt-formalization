@@ -331,8 +331,6 @@ module Prelude where
   ...     | inl _ = n
   ...     | inr _ = m
 
-  -- minS : ∀ {n m} → n == m → min n (S m) == m
-  -- minS = {!!}
   min≤m : ∀ n m → min n m ≤ m
   min≤m n m with dec-≤ n m
   ... | inl n≤m = n≤m
