@@ -46,10 +46,7 @@ module GSeTT.Syntax where
   -- Careful: dimension of the empty context should be -1
   dimC : Pre-Ctx → ℕ
   dimC nil = O
-  dimC (Γ :: (x , A)) with (dec-≤ (dim A) (dimC Γ))
-  ...                         | inl _ = dimC Γ
-  ...                         | inr _ = dim A
-
+  dimC (Γ :: (x , A)) = max (dimC Γ) (dim A)
 
 
   {- Action of substitutions on types and terms on a syntactical level -}

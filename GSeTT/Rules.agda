@@ -63,6 +63,10 @@ module GSeTT.Rules where
   Γ,x:A⊢→Γ,x:A⊢x:A : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → (Γ :: (x , A)) ⊢t (Var x) # A
   Γ,x:A⊢→Γ,x:A⊢x:A Γ,x:A⊢ = var Γ,x:A⊢ (inr (idp , idp))
 
+  Γ,x:A⊢→Γ⊢ : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → Γ ⊢C
+  Γ,x:A⊢→Γ⊢ (cc Γ⊢ _ _) = Γ⊢
+
+
   Γ⊢t:A→Γ⊢A : ∀ {Γ A t} → Γ ⊢t t # A → Γ ⊢T A
   Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc Γ⊢ Γ⊢A idp) (inl y∈Γ)) = wkT (Γ⊢t:A→Γ⊢A (var Γ⊢ y∈Γ)) Γ,x:A⊢
   Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc _ _ idp) (inr (idp , idp))) = Γ,x:A⊢→Γ,x:A⊢A Γ,x:A⊢

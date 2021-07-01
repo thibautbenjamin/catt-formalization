@@ -8,6 +8,7 @@ open import Sets ℕ eqdecℕ
 {- PS-contexts -}
 module CaTT.Ps-contexts where
 
+
   {- Rules for PS-contexts -}
   data _⊢ps_#_ : Pre-Ctx → ℕ → Pre-Ty → Set₁ where
     pss : (nil :: (O , ∗)) ⊢ps O # ∗
@@ -85,7 +86,21 @@ module CaTT.Ps-contexts where
   tgt-var : (Γ : ps-ctx) → set
   tgt-var (Γ , ps Γ⊢psx) = set-of-list (tgtᵢ-var (dimC Γ) Γ⊢psx)
 
+  dim-psx-not-𝔻0 : ∀ {Γ x A} → (Γ⊢ps : Γ ⊢ps x # A) → (Γ ≠ (nil :: (0 , ∗))) → 0 < dimC Γ
+  dim-psx-not-𝔻0 {.(nil :: (0 , ∗))} {.0} {.∗} pss Γ≠𝔻0 = ⊥-elim (Γ≠𝔻0 idp)
+  dim-psx-not-𝔻0 {Γ} {x} {A} (psd Γ⊢psx) Γ≠𝔻0 = dim-psx-not-𝔻0 Γ⊢psx Γ≠𝔻0
+  dim-psx-not-𝔻0 {_} {x} {A} (pse {Γ = Γ} Γ⊢psx idp idp idp idp idp) Γ+≠𝔻0 = ≤T (S≤ (0≤ _)) (m≤max (max (dimC Γ) _) (dim A))
 
+  dim-ps-not-𝔻0 : ∀ {Γ} → (Γ⊢ps : Γ ⊢ps) → (Γ ≠ (nil :: (0 , ∗))) → 0 < dimC Γ
+  dim-ps-not-𝔻0 (ps Γ⊢psx) Γ≠𝔻0 = dim-psx-not-𝔻0 Γ⊢psx Γ≠𝔻0
+
+  dim-dangling : ∀ {Γ x A} → Γ ⊢ps x # A → dim A ≤ dimC Γ
+  dim-dangling pss = 0≤ _
+  dim-dangling (psd Γ⊢psf) = Sn≤m→n≤m (dim-dangling Γ⊢psf)
+  dim-dangling (pse {Γ = Γ} Γ⊢psx idp idp idp idp idp) = m≤max (max (dimC Γ) _) _
+
+
+  {- Definition of a few ps-contexts and their source and target in the theory CaTT -}
   -- It is not necessary to define the pre contexts, as they can be infered with the derivation tree. We do it just as a sanity check
   Pre-Γc : Pre-Ctx
   Pre-Γc = ((((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , ⇒ ∗ (Var 0) (Var 1))) :: (3 , ∗)) :: (4 , ⇒ ∗ (Var 1) (Var 3))
@@ -93,6 +108,11 @@ module CaTT.Ps-contexts where
   Pre-Γw : Pre-Ctx
   Pre-Γw = ((((((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , ⇒ ∗ (Var 0) (Var 1))) :: (3 , ⇒ ∗ (Var 0) (Var 1))) :: (4 , ⇒ (⇒ ∗ (Var 0) (Var 1)) (Var 2) (Var 3))) :: (5 , ∗)) :: (6 , ⇒ ∗ (Var 1) (Var 5))
 
+  Pre-Γ₁ : Pre-Ctx
+  Pre-Γ₁ = ((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , ⇒ ∗ (Var 0) (Var 1))
+
+  Pre-Γ₂ : Pre-Ctx
+  Pre-Γ₂ = ((((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , ⇒ ∗ (Var 0) (Var 1))) :: (3 , ⇒ ∗ (Var 0) (Var 1))) :: (4 , ⇒ (⇒ ∗ (Var 0) (Var 1)) (Var 2) (Var 3))
 
   Γc⊢ps : Pre-Γc ⊢ps
   Γc⊢ps = ps (psd (pse (psd (pse pss idp idp idp idp idp)) idp idp idp idp idp))
@@ -100,20 +120,49 @@ module CaTT.Ps-contexts where
   Γw⊢ps : Pre-Γw ⊢ps
   Γw⊢ps = ps (psd (pse (psd (psd (pse (pse pss idp idp idp idp idp) idp idp idp idp idp))) idp idp idp idp idp))
 
+  Γ₁⊢ps : Pre-Γ₁ ⊢ps
+  Γ₁⊢ps = ps (psd (pse pss idp idp idp idp idp))
+
+  Γ₂⊢ps : Pre-Γ₂ ⊢ps
+  Γ₂⊢ps = ps (psd (psd (pse (pse pss idp idp idp idp idp) idp idp idp idp idp)))
+
   Γc : ps-ctx
   Γc = _ , Γc⊢ps
 
   Γw : ps-ctx
   Γw = _ , Γw⊢ps
 
+  Γ₁ : ps-ctx
+  Γ₁ = _ , Γ₁⊢ps
+
+  Γ₂ : ps-ctx
+  Γ₂ = _ , Γ₂⊢ps
+
+
   src-Γc : src-var Γc ≗ singleton 0
-  src-Γc = (λ x → id) , λ x → id
+  src-Γc = (λ _ x → x) , λ _ x → x
 
   tgt-Γc : tgt-var Γc ≗ singleton 3
-  tgt-Γc = (λ x → id) , λ x → id
+  tgt-Γc = (λ _ x → x) , λ _ x → x
 
-  -- src-Γw : src-var Γw ≗ {!!}
-  -- src-Γw = {!!}
+  src-Γ₁ : src-var Γ₁ ≗ singleton 0
+  src-Γ₁ = (λ _ x → x) , λ _ x → x
+
+  tgt-Γ₁ : tgt-var Γ₁ ≗ singleton 1
+  tgt-Γ₁ = (λ _ x → x) , λ _ x → x
+
+
+  src-Γ₂ : src-var Γ₂ ≗ set-of-list (((nil :: 0) :: 1) :: 2)
+  src-Γ₂ = (λ _ x → x) , λ _ x → x
+
+  tgt-Γ₂ : tgt-var Γ₂ ≗ set-of-list (((nil :: 0) :: 1) :: 3)
+  tgt-Γ₂ = (λ _ x → x) , λ _ x → x
+
+  src-Γw : src-var Γw ≗ set-of-list (((((nil :: 0) :: 1) :: 2) :: 5) :: 6)
+  src-Γw = (λ _ x → x) , λ _ x → x
+
+  tgt-Γw : tgt-var Γw ≗ set-of-list (((((nil :: 0) :: 1) :: 3) :: 5) :: 6)
+  tgt-Γw = (λ _ x → x) , λ _ x → x
 
 -- TODO : cleanup and unite these two lemmas
   x∉ : ∀ {Γ x} → Γ ⊢C → length Γ ≤ x → (∀ {A} → ¬ (Γ ⊢t (Var x) # A))

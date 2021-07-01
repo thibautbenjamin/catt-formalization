@@ -131,17 +131,18 @@ module CaTT.Fullness where
 
   max-var-def : Pre-Ctx → ℕ × Pre-Ty
   max-var-def nil = 0 , ∗
-  max-var-def (Γ :: (y , B)) with dec-≤ (dim B) (dimC Γ)
-  ... | inl _ = max-var-def Γ
-  ... | inr _ = y , B
+  max-var-def (Γ :: (y , B)) with dec-≤ (dimC Γ) (dim B)
+  ... | inr _ = max-var-def Γ
+  ... | inl _ = y , B
 
   max-var-is-max : ∀ {Γ} → Γ ≠ nil → Γ ⊢C → let (x , A) = max-var-def Γ in ((x # A ∈ Γ) × (dimC Γ == dim A))
   max-var-is-max {nil} Γ≠nil _ = ⊥-elim (Γ≠nil idp)
-  max-var-is-max {Γ :: (y , B)} _ Γ⊢ with dec-≤ (dim B) (dimC Γ)
-  ... | inr _ = inr (idp , idp) , idp
-  ... | inl _ with Γ
-  max-var-is-max {Γ :: (y , B)} _ (cc Γ⊢ Γ⊢B idp) | inl _ | Δ :: (x , A) = let (x∈ , dimA) = max-var-is-max (λ{()}) Γ⊢ in inl x∈ , dimA
-  max-var-is-max {Γ :: (.0 , .∗)} _ (cc Γ⊢ (ob _) idp) | inl _ | nil = inr (idp , idp) , idp
+  max-var-is-max {Γ :: (y , B)} _ Γ⊢ with dec-≤ (dimC Γ) (dim B)
+  ... | inl _ = inr (idp , idp) , idp
+  ... | inr _ with Γ
+  max-var-is-max {Γ :: (y , B)} _ (cc Γ⊢ Γ⊢B idp) | inr _ | Δ :: (x , A) = let (x∈ , dimA) = max-var-is-max (λ{()}) Γ⊢ in inl x∈ , dimA
+  max-var-is-max {Γ :: (.0 , .∗)} _ (cc Γ⊢ (ob _) idp) | inr _ | nil = inr (idp , idp) , idp
+  max-var-is-max {Γ :: (.0 , _)} _ (cc Γ⊢ (ar _ _) idp) | inr dΓ≤dB | nil = ⊥-elim (dΓ≤dB (0≤ _))
 
   psx-nonul : ∀ {Γ x A} → Γ ⊢ps x # A → Γ ≠ nil
   psx-nonul (psd x) idp = psx-nonul x idp

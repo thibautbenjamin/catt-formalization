@@ -95,6 +95,12 @@ module Globular-TT.Rules {l} (index : Set l) (rule : index → GSeTT.Typed-Synta
   Γ,x:A⊢→Γ,x:A⊢x:A : ∀ {Γ x A} → (Γ ∙ x # A) ⊢C → (Γ ∙ x # A) ⊢t (Var x) # A
   Γ,x:A⊢→Γ,x:A⊢x:A Γ,x:A⊢ = var Γ,x:A⊢ (inr (idp , idp))
 
+  Γ⊢src : ∀ {Γ A t u} → Γ ⊢T ⇒ A t u → Γ ⊢t t # A
+  Γ⊢src (ar Γ⊢ Γ⊢t Γ⊢u) = Γ⊢t
+
+  Γ⊢tgt : ∀ {Γ A t u} → Γ ⊢T ⇒ A t u → Γ ⊢t u # A
+  Γ⊢tgt (ar Γ⊢ Γ⊢t Γ⊢u) = Γ⊢u
+
   -- The proposition Γ⊢t:A→Γ⊢A is slightly harder and is moved in CwF-Struture since it depends on lemmas there
 
   -- Type epressing that the rules are well-founded (useful to show that judgments are decidable)

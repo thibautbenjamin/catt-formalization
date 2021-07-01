@@ -14,9 +14,9 @@ module CaTT.Uniqueness-Derivations-Ps where
   Γ⊢psx-dim≤ : ∀ {Γ x A} → Γ ⊢ps x # A → dim A ≤ dimC Γ
   Γ⊢psx-dim≤  pss = n≤n 0
   Γ⊢psx-dim≤ (psd Γ⊢psy) = Sn≤m→n≤m (Γ⊢psx-dim≤ Γ⊢psy)
-  Γ⊢psx-dim≤ {((Γ :: (_ , A)) :: (_ , _))} {_} {_} (pse Γ⊢psx idp idp idp idp idp) with dec-≤ (S (dim A)) (dimC (Γ :: (length Γ , A)))
-  ... | inr _ = n≤n (S (dim A))
-  ... | inl res = res
+  Γ⊢psx-dim≤ {((Γ :: (_ , A)) :: (_ , _))} {_} {_} (pse Γ⊢psx idp idp idp idp idp) with dec-≤ (dimC (Γ :: (length Γ , A))) (S (dim A))
+  ... | inr res = Sn≤m→n≤m (n≰m→m<n res)
+  ... | inl res = n≤n (S (dim A))
 
   Γ⊢psx-dim : ∀ {Γ x y A B} → Γ ⊢ps x # A → Γ ⊢ps y # B → dim A == dim B → x == y
   Γ⊢psx-dim pss pss dimA=dimB = idp

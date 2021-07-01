@@ -217,7 +217,6 @@ module Prelude where
   Sn≠n O ()
   Sn≠n (S n) Sn=n = Sn≠n n (S-is-inj _ _ Sn=n)
 
-
   eqdecℕ : eqdec ℕ
   eqdecℕ O O = inl idp
   eqdecℕ O (S b) = inr (O≠S b)
@@ -237,6 +236,9 @@ module Prelude where
   n≤n O = 0≤ O
   n≤n (S n) = S≤ (n≤n n)
 
+  ≤-antisymetry : ∀ {n m} → n ≤ m → m ≤ n → n == m
+  ≤-antisymetry (0≤ _) (0≤ _) = idp
+  ≤-antisymetry (S≤ n≤m) (S≤ m≤n) = ap S (≤-antisymetry n≤m m≤n)
 
   Sn≰n-t : ∀ {n m} → n == m → ¬ (S n ≤ m)
   Sn≰n-t = {!!}
@@ -274,11 +276,22 @@ module Prelude where
   ≤×≠→< : ∀ {n m} → n ≤ m → n ≠ m → n < m
   ≤×≠→< = {!!}
 
+  n≰m→m<n : ∀ {n m } → ¬ (n ≤ m) → m < n
+  n≰m→m<n = {!!}
+
   max : ℕ → ℕ → ℕ
   max n m with dec-≤ n m
+  ...     | inl _ = m
+  ...     | inr _ = n
+
+
+  min : ℕ → ℕ → ℕ
+  min n m with dec-≤ n m
   ...     | inl _ = n
   ...     | inr _ = m
 
+  minS : ∀ {n m} → n == m → min n (S m) == m
+  minS = {!!}
 
   ≤-= : ∀ {n m k} → n ≤ m → m == k → n ≤ k
   ≤-= n≤m idp = n≤m
@@ -286,6 +299,8 @@ module Prelude where
   =-≤ : ∀ {n m k} → n == m → m ≤ k → n ≤ k
   =-≤ idp m≤k = m≤k
 
+  =-≤-= : ∀ {n m k l} → n == m → m ≤ k → k == l → n ≤ l
+  =-≤-= idp m≤k idp = m≤k
 
   ≤T : ∀ {n m k} → n ≤ m → m ≤ k → n ≤ k
   ≤T = {!!}
@@ -295,6 +310,16 @@ module Prelude where
 
   m≤max : ∀ n m → m ≤ max n m
   m≤max = {!!}
+
+  simplify-min-l : ∀ {n m} → n ≤ m → min n m == n
+  simplify-min-l {n} {m} n≤m with dec-≤ n m
+  ... | inl _ = idp
+  ... | inr n≰m = ⊥-elim (n≰m n≤m)
+
+  simplify-min-r : ∀ {n m} → m ≤ n → min n m == m
+  simplify-min-r {n} {m} n≤m with dec-≤ n m
+  ... | inl m≤n = ≤-antisymetry m≤n n≤m
+  ... | inr _ = idp
 
   ℕ-trichotomy : ∀ n m → ((n < m) + (m < n)) + (n == m)
   ℕ-trichotomy = {!!}
@@ -342,6 +367,39 @@ module Prelude where
 
   if≠ : ∀ {i} {A : Set i} {n m : ℕ} (p : n ≠ m) {a : A} (a' : A) → (if n ≡ m then a else a') == a'
   if≠ p a' = iffalse (eqdecℕ _ _) a' p
+
+  simplify-if : ∀ {i} {A : Set i} {n} {a b : A} → 0 < n → (if n ≡ 0 then a else b) == b
+  simplify-if {n = n} {b = b} 0<n with eqdecℕ n 0
+  ... | inl idp = ⊥-elim (Sn≰0 _ 0<n)
+  ... | inr _ = idp
+
+  S≤S : ∀ {n m} → S n ≤ S m → n ≤ m
+  S≤S = {!!}
+
+  min<l : ∀ {n m} → min n m < n → m ≤ n
+  min<l = {!!}
+
+  min≤m : ∀ {n m} → min n m ≤ m
+  min≤m = {!!}
+
+  greater-than-min-r : ∀ {n m k} → k < n → min n m ≤ k → m ≤ k
+  greater-than-min-r = {!!}
+
+  up-max : ∀ {n m k} → n ≤ k → m ≤ k → max n m ≤ k
+  up-max = {!!}
+
+  up-maxS : ∀ {n m k} → S n ≤ k → S m ≤ k → S (max n m) ≤ k
+  up-maxS = {!!}
+
+  simplify-max-l : ∀ {n m} → m ≤ n → max n m == n
+  simplify-max-r : ∀ {n m} → n ≤ m → max n m == m
+
+  simplify-max-l = {!!}
+  simplify-max-r = {!!}
+
+  ¬≤ : ∀{m n} → ¬ (m ≤ n) → n < m
+  ¬≤ = {!!}
+
 
   record is-equiv {i j} {A : Set i} {B : Set j} (f : A → B) : Set (i ⊔ j)
     where
