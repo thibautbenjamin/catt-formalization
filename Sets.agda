@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --without-K --allow-unsolved-metas #-}
+{-# OPTIONS --without-K #-}
 
 --
 -- Implementation of Sets using lists
@@ -191,7 +191,9 @@ module Sets {i} (A : Set i) (eqdecA : eqdec A) where
   ∈-singleton a = inr idp
 
   ∈-Ø : ∀ {x} → ¬ (x ∈-set Ø)
-  ∈-Ø = {!!}
+  ∈-Ø ()
 
   A∪B⊂A∪B∪C : ∀ A B C → (A ∪-set B) ⊂ (A ∪-set (B ∪-set C))
-  A∪B⊂A∪B∪C = {!!}
+  A∪B⊂A∪B∪C A B C x x∈A∪B with ∈-∪ {A} {B} x∈A∪B
+  ... | inl x∈A = ∈-∪₁ {A} {B ∪-set C} x∈A
+  ... | inr x∈B = ∈-∪₂ {A} {B ∪-set C} (∈-∪₁ {B} {C} x∈B)

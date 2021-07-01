@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --without-K --allow-unsolved-metas #-}
+{-# OPTIONS --rewriting --without-K #-}
 
 --
 -- Prelude.agda - Some base definitions
@@ -25,14 +25,8 @@ module Prelude where
   A × B = Σ A (λ a → B)
 
 
-  data ℕ : Set where
-    O : ℕ
-    S : ℕ → ℕ
-
   id : ∀ {i} {A : Set i} → A → A
   id x = x
-
-  {-# BUILTIN NATURAL ℕ #-}
 
   uncurry : ∀ {i j k} {A : Set i} {B : A → Set j} {C : Set k} →
             (φ : (a : A) → (b : B a) → C) →
@@ -43,6 +37,8 @@ module Prelude where
           (ψ : Σ A B → C) →
           (a : A) → (b : B a) → C
   curry ψ a b = ψ (a , b)
+
+  {- Equality -}
 
   infix 30 _==_
 
@@ -89,7 +85,6 @@ module Prelude where
   ap⁷ : ∀ {i j k l m n o p} {A : Set i} {B : Set k} {C : Set j} {D : Set l} {E : Set m} {F : Set n} {G : Set o} {H : Set p} {a a' : A} {b b' : B} {c c' : C} {d d' : D} {e e' : E} {f f' : F} {g g' : G} (α : A → B → C → D → E → F → G → H) → a == a' →  b == b' → c == c' → d == d' → e == e' → f == f' → g == g' → (α a b c d e f g) == (α a' b' c' d' e' f' g')
   ap⁷ f idp idp idp idp idp idp idp = idp
 
-
   transport : ∀ {i j} {A : Set i} {B : A → Set j} {a a' : A} (pₐ : a == a') → B a → B a'
   transport pₐ b = coe (ap _ pₐ) b
 
@@ -122,33 +117,12 @@ module Prelude where
   Σ-in {A = A} {B = B} C a = Σ (B a) (λ b → C a b)
 
   =, : ∀ {i j} {A : Set i} {B : Set j} {a a' : A} {b b' : B} → (a , b) == (a' , b') → (a == a') × (b == b')
-  =, = {!!}
+  =, idp = idp , idp
 
   fst-is-inj : ∀ {i j} {A : Set i} {B : A → Set j} {x y : Σ A B} → x == y → fst x == fst y
   fst-is-inj idp = idp
 
-  is-contr : ∀ {i} → Set i → Set i
-  is-contr A = Σ A (λ x → ((y : A) → x == y))
-
-  is-prop : ∀ {i} → Set i → Set i
-  is-prop A = ∀ (x y : A) → is-contr (x == y)
-
-  is-set : ∀{i} → Set i → Set i
-  is-set A = ∀ (x y : A) → is-prop (x == y)
-
-  has-all-paths : ∀ {i} → Set i → Set i
-  has-all-paths A = ∀ (a b : A) → a == b
-
-  has-all-paths-idp : ∀ {i} (A : Set i) (pathsA : has-all-paths A) (a : A) → pathsA a a == idp
-  has-all-paths-idp A pathsA a = {!pathsA!}
-
-  has-all-paths-is-prop : ∀ {i} → {A : Set i} → has-all-paths A → is-prop A
-  has-all-paths-is-prop pathsA x y = pathsA x y , λ {idp → {!!}}
-
-  is-prop-has-all-paths : ∀ {i} → {A : Set i} → is-prop A → has-all-paths A
-  is-prop-has-all-paths = {!!}
-
-
+  {- False and negation -}
 
   data ⊥ {i} : Set i where
 
@@ -165,26 +139,32 @@ module Prelude where
     inl : A → A + B
     inr : B → A + B
 
-  data Bool : Set where
-    true : Bool
-    false : Bool
-
   inl= : ∀ {i j} {A : Set i} {B : Set j} {a b : A} → a == b → _==_ {i ⊔ j} {A + B} (inl a) (inl b)
   inl= idp = idp
 
   inr= : ∀ {i j} {A : Set i} {B : Set j} {a b : B} → a == b → _==_ {i ⊔ j} {A + B} (inr a) (inr b)
   inr= idp = idp
 
+  {- Booleans -}
+  data Bool : Set where
+    true : Bool
+    false : Bool
+
+  {- Decidability -}
   dec : ∀ {i} → Set i → Set i
   dec A = A + (¬ A)
 
   eqdec : ∀ {i} → Set i → Set i
   eqdec A = ∀ (a b : A) → dec (a == b)
 
-  eqdec-is-set : ∀ {i} {A : Set i} → eqdec A → is-set A
-  eqdec-is-set = {!!}
 
-  -- Stuff about ℕ inspired from HoTT-Agda
+  {- Natural numbers -}
+  data ℕ : Set where
+    O : ℕ
+    S : ℕ → ℕ
+
+  {-# BUILTIN NATURAL ℕ #-}
+
   S= : ∀{n m} → n == m → S n == S m
   S= idp = idp
 
@@ -225,9 +205,7 @@ module Prelude where
   ...                 | inl idp = inl idp
   ...                 | inr a≠b = inr (S-≠ a≠b)
 
-  is-setℕ : is-set ℕ
-  is-setℕ = {!!}
-
+  {- Order on ℕ -}
   data _≤_ : ℕ → ℕ → Set where
     0≤ : ∀ n → O ≤ n
     S≤ : ∀ {n m} → n ≤ m → S n ≤ S m
@@ -240,21 +218,21 @@ module Prelude where
   ≤-antisymetry (0≤ _) (0≤ _) = idp
   ≤-antisymetry (S≤ n≤m) (S≤ m≤n) = ap S (≤-antisymetry n≤m m≤n)
 
-  Sn≰n-t : ∀ {n m} → n == m → ¬ (S n ≤ m)
-  Sn≰n-t = {!!}
-
   n≤Sn : ∀ (n : ℕ) → n ≤ S n
   n≤Sn O = 0≤ _
   n≤Sn (S n) = S≤ (n≤Sn _)
 
+  S≤S : ∀ {n m} → S n ≤ S m → n ≤ m
+  S≤S (S≤ n≤m) = n≤m
+
   Sn≰n : ∀ (n : ℕ) → ¬ (S n ≤ n)
   Sn≰n .(S _) (S≤ Sn≤n) = Sn≰n _ Sn≤n
 
+  Sn≰n-t : ∀ {n m} → n == m → ¬ (S n ≤ m)
+  Sn≰n-t idp Sn≤n = Sn≰n _ Sn≤n
+
   Sn≰0 : ∀ (n : ℕ) → ¬ (S n ≤ O)
   Sn≰0 n ()
-
-  ≤S : ∀ (n m : ℕ) → n ≤ S m → (n ≤ m) + (n == S m)
-  ≤S = {!!}
 
   n≤m→n≤Sm : ∀ {n m : ℕ} → n ≤ m → n ≤ S m
   n≤m→n≤Sm (0≤ n) = 0≤ (S n)
@@ -270,28 +248,13 @@ module Prelude where
   ...               | inl n≤m = inl (S≤ n≤m)
   ...               | inr n≰m = inr λ {(S≤ n≤m) → n≰m n≤m}
 
-  _<_ : ℕ → ℕ → Set
-  n < m = S n ≤ m
 
-  ≤×≠→< : ∀ {n m} → n ≤ m → n ≠ m → n < m
-  ≤×≠→< = {!!}
-
-  n≰m→m<n : ∀ {n m } → ¬ (n ≤ m) → m < n
-  n≰m→m<n = {!!}
-
-  max : ℕ → ℕ → ℕ
-  max n m with dec-≤ n m
-  ...     | inl _ = m
-  ...     | inr _ = n
-
-
-  min : ℕ → ℕ → ℕ
-  min n m with dec-≤ n m
-  ...     | inl _ = n
-  ...     | inr _ = m
-
-  minS : ∀ {n m} → n == m → min n (S m) == m
-  minS = {!!}
+  ≤S : ∀ (n m : ℕ) → n ≤ S m → (n ≤ m) + (n == S m)
+  ≤S .0 m (0≤ .(S m)) = inl (0≤ _)
+  ≤S .1 O (S≤ (0≤ .0)) = inr idp
+  ≤S .(S _) (S m) (S≤ n≤Sm) with ≤S _ _ n≤Sm
+  ... | inl n≤m = inl (S≤ n≤m)
+  ... | inr n=Sm = inr (ap S n=Sm)
 
   ≤-= : ∀ {n m k} → n ≤ m → m == k → n ≤ k
   ≤-= n≤m idp = n≤m
@@ -303,13 +266,77 @@ module Prelude where
   =-≤-= idp m≤k idp = m≤k
 
   ≤T : ∀ {n m k} → n ≤ m → m ≤ k → n ≤ k
-  ≤T = {!!}
+  ≤T (0≤ _) _ = 0≤ _
+  ≤T (S≤ n≤m) (S≤ m≤k) = S≤ (≤T n≤m m≤k)
+
+  {- Strict order on ℕ -}
+  _<_ : ℕ → ℕ → Set
+  n < m = S n ≤ m
+
+  ≤×≠→< : ∀ {n m} → n ≤ m → n ≠ m → n < m
+  ≤×≠→< {.0} {.0} (0≤ O) n≠m = ⊥-elim (n≠m idp)
+  ≤×≠→< {.0} {.(S m)} (0≤ (S m)) n≠m = S≤ (0≤ _)
+  ≤×≠→< (S≤ n≤m) Sn≠Sm = S≤ (≤×≠→< n≤m λ n=m → Sn≠Sm (ap S n=m))
+
+  ≰ : ∀ {n m } → ¬ (n ≤ m) → m < n
+  ≰ {O} {m} n≰m = ⊥-elim (n≰m (0≤ _))
+  ≰ {S n} {O} n≰m = S≤ (0≤ _)
+  ≰ {S n} {S m} n≰m = S≤ (≰ λ n≤m → n≰m (S≤ n≤m))
+
+  ℕ-trichotomy : ∀ n m → ((n < m) + (m < n)) + (n == m)
+  ℕ-trichotomy n m with dec-≤ n m
+  ... | inr n≰m = inl (inr (≰ n≰m))
+  ... | inl n≤m with eqdecℕ n m
+  ... | inl n=m = inr n=m
+  ... | inr n≠m = inl (inl (≤×≠→< n≤m n≠m))
+
+  {- Minimum and maximum -}
+  max : ℕ → ℕ → ℕ
+  max n m with dec-≤ n m
+  ...     | inl _ = m
+  ...     | inr _ = n
 
   n≤max : ∀ n m → n ≤ max n m
-  n≤max = {!!}
+  n≤max n m with dec-≤ n m
+  ... | inl n≤m = n≤m
+  ... | inr m≤n = n≤n _
 
   m≤max : ∀ n m → m ≤ max n m
-  m≤max = {!!}
+  m≤max n m with dec-≤ n m
+  ... | inl n≤m = n≤n _
+  ... | inr n≰m = Sn≤m→n≤m (≰ n≰m)
+
+  up-max : ∀ {n m k} → n ≤ k → m ≤ k → max n m ≤ k
+  up-max {n} {m} {k} n≤k m≤k with dec-≤ n m
+  ... | inl n≤m = m≤k
+  ... | inr n≰m = n≤k
+
+  up-maxS : ∀ {n m k} → S n ≤ k → S m ≤ k → S (max n m) ≤ k
+  up-maxS {n} {m} {k} n≤k m≤k with dec-≤ n m
+  ... | inl n≤m = m≤k
+  ... | inr n≰m = n≤k
+
+  simplify-max-l : ∀ {n m} → m ≤ n → max n m == n
+  simplify-max-l {n} {m} m≤n with dec-≤ n m
+  ... | inl n≤m = ≤-antisymetry m≤n n≤m
+  ... | inr _ = idp
+
+  simplify-max-r : ∀ {n m} → n ≤ m → max n m == m
+  simplify-max-r {n} {m} n≤m with dec-≤ n m
+  ... | inl _ = idp
+  ... | inr n≰m = ⊥-elim (n≰m n≤m)
+
+  min : ℕ → ℕ → ℕ
+  min n m with dec-≤ n m
+  ...     | inl _ = n
+  ...     | inr _ = m
+
+  -- minS : ∀ {n m} → n == m → min n (S m) == m
+  -- minS = {!!}
+  min≤m : ∀ n m → min n m ≤ m
+  min≤m n m with dec-≤ n m
+  ... | inl n≤m = n≤m
+  ... | inr n≰m = n≤n _
 
   simplify-min-l : ∀ {n m} → n ≤ m → min n m == n
   simplify-min-l {n} {m} n≤m with dec-≤ n m
@@ -321,31 +348,18 @@ module Prelude where
   ... | inl m≤n = ≤-antisymetry m≤n n≤m
   ... | inr _ = idp
 
-  ℕ-trichotomy : ∀ n m → ((n < m) + (m < n)) + (n == m)
-  ℕ-trichotomy = {!!}
+  min<l : ∀ {n m} → min n m < n → m ≤ n
+  min<l {n} {m} min<n with dec-≤ n m
+  ... | inl _ = ⊥-elim (Sn≰n _ min<n)
+  ... | inr _ = Sn≤m→n≤m min<n
 
-  data list {i} : Set i → Set (lsuc i) where
-    nil : ∀{A} → list A
-    _::_ : ∀ {A} → list A → (a : A) → list A
-
-  ::= : ∀ {i} {A : Set i} {l l' : list A} {a a' : A} → l == l' → a == a' → (l :: a) == (l' :: a')
-  ::= idp idp = idp
+  greater-than-min-r : ∀ {n m k} → k < n → min n m ≤ k → m ≤ k
+  greater-than-min-r {n} {m} {k} k<n min≤k with dec-≤ n m
+  ... | inl _ = ⊥-elim (Sn≰n _ (≤T (S≤ min≤k) k<n))
+  ... | inr _ = min≤k
 
 
-  =:: : ∀ {i} {A : Set i} {a b : A} {l k} → (l :: a) == (k :: b) → (l == k) × (a == b)
-  =:: = {!!}
-
-  cons≠nil : ∀ {i} {A : Set i} {l : list A} {a : A} → (l :: a) ≠ nil
-  cons≠nil = {!!}
-
-  length : ∀ {i} {A : Set i} → list A → ℕ
-  length nil = 0
-  length (l :: _) = S (length l)
-
-  _++_ : ∀ {i} {A : Set i} → list A → list A → list A
-  l ++ nil = l
-  l ++ (l' :: a) = (l ++ l') :: a
-
+  {- Conditional branchings -}
   ifdec_>_then_else_ : ∀ {i j} {A : Set i} (B : Set j) → (dec B) → A → A → A
   ifdec b > inl x then A else B = A
   ifdec b > inr x then A else B = B
@@ -373,52 +387,33 @@ module Prelude where
   ... | inl idp = ⊥-elim (Sn≰0 _ 0<n)
   ... | inr _ = idp
 
-  S≤S : ∀ {n m} → S n ≤ S m → n ≤ m
-  S≤S = {!!}
-
-  min<l : ∀ {n m} → min n m < n → m ≤ n
-  min<l = {!!}
-
-  min≤m : ∀ {n m} → min n m ≤ m
-  min≤m = {!!}
-
-  greater-than-min-r : ∀ {n m k} → k < n → min n m ≤ k → m ≤ k
-  greater-than-min-r = {!!}
-
-  up-max : ∀ {n m k} → n ≤ k → m ≤ k → max n m ≤ k
-  up-max = {!!}
-
-  up-maxS : ∀ {n m k} → S n ≤ k → S m ≤ k → S (max n m) ≤ k
-  up-maxS = {!!}
-
-  simplify-max-l : ∀ {n m} → m ≤ n → max n m == n
-  simplify-max-r : ∀ {n m} → n ≤ m → max n m == m
-
-  simplify-max-l = {!!}
-  simplify-max-r = {!!}
-
-  ¬≤ : ∀{m n} → ¬ (m ≤ n) → n < m
-  ¬≤ = {!!}
-
-
-  record is-equiv {i j} {A : Set i} {B : Set j} (f : A → B) : Set (i ⊔ j)
-    where
-    field
-      g : B → A
-      f-g : (b : B) → f (g b) == b
-      g-f : (a : A) → g (f a) == a
-      adj : (a : A) → ap f (g-f a) == f-g (f a)
 
   -- logical equivalence
   _↔_ : ∀{i j} (A : Set i) (B : Set j) → Set (i ⊔ j)
   A ↔ B = (A → B) × (B → A)
 
-  funext : ∀ {i} {A B : Set i} (f g : A → B) → (∀ x → f x == g x) → f == g
-  funext = {!!}
+  {- Lists -}
+  data list {i} : Set i → Set (lsuc i) where
+    nil : ∀{A} → list A
+    _::_ : ∀ {A} → list A → (a : A) → list A
 
-  funext-dep : ∀ {i} {A : Set i} {B : A → Set i} (f g : ∀ a → B a) → (∀ a → f a == g a) → f == g
-  funext-dep = {!!}
+  ::= : ∀ {i} {A : Set i} {l l' : list A} {a a' : A} → l == l' → a == a' → (l :: a) == (l' :: a')
+  ::= idp idp = idp
 
+
+  =:: : ∀ {i} {A : Set i} {a b : A} {l k} → (l :: a) == (k :: b) → (l == k) × (a == b)
+  =:: idp = idp , idp
+
+  cons≠nil : ∀ {i} {A : Set i} {l : list A} {a : A} → (l :: a) ≠ nil
+  cons≠nil ()
+
+  length : ∀ {i} {A : Set i} → list A → ℕ
+  length nil = 0
+  length (l :: _) = S (length l)
+
+  _++_ : ∀ {i} {A : Set i} → list A → list A → list A
+  l ++ nil = l
+  l ++ (l' :: a) = (l ++ l') :: a
 
   _∈-list_ : ∀ {i} {A : Set i} → A → list A → Set i
   x ∈-list nil = ⊥
@@ -431,3 +426,48 @@ module Prelude where
   ...                    | inr a≠b with dec-∈-list eqdecA a l
   ...                             | inl a∈l = inl (inl a∈l)
   ...                             | inr a∉l = inr λ{(inl a∈l) → a∉l a∈l; (inr a=b) → a≠b a=b}
+
+
+
+
+{- Univalence and known consequences -}
+
+  record is-equiv {i j} {A : Set i} {B : Set j} (f : A → B) : Set (i ⊔ j)
+    where
+    field
+      g : B → A
+      f-g : (b : B) → f (g b) == b
+      g-f : (a : A) → g (f a) == a
+      adj : (a : A) → ap f (g-f a) == f-g (f a)
+
+  _≃_ : ∀ {i j} → (A : Set i) (B : Set j) → Set (i ⊔ j)
+  A ≃ B = Σ (A → B) λ f → is-equiv f
+
+  postulate
+    univalence : ∀ {i} {A B : Set i} → (A == B) ≃ (A ≃ B)
+    funext : ∀ {i} {A B : Set i} (f g : A → B) → (∀ x → f x == g x) → f == g
+    funext-dep : ∀ {i} {A : Set i} {B : A → Set i} (f g : ∀ a → B a) → (∀ a → f a == g a) → f == g
+
+{- Definition of the first H-levels -}
+
+  is-contr : ∀ {i} → Set i → Set i
+  is-contr A = Σ A (λ x → ((y : A) → x == y))
+
+  is-prop : ∀ {i} → Set i → Set i
+  is-prop A = ∀ (x y : A) → is-contr (x == y)
+
+  is-set : ∀{i} → Set i → Set i
+  is-set A = ∀ (x y : A) → is-prop (x == y)
+
+  has-all-paths : ∀ {i} → Set i → Set i
+  has-all-paths A = ∀ (a b : A) → a == b
+
+  {- Known properties of H-levels -}
+  postulate
+    has-all-paths-idp : ∀ {i} (A : Set i) (pathsA : has-all-paths A) (a : A) → pathsA a a == idp
+    has-all-paths-is-prop : ∀ {i} → {A : Set i} → has-all-paths A → is-prop A
+    is-prop-has-all-paths : ∀ {i} → {A : Set i} → is-prop A → has-all-paths A
+    eqdec-is-set : ∀ {i} {A : Set i} → eqdec A → is-set A
+
+  is-setℕ : is-set ℕ
+  is-setℕ = eqdec-is-set eqdecℕ
