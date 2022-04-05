@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --without-K #-}
+{-# OPTIONS --without-K #-}
 
 open import Prelude
 open import GSeTT.Syntax

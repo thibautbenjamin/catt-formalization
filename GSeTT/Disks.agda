@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --without-K #-}
+{-# OPTIONS --without-K #-}
 
 open import Agda.Primitive
 open import Prelude
@@ -38,7 +38,6 @@ module GSeTT.Disks where
   𝕊-length : ∀ n → length (Pre-𝕊 n) == n-src n
   𝕊-length O = idp
   𝕊-length (S n) = S= (S= (𝕊-length n))
-  {-# REWRITE 𝕊-length #-}
 
   {- Disk and Sphere context are valid -}
   𝕊⊢ : ∀ n → Pre-𝕊 n ⊢C
@@ -74,8 +73,11 @@ module GSeTT.Disks where
     χ ob Γ⊢ ⊢ = es Γ⊢
     χ_⊢ {Γ} {⇒ A t u} (ar Γ⊢t:A Γ⊢u:A) =
       let Γ⊢A = Γ⊢t:A→Γ⊢A Γ⊢t:A in
-      let Γ⊢χt = sc χ Γ⊢A ⊢ (𝔻⊢ (dim A)) (trT (⇒[χ Γ⊢A ]) Γ⊢t:A) idp in
-      sc Γ⊢χt (𝕊⊢ (S (dim A))) (trT (⇒[χ Γ⊢A ] >> (wk[]T (𝕊⊢⇒ (dim A)) Γ⊢χt ^)) Γ⊢u:A) idp
+      let Γ⊢χt = transport {B = λ n → Γ ⊢S Pre-χ A :: (n , t) > (Pre-𝕊 (dim A) :: ((length (Pre-𝕊 (dim A))) , n⇒ (dim A)))} (𝕊-length (dim A)) (sc χ Γ⊢A ⊢ (𝔻⊢ (dim A)) (trT (⇒[χ Γ⊢A ]) Γ⊢t:A) idp) in
+      sc Γ⊢χt
+         (𝕊⊢ (S (dim A)))
+         (trT (⇒[χ Γ⊢A ] >> (wk[]T (𝕊⊢⇒ (dim A)) (transport {B = λ n → Γ ⊢S Pre-χ A :: (n-src (dim A) , t) > (Pre-𝕊 (dim A) :: (n , n⇒ (dim A)))} (𝕊-length (dim A)) Γ⊢χt) ^)) Γ⊢u:A)
+         (ap S (𝕊-length(dim A)))
 
     ⇒[χ_] {Γ} {.∗} (ob _) = idp
     ⇒[χ_] {Γ} {(⇒ A t u)} (ar Γ⊢t:A Γ⊢u:A) with eqdecℕ (n-src (dim A)) (n-tgt (dim A)) | eqdecℕ (n-src (dim A)) (n-src (dim A)) | eqdecℕ (S (n-src (dim A))) (S (n-src (dim A)))
@@ -86,7 +88,8 @@ module GSeTT.Disks where
       let Γ⊢A = (Γ⊢t:A→Γ⊢A Γ⊢t:A) in
       let Γ⊢χt = (sc χ Γ⊢A ⊢ (𝔻⊢(dim A)) (trT ⇒[χ Γ⊢A ] Γ⊢t:A) idp) in
       let A=⇒[γt] = ⇒[χ Γ⊢A ] >> (wk[]T (𝕊⊢⇒ (dim A)) Γ⊢χt ^) in
-      ⇒= (A=⇒[γt] >> (wk[]T (wkT (𝕊⊢⇒ (dim A)) (𝔻⊢ (dim A))) (sc Γ⊢χt (𝕊⊢ (S (dim A))) (trT A=⇒[γt] Γ⊢u:A) idp) ^)) idp idp
+      ⇒= (A=⇒[γt] >> ((wk[]T (wkT (𝕊⊢⇒ (dim A)) (𝔻⊢ (dim A))) (sc Γ⊢χt (𝕊⊢ (S (dim A))) (trT A=⇒[γt] Γ⊢u:A) idp)) ^) >> ap (λ n → (n⇒ (dim A) [(Pre-χ A :: (n , t)) :: (S n , u)]Pre-Ty)) (𝕊-length (dim A))) idp idp
+
 
     χ : ∀ {Γ} → Ty Γ → Σ ℕ λ n → Sub Γ (𝕊 n)
     χ (A , Γ⊢A) = dim A , (Pre-χ A , χ Γ⊢A ⊢)
@@ -99,15 +102,18 @@ module GSeTT.Disks where
 
     Pre-χTy-n : ∀ {Γ} (n : ℕ) → (γ : Sub Γ (𝕊 n)) → Pre-χ (fst (Ty-n {Γ} (n , γ))) == fst γ
     Pre-χTy-n O (.nil , (es _)) = idp
-    Pre-χTy-n {Γ} (S n) (((γ :: (_ , t)) :: (_ , u)), (sc (sc Γ⊢γ:Sn _ Γ⊢t:A idp) _ Γ⊢u:A idp)) with eqdecℕ (n-src n) (S (n-src n)) | eqdecℕ (n-src n) (n-src n) | eqdecℕ (S (n-src n)) (S (n-src n))
-    ...                                     | inl contra | _ | _ = ⊥-elim (n≠Sn _ contra)
-    ...                                     | inr _ | inr n≠n | _ = ⊥-elim (n≠n idp)
-    ...                                     | inr _ | inl _ | inr n≠n = ⊥-elim (n≠n idp)
+    Pre-χTy-n {Γ} (S n) (((γ :: (_ , t)) :: (_ , u)), (sc (sc Γ⊢γ:Sn _ Γ⊢t:A idp) _ Γ⊢u:A idp)) with eqdecℕ (n-src n) (S (length (Pre-𝕊 n))) | eqdecℕ (n-src n) (length (Pre-𝕊 n)) | eqdecℕ (S (n-src n)) (S (length (Pre-𝕊 n)))
+    ...                                     | inl contra | _ | _ =
+                                              ⊥-elim (n≠Sn _ (𝕊-length _ >> contra))
+    ...                                     | inr _ | inr n≠n | _ =
+                                              ⊥-elim (n≠n ((𝕊-length _) ^))
+    ...                                     | inr _ | inl _ | inr n≠n = ⊥-elim (n≠n (ap S ((𝕊-length _) ^)))
     ...                                     | inr _ | inl _ | inl _ =
       let χTm-n = (sc Γ⊢γ:Sn (𝔻⊢ n) Γ⊢t:A idp) in
-      ::= (::= (ap Pre-χ (wk[]T (wkT (𝕊⊢⇒ n) (𝔻⊢ n)) (sc χTm-n (𝕊⊢ (S n)) Γ⊢u:A idp) >> wk[]T (𝕊⊢⇒ n) χTm-n) >> Pre-χTy-n {Γ} n (γ , Γ⊢γ:Sn))
-      (×= (ap n-src (dim[] (n⇒ n) _ >> (dim⇒ n))) idp))
-      (×= (S= (ap n-src (dim[] (n⇒ n) _ >> (dim⇒ n)))) idp)
+      ::= (::=
+           (ap Pre-χ (wk[]T (wkT (𝕊⊢⇒ n) (𝔻⊢ n)) (sc χTm-n (𝕊⊢ (S n)) Γ⊢u:A idp) >> wk[]T (𝕊⊢⇒ n) χTm-n) >> Pre-χTy-n {Γ} n (γ , Γ⊢γ:Sn))
+           (×= (ap n-src (dim[] (n⇒ n) _ >> (dim⇒ n)) >> ((𝕊-length _) ^)) idp))
+           (×= ((S= (ap n-src (dim[] (n⇒ n) _ >> (dim⇒ n)))) >> ap S ((𝕊-length _) ^)) idp)
 
     χTy-n : ∀ {Γ} (n : ℕ) → (γ : Sub Γ (𝕊 n)) → χ {Γ} (Ty-n {Γ} (n , γ)) == (n , γ)
     χTy-n {Γ} n γ = Σ= (dim-Ty-n {Γ} n γ) (trS-sph {Γ} (dim-Ty-n {Γ} n γ) {snd (χ {Γ} (Ty-n {Γ} (n , γ)))} {γ} (Pre-χTy-n {Γ} n γ))

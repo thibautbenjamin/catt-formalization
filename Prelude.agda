@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --without-K #-}
+{-# OPTIONS --without-K #-}
 
 --
 -- Prelude.agda - Some base definitions
@@ -45,7 +45,6 @@ module Prelude where
   data _==_ {i} {A : Set i} (a : A) : A → Set i where
     idp : a == a
   {-# BUILTIN EQUALITY _==_ #-}
-  {-# BUILTIN REWRITE _==_ #-}
 
   infixl 20 _>>_
 

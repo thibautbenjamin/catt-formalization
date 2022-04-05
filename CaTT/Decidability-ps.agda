@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --without-K #-}
+{-# OPTIONS --without-K #-}
 
 open import Prelude
 open import GSeTT.Syntax
@@ -141,4 +141,3 @@ module CaTT.Decidability-ps where
   dec-⊢ps Γ with dec-⊢psx-max {Γ}
   ... | inl ((x , A) , (Γ⊢psx , _)) = inl (⊢psx→⊢ps Γ⊢psx)
   ... | inr ¬Γ⊢psx = inr λ {(ps Γ⊢psy) → ¬Γ⊢psx (⊢psx→max Γ⊢psy)}
-

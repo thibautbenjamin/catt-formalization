@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --without-K #-}
+{-# OPTIONS --without-K #-}
 
 open import Agda.Primitive
 open import Prelude
@@ -42,5 +42,3 @@ module Globular-TT.Eqdec-syntax {l}
   ...                                      | inr γ≠γ' | _ | _ = inr λ{idp → γ≠γ' idp}
   ...                                      | inl idp | inr x≠y | _ = inr λ eq → x≠y (snd (fst (=<,> eq)))
   ...                                      | inl idp | inl idp | inr t≠t' = inr λ eq → t≠t' (snd (=<,> eq))
-
-

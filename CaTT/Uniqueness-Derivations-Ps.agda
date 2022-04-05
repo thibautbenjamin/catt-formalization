@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --without-K #-}
+{-# OPTIONS --without-K #-}
 
 open import Prelude
 open import GSeTT.Syntax
@@ -61,5 +61,3 @@ module CaTT.Uniqueness-Derivations-Ps where
   eqdec-ps (Γ , Γ⊢ps) (Δ , Δ⊢ps) with eqdec-PreCtx Γ Δ
   ... | inl idp = inl (Σ= idp (is-prop-has-all-paths (is-prop-⊢ps Γ) _ _))
   ... | inr Γ≠Δ = inr λ{idp → Γ≠Δ idp}
-
-

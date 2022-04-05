@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting --without-K #-}
+{-# OPTIONS --without-K #-}
 
 open import Agda.Primitive
 open import Prelude
@@ -113,4 +113,3 @@ module Globular-TT.CwF-Structure {l} (index : Set l) (rule : index → GSeTT.Typ
   Γ,x:A⊢π:Γ : ∀ {Γ x A} → (Γ ∙ x # A) ⊢C → (Γ ∙ x # A) ⊢S Pre-π Γ x A > Γ
   Γ,x:A⊢π:Γ Γ,x:A⊢@(cc Γ⊢ _ idp) = wkS (Γ⊢id:Γ Γ⊢) Γ,x:A⊢
   -- TODO : finish
-
