@@ -112,7 +112,7 @@ module CaTT.Decidability-ps where
   ill-formed-1st-var (cc _ _ ())
 
   ill-formed-1st-type : ∀ {y A a b} → ¬ ((nil :: (y , ⇒ A a b)) ⊢C)
-  ill-formed-1st-type (cc _ (ar (var _ ()) _) _)
+  ill-formed-1st-type (cc _ (ar _ (var _ ()) _) _)
 
   dec-⊢psx-max : ∀ {Γ} → dec (Σ (ℕ × Pre-Ty) λ (x , A) → (Γ ⊢ps x # A) × (∀ y B → Γ ⊢ps y # B → (x == y) + (Γ , x ⟿ y)))
   dec-⊢psx-max {nil} = inr λ ((x , A) , (nil⊢psx , _ )) → ∅-is-not-ps _ _ nil⊢psx

@@ -49,7 +49,7 @@ module GSeTT.Disks where
   𝔻⊢ n = cc (𝕊⊢ n) (𝕊⊢⇒ n) idp
 
   𝕊⊢⇒ O = ob ec
-  𝕊⊢⇒ (S n) = ar (wkt (var (𝔻⊢ n) (inr (((𝕊-length n) ^) , idp))) (𝕊⊢ (S n))) (var (𝕊⊢ (S n)) (inr ((S= (𝕊-length n) ^) , idp)))
+  𝕊⊢⇒ (S n) = ar (wkT (wkT (𝕊⊢⇒ n) (𝔻⊢ n)) (𝕊⊢ (S n))) (wkt (var (𝔻⊢ n) (inr (((𝕊-length n) ^) , idp))) (𝕊⊢ (S n))) (var (𝕊⊢ (S n)) (inr ((S= (𝕊-length n) ^) , idp)))
 
   𝕊 : ℕ → Ctx
   𝕊 n = Pre-𝕊 n , 𝕊⊢ n
@@ -71,8 +71,7 @@ module GSeTT.Disks where
     ⇒[χ_] : ∀ {Γ A} → (Γ⊢A : Γ ⊢T A) → A == ((n⇒  (dim A))[ Pre-χ A ]Pre-Ty)
 
     χ ob Γ⊢ ⊢ = es Γ⊢
-    χ_⊢ {Γ} {⇒ A t u} (ar Γ⊢t:A Γ⊢u:A) =
-      let Γ⊢A = Γ⊢t:A→Γ⊢A Γ⊢t:A in
+    χ_⊢ {Γ} {⇒ A t u} (ar Γ⊢A Γ⊢t:A Γ⊢u:A) =
       let Γ⊢χt = transport {B = λ n → Γ ⊢S Pre-χ A :: (n , t) > (Pre-𝕊 (dim A) :: ((length (Pre-𝕊 (dim A))) , n⇒ (dim A)))} (𝕊-length (dim A)) (sc χ Γ⊢A ⊢ (𝔻⊢ (dim A)) (trT (⇒[χ Γ⊢A ]) Γ⊢t:A) idp) in
       sc Γ⊢χt
          (𝕊⊢ (S (dim A)))
@@ -80,12 +79,11 @@ module GSeTT.Disks where
          (ap S (𝕊-length(dim A)))
 
     ⇒[χ_] {Γ} {.∗} (ob _) = idp
-    ⇒[χ_] {Γ} {(⇒ A t u)} (ar Γ⊢t:A Γ⊢u:A) with eqdecℕ (n-src (dim A)) (n-tgt (dim A)) | eqdecℕ (n-src (dim A)) (n-src (dim A)) | eqdecℕ (S (n-src (dim A))) (S (n-src (dim A)))
+    ⇒[χ_] {Γ} {(⇒ A t u)} (ar Γ⊢A Γ⊢t:A Γ⊢u:A) with eqdecℕ (n-src (dim A)) (n-tgt (dim A)) | eqdecℕ (n-src (dim A)) (n-src (dim A)) | eqdecℕ (S (n-src (dim A))) (S (n-src (dim A)))
     ...                                     | inl contra | _ | _ = ⊥-elim (n≠Sn _ contra)
     ...                                     | inr _ | inr n≠n | _ = ⊥-elim (n≠n idp)
     ...                                     | inr _ | inl _ | inr n≠n = ⊥-elim (n≠n idp)
     ...                                     | inr _ | inl _ | inl _ =
-      let Γ⊢A = (Γ⊢t:A→Γ⊢A Γ⊢t:A) in
       let Γ⊢χt = (sc χ Γ⊢A ⊢ (𝔻⊢(dim A)) (trT ⇒[χ Γ⊢A ] Γ⊢t:A) idp) in
       let A=⇒[γt] = ⇒[χ Γ⊢A ] >> (wk[]T (𝕊⊢⇒ (dim A)) Γ⊢χt ^) in
       ⇒= (A=⇒[γt] >> ((wk[]T (wkT (𝕊⊢⇒ (dim A)) (𝔻⊢ (dim A))) (sc Γ⊢χt (𝕊⊢ (S (dim A))) (trT A=⇒[γt] Γ⊢u:A) idp)) ^) >> ap (λ n → (n⇒ (dim A) [(Pre-χ A :: (n , t)) :: (S n , u)]Pre-Ty)) (𝕊-length (dim A))) idp idp

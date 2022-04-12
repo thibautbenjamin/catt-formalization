@@ -142,7 +142,7 @@ module CaTT.Fullness where
   ... | inr _ with Γ
   max-var-is-max {Γ :: (y , B)} _ (cc Γ⊢ Γ⊢B idp) | inr _ | Δ :: (x , A) = let (x∈ , dimA) = max-var-is-max (λ{()}) Γ⊢ in inl x∈ , dimA
   max-var-is-max {Γ :: (.0 , .∗)} _ (cc Γ⊢ (ob _) idp) | inr _ | nil = inr (idp , idp) , idp
-  max-var-is-max {Γ :: (.0 , _)} _ (cc Γ⊢ (ar _ _) idp) | inr dΓ≤dB | nil = ⊥-elim (dΓ≤dB (0≤ _))
+  max-var-is-max {Γ :: (.0 , _)} _ (cc Γ⊢ (ar _ _ _) idp) | inr dΓ≤dB | nil = ⊥-elim (dΓ≤dB (0≤ _))
 
   psx-nonul : ∀ {Γ x A} → Γ ⊢ps x # A → Γ ≠ nil
   psx-nonul (psd x) idp = psx-nonul x idp

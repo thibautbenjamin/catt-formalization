@@ -18,7 +18,7 @@ module GSeTT.Rules where
 
   data _⊢T_ where
     ob : ∀ {Γ} → Γ ⊢C → Γ ⊢T ∗
-    ar : ∀ {Γ A t u} → Γ ⊢t t # A → Γ ⊢t u # A → Γ ⊢T ⇒ A t u
+    ar : ∀ {Γ A t u} → Γ ⊢T A → Γ ⊢t t # A → Γ ⊢t u # A → Γ ⊢T ⇒ A t u
 
   data _⊢t_#_ where
     var : ∀ {Γ x A} → Γ ⊢C → x # A ∈ Γ → Γ ⊢t (Var x) # A
@@ -33,7 +33,7 @@ module GSeTT.Rules where
   wkt : ∀ {Γ A t y B} → Γ ⊢t t # A → (Γ :: (y , B)) ⊢C → (Γ :: (y , B)) ⊢t t # A
 
   wkT (ob _) Γ,y:B⊢ = ob Γ,y:B⊢
-  wkT (ar Γ⊢t:A Γ⊢u:A) Γ,y:B⊢ = ar (wkt Γ⊢t:A Γ,y:B⊢) (wkt Γ⊢u:A Γ,y:B⊢)
+  wkT (ar Γ⊢A Γ⊢t:A Γ⊢u:A) Γ,y:B⊢ = ar (wkT Γ⊢A Γ,y:B⊢) (wkt Γ⊢t:A Γ,y:B⊢) (wkt Γ⊢u:A Γ,y:B⊢)
   wkt (var Γ⊢C x∈Γ) Γ,y:B⊢ = var Γ,y:B⊢ (inl x∈Γ)
 
   wkS : ∀ {Δ Γ γ y B} → Δ ⊢S γ > Γ → (Δ :: (y , B)) ⊢C → (Δ :: (y , B)) ⊢S γ > Γ
@@ -46,7 +46,7 @@ module GSeTT.Rules where
   Γ⊢t:A→Γ⊢ : ∀ {Γ A t} → Γ ⊢t t # A → Γ ⊢C
 
   Γ⊢A→Γ⊢ (ob Γ⊢) = Γ⊢
-  Γ⊢A→Γ⊢ (ar Γ⊢t:A Γ⊢u:A) = Γ⊢t:A→Γ⊢ Γ⊢t:A
+  Γ⊢A→Γ⊢ (ar Γ⊢A Γ⊢t:A Γ⊢u:A) = Γ⊢A→Γ⊢ Γ⊢A
   Γ⊢t:A→Γ⊢ (var Γ⊢ _) = Γ⊢
 
   Δ⊢γ:Γ→Γ⊢ : ∀ {Δ Γ γ} → Δ ⊢S γ > Γ → Γ ⊢C
@@ -72,10 +72,10 @@ module GSeTT.Rules where
   Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc _ _ idp) (inr (idp , idp))) = Γ,x:A⊢→Γ,x:A⊢A Γ,x:A⊢
 
   Γ⊢src : ∀ {Γ A t u} → Γ ⊢T ⇒ A t u → Γ ⊢t t # A
-  Γ⊢src (ar Γ⊢t Γ⊢u) = Γ⊢t
+  Γ⊢src (ar Γ⊢A Γ⊢t Γ⊢u) = Γ⊢t
 
   Γ⊢tgt : ∀ {Γ A t u} → Γ ⊢T ⇒ A t u → Γ ⊢t u # A
-  Γ⊢tgt (ar Γ⊢t Γ⊢u) = Γ⊢u
+  Γ⊢tgt (ar Γ⊢A Γ⊢t Γ⊢u) = Γ⊢u
 
 
   {- Cut-admissibility -}
@@ -98,7 +98,7 @@ module GSeTT.Rules where
   wk[]t : ∀ {Γ Δ γ x u A t B} → Γ ⊢t t # A → Δ ⊢S (γ :: (x , u)) > (Γ :: (x , B)) → (t [ (γ :: (x , u)) ]Pre-Tm) == (t [ γ ]Pre-Tm)
 
   wk[]T (ob Γ⊢) _ = idp
-  wk[]T (ar Γ⊢t:A Γ⊢u:A) Δ⊢γ+:Γ+ = ⇒= (wk[]T (Γ⊢t:A→Γ⊢A Γ⊢t:A) Δ⊢γ+:Γ+)  (wk[]t Γ⊢t:A Δ⊢γ+:Γ+) (wk[]t Γ⊢u:A Δ⊢γ+:Γ+)
+  wk[]T (ar Γ⊢A Γ⊢t:A Γ⊢u:A) Δ⊢γ+:Γ+ = ⇒= (wk[]T Γ⊢A Δ⊢γ+:Γ+)  (wk[]t Γ⊢t:A Δ⊢γ+:Γ+) (wk[]t Γ⊢u:A Δ⊢γ+:Γ+)
   wk[]t {x = x} (var {x = y} Γ⊢ y∈Γ) Δ⊢γ+:Γ+ with (eqdecℕ y x)
   wk[]t {x = x} (var {x = y} Γ⊢ y∈Γ) Δ⊢γ+:Γ+ | inr _ = idp
   wk[]t (var {Γ = Γ} Γ⊢ x∈Γ) Δ⊢γ+:Γ+ | inl idp = ⊥-elim (lΓ∉Γ Γ⊢ (transport {B = λ n → n # _ ∈ Γ} (Γ+⊢l (Δ⊢γ:Γ→Γ⊢ Δ⊢γ+:Γ+)) x∈Γ))

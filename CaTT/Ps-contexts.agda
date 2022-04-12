@@ -43,9 +43,9 @@ module CaTT.Ps-contexts where
   Γ⊢ps→Γ⊢ (ps Γ⊢psx) = Γ⊢t:A→Γ⊢ (Γ⊢psx:A→Γ⊢x:A Γ⊢psx)
   Γ⊢psx:A→Γ⊢x:A pss = var (cc ec (ob ec) idp) (inr (idp , idp))
   Γ⊢psx:A→Γ⊢x:A (psd Γ⊢psf:x⇒y) with Γ⊢t:A→Γ⊢A (Γ⊢psx:A→Γ⊢x:A Γ⊢psf:x⇒y)
-  Γ⊢psx:A→Γ⊢x:A (psd Γ⊢psf:x⇒y) | ar _ Γ⊢y:A = Γ⊢y:A
+  Γ⊢psx:A→Γ⊢x:A (psd Γ⊢psf:x⇒y) | ar _ _ Γ⊢y:A = Γ⊢y:A
   Γ⊢psx:A→Γ⊢x:A (pse Γ⊢psx:A idp idp idp idp idp) with (cc (Γ⊢t:A→Γ⊢ (Γ⊢psx:A→Γ⊢x:A Γ⊢psx:A)) (Γ⊢t:A→Γ⊢A (Γ⊢psx:A→Γ⊢x:A Γ⊢psx:A)) idp)
-  ...                          | Γ,y:A⊢ = var (cc Γ,y:A⊢ (ar (wkt (Γ⊢psx:A→Γ⊢x:A Γ⊢psx:A) Γ,y:A⊢) (var Γ,y:A⊢ (inr (idp , idp)))) idp) (inr (idp , idp))
+  ...                          | Γ,y:A⊢ = var (cc Γ,y:A⊢ (ar (wkT (Γ⊢t:A→Γ⊢A (Γ⊢psx:A→Γ⊢x:A Γ⊢psx:A)) Γ,y:A⊢) (wkt (Γ⊢psx:A→Γ⊢x:A Γ⊢psx:A) Γ,y:A⊢) (var Γ,y:A⊢ (inr (idp , idp)))) idp) (inr (idp , idp))
 
   Γ⊢psx:A→Γ⊢ : ∀ {Γ x A} → Γ ⊢ps x # A → Γ ⊢C
   Γ⊢psx:A→Γ⊢ Γ⊢psx:A = Γ⊢t:A→Γ⊢ (Γ⊢psx:A→Γ⊢x:A Γ⊢psx:A)

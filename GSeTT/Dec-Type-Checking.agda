@@ -24,16 +24,6 @@ module GSeTT.Dec-Type-Checking where
     Γ+⊢→Γ⊢A : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → Γ ⊢T A
     Γ+⊢→Γ⊢A (cc _ Γ⊢A _) = Γ⊢A
 
-    Γ⊢t⇒u→Γ⊢A : ∀ {Γ A t u} → Γ ⊢T ⇒ A t u → Γ ⊢T A
-    Γ⊢t⇒u→Γ⊢A (ar Γ⊢t:A Γ⊢u:A) = Γ⊢t:A→Γ⊢A Γ⊢t:A
-
-
-    Γ⊢t⇒u→Γ⊢t : ∀ {Γ A t u} → Γ ⊢T ⇒ A t u → Γ ⊢t t # A
-    Γ⊢t⇒u→Γ⊢t (ar Γ⊢t:A Γ⊢u:A) = Γ⊢t:A
-
-    Γ⊢t⇒u→Γ⊢u : ∀ {Γ A t u} → Γ ⊢T ⇒ A t u → Γ ⊢t u # A
-    Γ⊢t⇒u→Γ⊢u (ar Γ⊢t:A Γ⊢u:A) = Γ⊢u:A
-
     Γ⊢x:A→x∈Γ : ∀ {Γ x A} → Γ ⊢t Var x # A → x # A ∈ Γ
     Γ⊢x:A→x∈Γ (var _ x∈Γ) = x∈Γ
 
@@ -89,9 +79,9 @@ module GSeTT.Dec-Type-Checking where
   ...             | inl Γ⊢ = inl (ob Γ⊢)
   ...             | inr Γ⊬ = inr λ Γ⊢* → Γ⊬ (Γ⊢A→Γ⊢ Γ⊢*)
   dec-⊢T Γ (⇒ A t u) with dec-⊢t Γ A t | dec-⊢t Γ A u
-  ...                     | inl Γ⊢t:A    | inl Γ⊢u:A = inl (ar Γ⊢t:A Γ⊢u:A)
-  ...                     | inl _        | inr Γ⊬u:A = inr λ Γ⊢t⇒u → Γ⊬u:A (Γ⊢t⇒u→Γ⊢u Γ⊢t⇒u)
-  ...                     | inr Γ⊬t:A    | _         = inr λ Γ⊢t⇒u → Γ⊬t:A (Γ⊢t⇒u→Γ⊢t Γ⊢t⇒u)
+  ...                     | inl Γ⊢t:A    | inl Γ⊢u:A = inl (ar (Γ⊢t:A→Γ⊢A Γ⊢t:A) Γ⊢t:A Γ⊢u:A)
+  ...                     | inl _        | inr Γ⊬u:A = inr λ Γ⊢t⇒u → Γ⊬u:A (Γ⊢tgt Γ⊢t⇒u)
+  ...                     | inr Γ⊬t:A    | _         = inr λ Γ⊢t⇒u → Γ⊬t:A (Γ⊢src Γ⊢t⇒u)
 
   dec-⊢t Γ A (Var x) with dec-⊢C Γ       | dec-∈ Γ x A
   ...                     | inl Γ⊢          | inl x∈Γ      = inl (var Γ⊢ x∈Γ)

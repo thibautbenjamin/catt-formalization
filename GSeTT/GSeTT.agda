@@ -1,4 +1,4 @@
-{-# OPTIONS --rewriting #-}
+{-# OPTIONS --without-K #-}
 
 module GSeTT.GSeTT where
   open import GSeTT.Syntax
@@ -7,6 +7,3 @@ module GSeTT.GSeTT where
   import GSeTT.Dec-Type-Checking
   import GSeTT.Uniqueness-Derivations
   open import GSeTT.Typed-Syntax
-
-
-
