@@ -191,11 +191,8 @@ module CaTT.CaTT where
    dim-full-ty Γ⊢ps Γ⊢A Afull with full-term-have-max-variables Γ⊢A Afull
    ... | ((x , B) , Γ⊢x) , (x∈A , dimx) = ≤T dimx (dim-∈-var Γ⊢x Γ⊢A x∈A)
 
-
-
    well-foundedness : well-founded
    well-foundedness ((Γ , A) , Afull) Γ⊢A with full-term-have-max-variables Γ⊢A Afull
    ... |((x , B) , Γ⊢x) , (x∈Γ , dimΓ≤Sdimx) = ≤T dimΓ≤Sdimx (dim-∈-var Γ⊢x Γ⊢A x∈Γ)
-
 
    open import Globular-TT.Dec-Type-Checking J rule well-foundedness eqdecJ
