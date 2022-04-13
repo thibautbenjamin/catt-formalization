@@ -28,7 +28,7 @@ module Globular-TT.Rules {l} (index : Set l) (rule : index → GSeTT.Typed-Synta
 
   data _⊢T_ where
     ob : ∀ {Γ} → Γ ⊢C → Γ ⊢T ∗
-    ar : ∀ {Γ A t u} → Γ ⊢T A → Γ ⊢t t # A → Γ ⊢t u # A → Γ ⊢T ⇒ A t u
+    ar : ∀ {Γ A t u} → Γ ⊢T A → Γ ⊢t t # A → Γ ⊢t u # A → Γ ⊢T t ⇒[ A ] u
 
   data _⊢t_#_ where
     var : ∀ {Γ x A} → Γ ⊢C → x # A ∈ Γ → Γ ⊢t (Var x) # A
@@ -95,10 +95,10 @@ module Globular-TT.Rules {l} (index : Set l) (rule : index → GSeTT.Typed-Synta
   Γ,x:A⊢→Γ,x:A⊢x:A : ∀ {Γ x A} → (Γ ∙ x # A) ⊢C → (Γ ∙ x # A) ⊢t (Var x) # A
   Γ,x:A⊢→Γ,x:A⊢x:A Γ,x:A⊢ = var Γ,x:A⊢ (inr (idp , idp))
 
-  Γ⊢src : ∀ {Γ A t u} → Γ ⊢T ⇒ A t u → Γ ⊢t t # A
+  Γ⊢src : ∀ {Γ A t u} → Γ ⊢T t ⇒[ A ] u → Γ ⊢t t # A
   Γ⊢src (ar Γ⊢ Γ⊢t Γ⊢u) = Γ⊢t
 
-  Γ⊢tgt : ∀ {Γ A t u} → Γ ⊢T ⇒ A t u → Γ ⊢t u # A
+  Γ⊢tgt : ∀ {Γ A t u} → Γ ⊢T t ⇒[ A ] u → Γ ⊢t u # A
   Γ⊢tgt (ar Γ⊢ Γ⊢t Γ⊢u) = Γ⊢u
 
   -- The proposition Γ⊢t:A→Γ⊢A is slightly harder and is moved in CwF-Struture since it depends on lemmas there

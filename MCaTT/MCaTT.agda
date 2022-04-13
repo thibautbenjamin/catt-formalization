@@ -22,18 +22,18 @@ module MCaTT.MCaTT where
 
   ↓C ⊘ = ⊘
   ↓C (Γ ∙ x # ∗) = ↓C Γ
-  ↓C (Γ ∙ x # A@(⇒ _ _ _)) = (↓C Γ) ∙ x # (↓T Γ A)
+  ↓C (Γ ∙ x # A@(_ ⇒[ _ ] _)) = (↓C Γ) ∙ x # (↓T Γ A)
 
   ↓T Γ ∗ = ∗
-  ↓T Γ (⇒ ∗ t u) = ∗
-  ↓T Γ (⇒ A@(⇒ _ _ _) t u) = ⇒ ((↓T Γ A) ) (↓t Γ t) (↓t Γ u)
+  ↓T Γ (t ⇒[ ∗ ] u) = ∗
+  ↓T Γ (t ⇒[ A@(_ ⇒[ _ ] _) ] u) = (↓t Γ t) ⇒[ ↓T Γ A ] (↓t Γ u)
 
   count-objects-in_until_ : Pre-Ctx → ℕ → ℕ
   count-objects-in ⊘ until x = 0
   count-objects-in Γ ∙ y # ∗ until x with dec-≤ y x
   ... | inl y≤x = S (count-objects-in Γ until x)
   ... | inr x<y = count-objects-in Γ until x
-  count-objects-in Γ ∙ y # (⇒ _ _ _) until x = count-objects-in Γ until x
+  count-objects-in Γ ∙ y # (_ ⇒[ _ ] _) until x = count-objects-in Γ until x
 
   ↓t Γ (Var x) = Var (x - (count-objects-in Γ until x))
   ↓t Δ (Tm-constructor i@(((Γ , _) , _) , _) γ) = Tm-constructor i (↓S (GPre-Ctx Γ) γ)

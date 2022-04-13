@@ -22,7 +22,7 @@ module CaTT.CaTT where
    Sub→Pre-Sub : Sub → Pre-Sub
 
    Ty→Pre-Ty ∗ = ∗
-   Ty→Pre-Ty (⇒ A t u) = ⇒ (Ty→Pre-Ty A) (Tm→Pre-Tm t) (Tm→Pre-Tm u)
+   Ty→Pre-Ty (⇒ A t u) = (Tm→Pre-Tm t) ⇒[ Ty→Pre-Ty A ] (Tm→Pre-Tm u)
 
    Tm→Pre-Tm (v x) = Var x
    Tm→Pre-Tm (coh Γ A Afull γ) = Tm-constructor (((Γ , A)) , Afull) (Sub→Pre-Sub γ)
@@ -49,7 +49,7 @@ module CaTT.CaTT where
    Ty→Pre-Ty[] : ∀ {A γ} → ((GPre-Ty A) [ Sub→Pre-Sub γ ]Pre-Ty) == Ty→Pre-Ty ((GPre-Ty→Ty A) [ γ ]Ty)
    Tm→Pre-Tm[] : ∀ {x γ} → ((Var x) [ Sub→Pre-Sub γ ]Pre-Tm) == Tm→Pre-Tm ((v x) [ γ ]Tm)
    Ty→Pre-Ty[] {GSeTT.Syntax.∗} {γ} = idp
-   Ty→Pre-Ty[] {(GSeTT.Syntax.Var x) GSeTT.Syntax.⇒[ A ] (GSeTT.Syntax.Var y)} {γ} = ap³ ⇒ Ty→Pre-Ty[] (Tm→Pre-Tm[] {x} {γ}) (Tm→Pre-Tm[] {y} {γ})
+   Ty→Pre-Ty[] {(GSeTT.Syntax.Var x) GSeTT.Syntax.⇒[ A ] (GSeTT.Syntax.Var y)} {γ} = ap³ _⇒[_]_  (Tm→Pre-Tm[] {x} {γ}) Ty→Pre-Ty[] (Tm→Pre-Tm[] {y} {γ})
    Tm→Pre-Tm[] {x} {<>} = idp
    Tm→Pre-Tm[] {x} {< γ , y ↦ t >} with eqdecℕ x y
    ... | inl idp = idp
