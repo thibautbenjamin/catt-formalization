@@ -22,7 +22,7 @@ module CaTT.CaTT where
    Sub→Pre-Sub : Sub → Pre-Sub
 
    Ty→Pre-Ty ∗ = ∗
-   Ty→Pre-Ty (⇒ A t u) = (Tm→Pre-Tm t) ⇒[ Ty→Pre-Ty A ] (Tm→Pre-Tm u)
+   Ty→Pre-Ty (t ⇒[ A ] u) = (Tm→Pre-Tm t) ⇒[ Ty→Pre-Ty A ] (Tm→Pre-Tm u)
 
    Tm→Pre-Tm (v x) = Var x
    Tm→Pre-Tm (coh Γ A Afull γ) = Tm-constructor (((Γ , A)) , Afull) (Sub→Pre-Sub γ)
@@ -35,7 +35,7 @@ module CaTT.CaTT where
    _∘ₛ_ : Sub → Sub → Sub
 
    ∗ [ σ ]Ty = ∗
-   ⇒ A t u [ σ ]Ty = ⇒ (A [ σ ]Ty) (t [ σ ]Tm) (u [ σ ]Tm)
+   (t ⇒[ A ] u) [ σ ]Ty = (t [ σ ]Tm) ⇒[ A [ σ ]Ty ] (u [ σ ]Tm)
    v x [ <> ]Tm = v x
    v x [ < σ , y ↦ t > ]Tm = if x ≡ y then t else ((v x) [ σ ]Tm)
    coh Γ A full γ [ σ ]Tm = coh Γ A full (γ ∘ₛ σ)
@@ -44,7 +44,7 @@ module CaTT.CaTT where
 
    GPre-Ty→Ty : GSeTT.Syntax.Pre-Ty → Ty
    GPre-Ty→Ty GSeTT.Syntax.∗ = ∗
-   GPre-Ty→Ty ((GSeTT.Syntax.Var x) GSeTT.Syntax.⇒[ A ] (GSeTT.Syntax.Var y)) = ⇒ (GPre-Ty→Ty A) (v x) (v y)
+   GPre-Ty→Ty ((GSeTT.Syntax.Var x) GSeTT.Syntax.⇒[ A ] (GSeTT.Syntax.Var y)) = v x ⇒[ GPre-Ty→Ty A ] v y
 
    Ty→Pre-Ty[] : ∀ {A γ} → ((GPre-Ty A) [ Sub→Pre-Sub γ ]Pre-Ty) == Ty→Pre-Ty ((GPre-Ty→Ty A) [ γ ]Ty)
    Tm→Pre-Tm[] : ∀ {x γ} → ((Var x) [ Sub→Pre-Sub γ ]Pre-Tm) == Tm→Pre-Tm ((v x) [ γ ]Tm)
@@ -177,7 +177,7 @@ module CaTT.CaTT where
    dim-∈-var-S : ∀ {Δ γ Γ x B} → Δ ⊢t Var x # B → Δ ⊢S (Sub→Pre-Sub γ) > (GPre-Ctx Γ) → x ∈-set varS γ → dim B ≤ dimC (GPre-Ctx Γ)
    dim-full-ty : ∀ {Γ A} → (Γ⊢ps : Γ ⊢ps) → (GPre-Ctx Γ) ⊢T (Ty→Pre-Ty A) → A is-full-in (Γ , Γ⊢ps) → dimC (GPre-Ctx Γ) ≤ dim (Ty→Pre-Ty A)
 
-   dim-∈-var {Γ} {A⇒@(⇒ A t u)} {x} {B} Γ⊢x (ar Γ⊢A Γ⊢t Γ⊢u) x∈A⇒ with ∈-∪ {varT A} {vart t ∪-set vart u} x∈A⇒
+   dim-∈-var {Γ} {A⇒@(t ⇒[ A ] u)} {x} {B} Γ⊢x (ar Γ⊢A Γ⊢t Γ⊢u) x∈A⇒ with ∈-∪ {varT A} {vart t ∪-set vart u} x∈A⇒
    ... | inl x∈A = n≤m→n≤Sm (dim-∈-var Γ⊢x Γ⊢A x∈A)
    ... | inr x∈t∪u with ∈-∪ {vart t} {vart u} x∈t∪u
    ... | inl x∈t = S≤ (dim-∈-var-t Γ⊢x Γ⊢t x∈t)
