@@ -14,7 +14,9 @@ module Globular-TT.Syntax {l} (index : Set l) where
 
   data Pre-Ty where
     ∗ : Pre-Ty
-    ⇒ : Pre-Ty → Pre-Tm → Pre-Tm → Pre-Ty
+    _⇒[_]_ : Pre-Tm → Pre-Ty → Pre-Tm → Pre-Ty
+
+  infix 50 _⇒[_]_
 
   data Pre-Tm where
     Var : ℕ → Pre-Tm
@@ -33,10 +35,10 @@ module Globular-TT.Syntax {l} (index : Set l) where
   C-length (Γ ∙ _ # _) = S (C-length Γ)
 
   -- Equality elimination
-  ⇒= : ∀ {A B t t' u u'} → A == B → t == t' → u == u' → ⇒ A t u == ⇒ B t' u'
+  ⇒= : ∀ {A B t t' u u'} → A == B → t == t' → u == u' → t ⇒[ A ] u == t' ⇒[ B ] u'
   ⇒= idp idp idp = idp
 
-  =⇒ : ∀ {A B t t' u u'} → ⇒ A t u == ⇒ B t' u' → ((A == B) × (t == t')) × (u == u')
+  =⇒ : ∀ {A B t t' u u'} → t ⇒[ A ] u == t' ⇒[ B ] u' → ((A == B) × (t == t')) × (u == u')
   =⇒ idp = (idp , idp) , idp
 
   Var= : ∀ {v w} → v == w → Var v == Var w
@@ -64,7 +66,7 @@ module Globular-TT.Syntax {l} (index : Set l) where
   _∘_ : Pre-Sub → Pre-Sub → Pre-Sub
 
   ∗ [ σ ]Pre-Ty = ∗
-  ⇒ A t u [ σ ]Pre-Ty = ⇒ (A [ σ ]Pre-Ty) (t [ σ ]Pre-Tm) (u [ σ ]Pre-Tm)
+  (t ⇒[ A ] u) [ σ ]Pre-Ty = (t [ σ ]Pre-Tm) ⇒[ A [ σ ]Pre-Ty ] (u [ σ ]Pre-Tm)
   Var x [ <> ]Pre-Tm = Var x
   Var x [ < σ , v ↦ t > ]Pre-Tm = if x ≡ v then t else ((Var x) [ σ ]Pre-Tm)
   Tm-constructor i γ [ σ ]Pre-Tm = Tm-constructor i (γ ∘ σ)
@@ -80,11 +82,11 @@ module Globular-TT.Syntax {l} (index : Set l) where
   {- dimension of types -}
   dim : Pre-Ty → ℕ
   dim ∗ = O
-  dim (⇒ A t u) = S (dim A)
+  dim (t ⇒[ A ] u) = S (dim A)
 
   dim[] : ∀ (A : Pre-Ty) (γ : Pre-Sub) → dim (A [ γ ]Pre-Ty) == dim A
   dim[] ∗ γ = idp
-  dim[] (⇒ A x x₁) γ = S= (dim[] A γ)
+  dim[] (_ ⇒[ A ] _) γ = S= (dim[] A γ)
 
   dimC : Pre-Ctx → ℕ
   dimC ⊘ = O
@@ -107,7 +109,7 @@ module Globular-TT.Syntax {l} (index : Set l) where
   GPre-Ctx nil = ⊘
   GPre-Ctx (Γ :: (x , A)) = (GPre-Ctx Γ) ∙ x # (GPre-Ty A)
   GPre-Ty GSeTT.Syntax.∗ = ∗
-  GPre-Ty (GSeTT.Syntax.⇒ A t u) = ⇒ (GPre-Ty A) (GPre-Tm t) (GPre-Tm u)
+  GPre-Ty (t GSeTT.Syntax.⇒[ A ] u) = (GPre-Tm t) ⇒[ GPre-Ty A ] (GPre-Tm u)
   GPre-Tm (GSeTT.Syntax.Var x) = Var x
 
   {- Depth of a term -}

@@ -83,7 +83,7 @@ module Globular-TT.CwF-Structure {l} (index : Set l) (rule : index → GSeTT.Typ
   ∘-right-unit : ∀ {Δ γ} →  (γ ∘ Pre-id Δ) == γ
 
   [id]T Γ ∗ = idp
-  [id]T Γ (⇒ A t u) = ⇒= ([id]T Γ A) ([id]t Γ t) ([id]t Γ u)
+  [id]T Γ (t ⇒[ A ] u) = ⇒= ([id]T Γ A) ([id]t Γ t) ([id]t Γ u)
   [id]t Γ (Tm-constructor i γ) = Tm-constructor= idp ∘-right-unit
   [id]t ⊘ (Var x) = idp
   [id]t (Γ ∙ y # B) (Var x) with (eqdecℕ x y)

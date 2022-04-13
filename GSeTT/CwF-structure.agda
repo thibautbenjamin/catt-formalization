@@ -13,7 +13,7 @@ module GSeTT.CwF-structure where
   []t : ∀ {Γ A t Δ γ} → Γ ⊢t t # A → Δ ⊢S γ > Γ → Δ ⊢t (t [ γ ]Pre-Tm) # (A [ γ ]Pre-Ty)
 
   []T (ob Γ⊢) Δ⊢γ:Γ = ob (Δ⊢γ:Γ→Δ⊢ Δ⊢γ:Γ)
-  []T (ar Γ⊢t:A Γ⊢u:A) Δ⊢γ:Γ = ar ([]t Γ⊢t:A Δ⊢γ:Γ) ([]t Γ⊢u:A Δ⊢γ:Γ)
+  []T (ar Γ⊢A Γ⊢t:A Γ⊢u:A) Δ⊢γ:Γ = ar ([]T Γ⊢A Δ⊢γ:Γ) ([]t Γ⊢t:A Δ⊢γ:Γ) ([]t Γ⊢u:A Δ⊢γ:Γ)
   []t {Γ = (Γ :: _)} {t = Var x} (var Γ+⊢@(cc Γ⊢ _ idp) (inl x∈Γ)) Δ⊢γ+:Γ+@(sc Δ⊢γ:Γ _ _ idp) with (eqdecℕ x (length Γ))
   ...                                                                                     | inl idp = ⊥-elim (lΓ∉Γ Γ⊢ x∈Γ)
   ...                                                                                     | inr _ = trT (wk[]T (Γ⊢t:A→Γ⊢A (var Γ⊢ x∈Γ)) Δ⊢γ+:Γ+ ^) ([]t (var Γ⊢ x∈Γ) Δ⊢γ:Γ)
@@ -27,7 +27,7 @@ module GSeTT.CwF-structure where
   [id]t : ∀ Γ t → (t [ Pre-id Γ ]Pre-Tm) == t
 
   [id]T Γ ∗ = idp
-  [id]T Γ (⇒ A t u) = ⇒= ([id]T Γ A) ([id]t Γ t) ([id]t Γ u)
+  [id]T Γ (t ⇒[ A ] u) = ⇒= ([id]T Γ A) ([id]t Γ t) ([id]t Γ u)
   [id]t nil (Var x) = idp
   [id]t (Γ :: (y , B)) (Var x) with (eqdecℕ x y)
   ...                              | inl x=y = Var= (x=y ^)
@@ -45,7 +45,7 @@ module GSeTT.CwF-structure where
   [∘]t : ∀ {Γ Δ Θ A t γ δ} → Γ ⊢t t # A → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → ((t [ γ ]Pre-Tm) [ δ ]Pre-Tm) == (t [ γ ∘ δ ]Pre-Tm)
 
   [∘]T (ob _) _ _ = idp
-  [∘]T (ar Γ⊢t:A Γ⊢u:A) Δ⊢γ:Γ Θ⊢δ:Δ = ⇒= ([∘]T (Γ⊢t:A→Γ⊢A Γ⊢t:A) Δ⊢γ:Γ Θ⊢δ:Δ) ([∘]t Γ⊢t:A Δ⊢γ:Γ Θ⊢δ:Δ) ([∘]t Γ⊢u:A Δ⊢γ:Γ Θ⊢δ:Δ)
+  [∘]T (ar Γ⊢A Γ⊢t:A Γ⊢u:A) Δ⊢γ:Γ Θ⊢δ:Δ = ⇒= ([∘]T Γ⊢A Δ⊢γ:Γ Θ⊢δ:Δ) ([∘]t Γ⊢t:A Δ⊢γ:Γ Θ⊢δ:Δ) ([∘]t Γ⊢u:A Δ⊢γ:Γ Θ⊢δ:Δ)
   [∘]t (var {x = x} Γ⊢ x∈Γ) (sc {x = y} Δ⊢γ:Γ _ Δ⊢t:A[γ] idp) Θ⊢δ:Δ with (eqdecℕ x y )
   ... | inl idp = idp
   [∘]t (var Γ,y:A⊢ (inr (idp , idp))) (sc Δ⊢γ:Γ _ Δ⊢t:A[γ] idp) Θ⊢δ:Δ | inr x≠x = ⊥-elim (x≠x idp)

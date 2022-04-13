@@ -18,9 +18,9 @@ module Globular-TT.Eqdec-syntax {l}
   eqdec-Sub : eqdec Pre-Sub
 
   eqdec-Ty ∗ ∗ = inl idp
-  eqdec-Ty ∗ (⇒ _ _ _) = inr λ{()}
-  eqdec-Ty (⇒ _ _ _ ) ∗ = inr λ{()}
-  eqdec-Ty (⇒ A t u) (⇒ B t' u') with eqdec-Ty A B | eqdec-Tm t t' | eqdec-Tm u u'
+  eqdec-Ty ∗ (_ ⇒[ _ ] _) = inr λ{()}
+  eqdec-Ty (_ ⇒[ _ ] _) ∗ = inr λ{()}
+  eqdec-Ty (t ⇒[ A ] u) (t' ⇒[ B ] u') with eqdec-Ty A B | eqdec-Tm t t' | eqdec-Tm u u'
   ...                            | inl idp | inl idp | inl idp = inl idp
   ...                            | inr A≠B | _ | _ = inr λ{idp → A≠B idp}
   ...                            | inl idp | inr t≠t' | _ = inr λ eq → t≠t' (snd (fst (=⇒ eq)))

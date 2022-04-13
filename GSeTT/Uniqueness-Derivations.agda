@@ -24,7 +24,7 @@ module GSeTT.Uniqueness-Derivations where
   has-all-paths-⊢C {Γ :: (x , A)} (cc Γ⊢ Γ⊢A p) (cc Γ⊢' Γ⊢'A q) = ap³ cc ((has-all-paths-⊢C Γ⊢ Γ⊢')) ((has-all-paths-⊢T Γ⊢A Γ⊢'A)) (is-prop-has-all-paths (is-setℕ x (length Γ)) p q)
 
   has-all-paths-⊢T {Γ} {∗} (ob Γ⊢) (ob Γ⊢') = ap ob (has-all-paths-⊢C Γ⊢ Γ⊢')
-  has-all-paths-⊢T {Γ} {⇒ A t u} (ar Γ⊢t:A Γ⊢u:A) (ar Γ⊢'t:A Γ⊢'u:A) = ap² ar (has-all-paths-⊢t Γ⊢t:A Γ⊢'t:A) (has-all-paths-⊢t Γ⊢u:A Γ⊢'u:A)
+  has-all-paths-⊢T {Γ} {t ⇒[ A ] u} (ar Γ⊢A Γ⊢t:A Γ⊢u:A) (ar Γ⊢'A Γ⊢'t:A Γ⊢'u:A) = ap³ ar (has-all-paths-⊢T Γ⊢A Γ⊢'A) (has-all-paths-⊢t Γ⊢t:A Γ⊢'t:A) (has-all-paths-⊢t Γ⊢u:A Γ⊢'u:A)
 
   has-all-paths-⊢t {Γ} {A} {Var x} (var Γ⊢ x∈Γ) (var Γ⊢' x∈'Γ) = ap² var (has-all-paths-⊢C Γ⊢ Γ⊢') (has-all-paths-∈ Γ⊢ x∈Γ x∈'Γ)
 

@@ -22,7 +22,7 @@ module CaTT.CaTT where
    Sub→Pre-Sub : Sub → Pre-Sub
 
    Ty→Pre-Ty ∗ = ∗
-   Ty→Pre-Ty (⇒ A t u) = ⇒ (Ty→Pre-Ty A) (Tm→Pre-Tm t) (Tm→Pre-Tm u)
+   Ty→Pre-Ty (t ⇒[ A ] u) = (Tm→Pre-Tm t) ⇒[ Ty→Pre-Ty A ] (Tm→Pre-Tm u)
 
    Tm→Pre-Tm (v x) = Var x
    Tm→Pre-Tm (coh Γ A Afull γ) = Tm-constructor (((Γ , A)) , Afull) (Sub→Pre-Sub γ)
@@ -35,7 +35,7 @@ module CaTT.CaTT where
    _∘ₛ_ : Sub → Sub → Sub
 
    ∗ [ σ ]Ty = ∗
-   ⇒ A t u [ σ ]Ty = ⇒ (A [ σ ]Ty) (t [ σ ]Tm) (u [ σ ]Tm)
+   (t ⇒[ A ] u) [ σ ]Ty = (t [ σ ]Tm) ⇒[ A [ σ ]Ty ] (u [ σ ]Tm)
    v x [ <> ]Tm = v x
    v x [ < σ , y ↦ t > ]Tm = if x ≡ y then t else ((v x) [ σ ]Tm)
    coh Γ A full γ [ σ ]Tm = coh Γ A full (γ ∘ₛ σ)
@@ -44,12 +44,12 @@ module CaTT.CaTT where
 
    GPre-Ty→Ty : GSeTT.Syntax.Pre-Ty → Ty
    GPre-Ty→Ty GSeTT.Syntax.∗ = ∗
-   GPre-Ty→Ty (GSeTT.Syntax.⇒ A (GSeTT.Syntax.Var x) (GSeTT.Syntax.Var y)) = ⇒ (GPre-Ty→Ty A) (v x) (v y)
+   GPre-Ty→Ty ((GSeTT.Syntax.Var x) GSeTT.Syntax.⇒[ A ] (GSeTT.Syntax.Var y)) = v x ⇒[ GPre-Ty→Ty A ] v y
 
    Ty→Pre-Ty[] : ∀ {A γ} → ((GPre-Ty A) [ Sub→Pre-Sub γ ]Pre-Ty) == Ty→Pre-Ty ((GPre-Ty→Ty A) [ γ ]Ty)
    Tm→Pre-Tm[] : ∀ {x γ} → ((Var x) [ Sub→Pre-Sub γ ]Pre-Tm) == Tm→Pre-Tm ((v x) [ γ ]Tm)
    Ty→Pre-Ty[] {GSeTT.Syntax.∗} {γ} = idp
-   Ty→Pre-Ty[] {GSeTT.Syntax.⇒ A (GSeTT.Syntax.Var x) (GSeTT.Syntax.Var y)} {γ} = ap³ ⇒ Ty→Pre-Ty[] (Tm→Pre-Tm[] {x} {γ}) (Tm→Pre-Tm[] {y} {γ})
+   Ty→Pre-Ty[] {(GSeTT.Syntax.Var x) GSeTT.Syntax.⇒[ A ] (GSeTT.Syntax.Var y)} {γ} = ap³ _⇒[_]_  (Tm→Pre-Tm[] {x} {γ}) Ty→Pre-Ty[] (Tm→Pre-Tm[] {y} {γ})
    Tm→Pre-Tm[] {x} {<>} = idp
    Tm→Pre-Tm[] {x} {< γ , y ↦ t >} with eqdecℕ x y
    ... | inl idp = idp
@@ -57,7 +57,7 @@ module CaTT.CaTT where
 
    dim-Pre-Ty[] : ∀ {A γ} → dim (Ty→Pre-Ty ((GPre-Ty→Ty A) [ γ ]Ty)) == dim (GPre-Ty A)
    dim-Pre-Ty[] {GSeTT.Syntax.∗} {γ} = idp
-   dim-Pre-Ty[] {GSeTT.Syntax.⇒ A (GSeTT.Syntax.Var _) (GSeTT.Syntax.Var _)} {γ} = ap S dim-Pre-Ty[]
+   dim-Pre-Ty[] {(GSeTT.Syntax.Var _) GSeTT.Syntax.⇒[ A ](GSeTT.Syntax.Var _)} {γ} = ap S dim-Pre-Ty[]
 
    rule : J → GSeTT.Typed-Syntax.Ctx × Pre-Ty
    rule ((Γ , A) , _) = (fst Γ , Γ⊢ps→Γ⊢ (snd Γ)) , Ty→Pre-Ty A
@@ -82,7 +82,7 @@ module CaTT.CaTT where
 
    GdimT : ∀ {A} → GSeTT.Syntax.dim A == dim (GPre-Ty A)
    GdimT {GSeTT.Syntax.∗} = idp
-   GdimT {GSeTT.Syntax.⇒ A _ _} = ap S GdimT
+   GdimT {_ GSeTT.Syntax.⇒[ A ] _} = ap S GdimT
 
    GdimC : ∀ {Γ} → GSeTT.Syntax.dimC Γ == dimC (GPre-Ctx Γ)
    GdimC {nil} = idp
@@ -177,7 +177,7 @@ module CaTT.CaTT where
    dim-∈-var-S : ∀ {Δ γ Γ x B} → Δ ⊢t Var x # B → Δ ⊢S (Sub→Pre-Sub γ) > (GPre-Ctx Γ) → x ∈-set varS γ → dim B ≤ dimC (GPre-Ctx Γ)
    dim-full-ty : ∀ {Γ A} → (Γ⊢ps : Γ ⊢ps) → (GPre-Ctx Γ) ⊢T (Ty→Pre-Ty A) → A is-full-in (Γ , Γ⊢ps) → dimC (GPre-Ctx Γ) ≤ dim (Ty→Pre-Ty A)
 
-   dim-∈-var {Γ} {A⇒@(⇒ A t u)} {x} {B} Γ⊢x (ar Γ⊢A Γ⊢t Γ⊢u) x∈A⇒ with ∈-∪ {varT A} {vart t ∪-set vart u} x∈A⇒
+   dim-∈-var {Γ} {A⇒@(t ⇒[ A ] u)} {x} {B} Γ⊢x (ar Γ⊢A Γ⊢t Γ⊢u) x∈A⇒ with ∈-∪ {varT A} {vart t ∪-set vart u} x∈A⇒
    ... | inl x∈A = n≤m→n≤Sm (dim-∈-var Γ⊢x Γ⊢A x∈A)
    ... | inr x∈t∪u with ∈-∪ {vart t} {vart u} x∈t∪u
    ... | inl x∈t = S≤ (dim-∈-var-t Γ⊢x Γ⊢t x∈t)
@@ -191,11 +191,8 @@ module CaTT.CaTT where
    dim-full-ty Γ⊢ps Γ⊢A Afull with full-term-have-max-variables Γ⊢A Afull
    ... | ((x , B) , Γ⊢x) , (x∈A , dimx) = ≤T dimx (dim-∈-var Γ⊢x Γ⊢A x∈A)
 
-
-
    well-foundedness : well-founded
    well-foundedness ((Γ , A) , Afull) Γ⊢A with full-term-have-max-variables Γ⊢A Afull
    ... |((x , B) , Γ⊢x) , (x∈Γ , dimΓ≤Sdimx) = ≤T dimΓ≤Sdimx (dim-∈-var Γ⊢x Γ⊢A x∈Γ)
-
 
    open import Globular-TT.Dec-Type-Checking J rule well-foundedness eqdecJ

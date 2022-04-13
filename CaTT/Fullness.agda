@@ -18,7 +18,7 @@ module CaTT.Fullness where
 
   data Ty where
     ∗ : Ty
-    ⇒ : Ty → Tm → Tm → Ty
+    _⇒[_]_ : Tm → Ty → Tm → Ty
   data Tm where
     v : ℕ → Tm
     coh : (Γ : ps-ctx) → (A : Ty) → A is-full-in Γ → Sub  → Tm
@@ -26,7 +26,9 @@ module CaTT.Fullness where
     <> : Sub
     <_,_↦_> : Sub → ℕ → Tm → Sub
 
-  =⇒Ty : ∀ {A A' : Ty} {t t' u u' : Tm} → _==_ {A = Ty} (⇒ A t u) (⇒ A' t' u') → ((A == A' × t == t') × u == u')
+  infix 50 _⇒[_]_
+
+  =⇒Ty : ∀ {A A' : Ty} {t t' u u' : Tm} → _==_ {A = Ty} (t ⇒[ A ] u) (t' ⇒[ A' ] u') → ((A == A' × t == t') × u == u')
   =⇒Ty idp = (idp , idp) , idp
 
   coh= : ∀ {Γ Γ' A A' Afull A'full γ γ'} → coh Γ A Afull γ == coh Γ' A' A'full γ' → ((Γ == Γ' × A == A') × γ == γ')
@@ -45,7 +47,7 @@ module CaTT.Fullness where
   varS : Sub → set
 
   varT ∗ = Ø
-  varT (⇒ A t u) = (varT A) ∪-set ((vart t) ∪-set (vart u))
+  varT (t ⇒[ A ] u) = (varT A) ∪-set ((vart t) ∪-set (vart u))
   vart (v x) = singleton x
   vart (coh Γ A Afull γ) = varS γ
   varS <> = Ø
@@ -54,7 +56,7 @@ module CaTT.Fullness where
 
   {- fullness condition -}
   data _is-full-in_ where
-    side-cond₁ : ∀ Γ A t u → (src-var Γ) ≗ ((varT A) ∪-set (vart t)) → (tgt-var Γ) ≗ ((varT A) ∪-set (vart u)) → (⇒ A t u) is-full-in Γ
+    side-cond₁ : ∀ Γ A t u → (src-var Γ) ≗ ((varT A) ∪-set (vart t)) → (tgt-var Γ) ≗ ((varT A) ∪-set (vart u)) → (t ⇒[ A ] u) is-full-in Γ
     side-cond₂ : ∀ Γ A →  (varC (fst Γ)) ≗ (varT A) → A is-full-in Γ
 
   ∈-drop : ∀ {A : Set} {a : A} {l : list A} → a ∈-list drop l → a ∈-list l
@@ -142,7 +144,7 @@ module CaTT.Fullness where
   ... | inr _ with Γ
   max-var-is-max {Γ :: (y , B)} _ (cc Γ⊢ Γ⊢B idp) | inr _ | Δ :: (x , A) = let (x∈ , dimA) = max-var-is-max (λ{()}) Γ⊢ in inl x∈ , dimA
   max-var-is-max {Γ :: (.0 , .∗)} _ (cc Γ⊢ (ob _) idp) | inr _ | nil = inr (idp , idp) , idp
-  max-var-is-max {Γ :: (.0 , _)} _ (cc Γ⊢ (ar _ _) idp) | inr dΓ≤dB | nil = ⊥-elim (dΓ≤dB (0≤ _))
+  max-var-is-max {Γ :: (.0 , _)} _ (cc Γ⊢ (ar _ _ _) idp) | inr dΓ≤dB | nil = ⊥-elim (dΓ≤dB (0≤ _))
 
   psx-nonul : ∀ {Γ x A} → Γ ⊢ps x # A → Γ ≠ nil
   psx-nonul (psd x) idp = psx-nonul x idp
@@ -160,7 +162,7 @@ module CaTT.Fullness where
     (λ x∈∂⁺ → ∂⁺ᵢ-var Γ⊢psx (var (psv Γ⊢psx) x∈Γ) (≤-= (n≤n _) dimA) (∈-set-∈-list _ _ x∈∂⁺))
     (vΓ⊂∂ x (∈-varC x∈Γ))
 
-  disjoint-cond : ∀ Γ A t u → (src-var Γ) ≗ ((varT A) ∪-set (vart t)) → (tgt-var Γ) ≗ ((varT A) ∪-set (vart u)) → ¬ (varC (fst Γ) ≗ varT (⇒ A t u))
+  disjoint-cond : ∀ Γ A t u → (src-var Γ) ≗ ((varT A) ∪-set (vart t)) → (tgt-var Γ) ≗ ((varT A) ∪-set (vart u)) → ¬ (varC (fst Γ) ≗ varT (t ⇒[ A ] u))
   disjoint-cond Γ A t u (_ , A⊂∂⁻) (_ , A⊂∂⁺) (Γ⊂A , _) =
     let vA = varT A in let vt = vart t in let vu = vart u in
     let sr = src-var Γ in let tg = tgt-var Γ in
@@ -173,9 +175,9 @@ module CaTT.Fullness where
   side-cond₁= Γ A t u ∂⁻-full₁ .∂⁻-full₁ ∂⁺-full₁ .∂⁺-full₁ idp idp = idp
 
   has-all-paths-is-full : ∀ Γ A → has-all-paths (A is-full-in Γ)
-  has-all-paths-is-full Γ .(⇒ A t u) (side-cond₁ .Γ A t u x x₁) (side-cond₁ .Γ .A .t .u x₂ x₃) = ap² (λ ∂⁻ → λ ∂⁺ → side-cond₁ Γ A t u ∂⁻ ∂⁺) (is-prop-has-all-paths (is-prop-≗ (src-var Γ) (varT A ∪-set vart t)) x x₂) (is-prop-has-all-paths (is-prop-≗ (tgt-var Γ) (varT A ∪-set vart u)) x₁ x₃)
-  has-all-paths-is-full Γ .(⇒ A t u) (side-cond₁ .Γ A t u ∂⁻ ∂⁺) (side-cond₂ .Γ .(⇒ A t u) full) = ⊥-elim (disjoint-cond Γ A t u ∂⁻ ∂⁺ full)
-  has-all-paths-is-full Γ .(⇒ A t u) (side-cond₂ .Γ .(⇒ A t u) full) (side-cond₁ .Γ A t u ∂⁻ ∂⁺) = ⊥-elim (disjoint-cond Γ A t u ∂⁻ ∂⁺ full)
+  has-all-paths-is-full Γ .(t ⇒[ A ] u) (side-cond₁ .Γ A t u x x₁) (side-cond₁ .Γ .A .t .u x₂ x₃) = ap² (λ ∂⁻ → λ ∂⁺ → side-cond₁ Γ A t u ∂⁻ ∂⁺) (is-prop-has-all-paths (is-prop-≗ (src-var Γ) (varT A ∪-set vart t)) x x₂) (is-prop-has-all-paths (is-prop-≗ (tgt-var Γ) (varT A ∪-set vart u)) x₁ x₃)
+  has-all-paths-is-full Γ .(t ⇒[ A ] u) (side-cond₁ .Γ A t u ∂⁻ ∂⁺) (side-cond₂ .Γ .(t ⇒[ A ] u) full) = ⊥-elim (disjoint-cond Γ A t u ∂⁻ ∂⁺ full)
+  has-all-paths-is-full Γ .(t ⇒[ A ] u) (side-cond₂ .Γ .(t ⇒[ A ] u) full) (side-cond₁ .Γ A t u ∂⁻ ∂⁺) = ⊥-elim (disjoint-cond Γ A t u ∂⁻ ∂⁺ full)
   has-all-paths-is-full Γ A (side-cond₂ .Γ .A x) (side-cond₂ .Γ .A x₁) = ap (side-cond₂ Γ A) (is-prop-has-all-paths (is-prop-≗ (varC (fst Γ)) (varT A)) x x₁)
 
   is-prop-full : ∀ Γ A → is-prop (A is-full-in Γ)
@@ -189,9 +191,9 @@ module CaTT.Fullness where
   eqdec-Sub : eqdec Sub
 
   eqdec-Ty ∗ ∗ = inl idp
-  eqdec-Ty ∗ (⇒ _ _ _) = inr λ{()}
-  eqdec-Ty (⇒ _ _ _) ∗ = inr λ{()}
-  eqdec-Ty (⇒ A t u) (⇒ A' t' u') with eqdec-Ty A A' | eqdec-Tm t t' | eqdec-Tm u u'
+  eqdec-Ty ∗ (_ ⇒[ _ ] _) = inr λ{()}
+  eqdec-Ty (_ ⇒[ _ ] _) ∗ = inr λ{()}
+  eqdec-Ty (t ⇒[ A ] u) (t' ⇒[ A' ] u') with eqdec-Ty A A' | eqdec-Tm t t' | eqdec-Tm u u'
   ...                                        | inl idp | inl idp | inl idp = inl idp
   ...                                        | inr A≠A' | _ | _ = inr λ {idp → A≠A' idp}
   ...                                        | inl idp | inr t≠t' | _ = inr λ p → t≠t' (snd (fst (=⇒Ty p)))

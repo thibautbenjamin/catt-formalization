@@ -33,7 +33,7 @@ module Globular-TT.Dec-Type-Checking {l} (index : Set l) (rule : index → GSeTT
   dec-G⊢S : ∀ (Δ Γ : GSeTT.Typed-Syntax.Ctx) n d γ → dimC (GPre-Ctx (fst Γ)) ≤ n → depthS γ ≤ d → dec (GPre-Ctx (fst Δ) ⊢S γ > GPre-Ctx (fst Γ))
 
   dec-G⊢T Γ _ ∗ _ = inl (ob (GCtx _ (snd Γ)))
-  dec-G⊢T Γ (S n) (⇒ A t u) (S≤ i)  with dec-G⊢T Γ n A i | dec-G⊢t Γ n _ A t i (n≤n _) | dec-G⊢t Γ n _ A u i (n≤n _)
+  dec-G⊢T Γ (S n) (t ⇒[ A ] u) (S≤ i)  with dec-G⊢T Γ n A i | dec-G⊢t Γ n _ A t i (n≤n _) | dec-G⊢t Γ n _ A u i (n≤n _)
   ...                         | inl Γ⊢A | inl Γ⊢t:A | inl Γ⊢u:A = inl (ar Γ⊢A Γ⊢t:A Γ⊢u:A)
   ...                         | inr Γ⊬A | _ | _ = inr λ{(ar Γ⊢A _ _) → Γ⊬A Γ⊢A}
   ...                         | inl _ | inr Γ⊬t:A  | _ = inr λ{(ar _ Γ⊢t:A _) → Γ⊬t:A Γ⊢t:A}
@@ -80,7 +80,7 @@ module Globular-TT.Dec-Type-Checking {l} (index : Set l) (rule : index → GSeTT
   ...        | inl Γ⊢ = inl (ob Γ⊢)
   ...        | inr Γ⊬ = inr λ {(ob Γ⊢) → Γ⊬ Γ⊢}
 
-  dec-⊢T Γ (⇒ A t u) with dec-⊢T Γ A | dec-⊢t Γ A t | dec-⊢t Γ A u
+  dec-⊢T Γ (t ⇒[ A ] u) with dec-⊢T Γ A | dec-⊢t Γ A t | dec-⊢t Γ A u
   ...                 | inl Γ⊢A | inl Γ⊢t:A | inl Γ⊢u:A = inl (ar Γ⊢A Γ⊢t:A Γ⊢u:A)
   ...                 | inr Γ⊬A | _ | _ = inr λ {(ar Γ⊢A _ _) → Γ⊬A Γ⊢A}
   ...                 | inl _ | inr Γ⊬t:A | _ = inr λ {(ar _ Γ⊢t:A _) → Γ⊬t:A Γ⊢t:A}

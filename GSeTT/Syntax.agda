@@ -11,7 +11,9 @@ module GSeTT.Syntax where
 
   data Pre-Ty where
     ∗ : Pre-Ty
-    ⇒ : Pre-Ty → Pre-Tm → Pre-Tm → Pre-Ty
+    _⇒[_]_ : Pre-Tm → Pre-Ty → Pre-Tm → Pre-Ty
+
+  infix 50 _⇒[_]_
 
   data Pre-Tm where
     Var : ℕ → Pre-Tm
@@ -22,13 +24,13 @@ module GSeTT.Syntax where
   Pre-Sub : Set₁
   Pre-Sub = list (ℕ × Pre-Tm)
 
-  ⇒= : ∀ {A B t t' u u'} → A == B → t == t' → u == u' → ⇒ A t u == ⇒ B t' u'
+  ⇒= : ∀ {A B t t' u u'} → A == B → t == t' → u == u' → t ⇒[ A ] u == t' ⇒[ B ] u'
   ⇒= idp idp idp = idp
 
-  =⇒ : ∀ {A B t t' u u'} → ⇒ A t u == ⇒ B t' u' → (A == B × t == t') × u == u'
+  =⇒ : ∀ {A B t t' u u'} → t ⇒[ A ] u == t' ⇒[ B ] u' → (A == B × t == t') × u == u'
   =⇒ idp = (idp , idp) , idp
 
-  tgt= : ∀ {A B t t' u u'} → ⇒ A t u == ⇒ B t' u' →  u == u'
+  tgt= : ∀ {A B t t' u u'} → t ⇒[ A ] u == t' ⇒[ B ] u' →  u == u'
   tgt= idp = idp
 
   Var= : ∀ {v w} → v == w → Var v == Var w
@@ -41,7 +43,7 @@ module GSeTT.Syntax where
   -- Careful: dimension of ∗ should be -1
   dim : Pre-Ty → ℕ
   dim ∗ = O
-  dim (⇒ A t u) = S (dim A)
+  dim (t ⇒[ A ] u) = S (dim A)
 
   -- Careful: dimension of the empty context should be -1
   dimC : Pre-Ctx → ℕ
@@ -54,7 +56,7 @@ module GSeTT.Syntax where
   _[_]Pre-Tm : Pre-Tm → Pre-Sub → Pre-Tm
 
   ∗ [ γ ]Pre-Ty = ∗
-  ⇒ A t u [ γ ]Pre-Ty = ⇒ (A [ γ ]Pre-Ty) (t [ γ ]Pre-Tm) (u [ γ ]Pre-Tm)
+  (t ⇒[ A ] u) [ γ ]Pre-Ty = (t [ γ ]Pre-Tm) ⇒[ (A [ γ ]Pre-Ty) ] (u [ γ ]Pre-Tm)
   Var x [ nil ]Pre-Tm = Var x
   Var x [ γ :: (v , t) ]Pre-Tm = if x ≡ v then t else ((Var x) [ γ ]Pre-Tm)
 
@@ -93,9 +95,9 @@ module GSeTT.Syntax where
   ... | inr Γ≠Δ | _ | _ = inr λ{idp → Γ≠Δ idp}
 
   eqdec-PreTy ∗ ∗ = inl idp
-  eqdec-PreTy ∗ (⇒ _ _ _) = inr λ()
-  eqdec-PreTy (⇒ _ _ _) ∗ = inr λ()
-  eqdec-PreTy (⇒ A t u) (⇒ B v w) with eqdec-PreTy A B | eqdec-PreTm t v | eqdec-PreTm u w
+  eqdec-PreTy ∗ (_ ⇒[ _ ] _) = inr λ()
+  eqdec-PreTy (_ ⇒[ _ ] _) ∗ = inr λ()
+  eqdec-PreTy (t ⇒[ A ] u) (v ⇒[ B ] w) with eqdec-PreTy A B | eqdec-PreTm t v | eqdec-PreTm u w
   ... | inl idp | inl idp | inl idp = inl idp
   ... | inl idp | inl idp | inr u≠w = inr λ A=B → u≠w (snd (=⇒ A=B))
   ... | inl idp | inr t≠v | _ = inr λ A=B → t≠v (snd (fst (=⇒ A=B)))
