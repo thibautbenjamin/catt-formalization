@@ -18,7 +18,7 @@ module GSeTT.Rules where
 
   data _⊢T_ where
     ob : ∀ {Γ} → Γ ⊢C → Γ ⊢T ∗
-    ar : ∀ {Γ A t u} → Γ ⊢T A → Γ ⊢t t # A → Γ ⊢t u # A → Γ ⊢T ⇒ A t u
+    ar : ∀ {Γ A t u} → Γ ⊢T A → Γ ⊢t t # A → Γ ⊢t u # A → Γ ⊢T t ⇒[ A ] u
 
   data _⊢t_#_ where
     var : ∀ {Γ x A} → Γ ⊢C → x # A ∈ Γ → Γ ⊢t (Var x) # A
@@ -71,10 +71,10 @@ module GSeTT.Rules where
   Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc Γ⊢ Γ⊢A idp) (inl y∈Γ)) = wkT (Γ⊢t:A→Γ⊢A (var Γ⊢ y∈Γ)) Γ,x:A⊢
   Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc _ _ idp) (inr (idp , idp))) = Γ,x:A⊢→Γ,x:A⊢A Γ,x:A⊢
 
-  Γ⊢src : ∀ {Γ A t u} → Γ ⊢T ⇒ A t u → Γ ⊢t t # A
+  Γ⊢src : ∀ {Γ A t u} → Γ ⊢T t ⇒[ A ] u → Γ ⊢t t # A
   Γ⊢src (ar Γ⊢A Γ⊢t Γ⊢u) = Γ⊢t
 
-  Γ⊢tgt : ∀ {Γ A t u} → Γ ⊢T ⇒ A t u → Γ ⊢t u # A
+  Γ⊢tgt : ∀ {Γ A t u} → Γ ⊢T t ⇒[ A ] u → Γ ⊢t u # A
   Γ⊢tgt (ar Γ⊢A Γ⊢t Γ⊢u) = Γ⊢u
 
 
@@ -105,4 +105,4 @@ module GSeTT.Rules where
 
   dim[] : ∀ (A : Pre-Ty) (γ : Pre-Sub) → dim (A [ γ ]Pre-Ty) == dim A
   dim[] ∗ γ = idp
-  dim[] (⇒ A x x₁) γ = S= (dim[] A γ)
+  dim[] (_ ⇒[ A ] _) γ = S= (dim[] A γ)

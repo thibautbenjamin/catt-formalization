@@ -12,17 +12,17 @@ module CaTT.Ps-contexts where
   {- Rules for PS-contexts -}
   data _⊢ps_#_ : Pre-Ctx → ℕ → Pre-Ty → Set₁ where
     pss : (nil :: (O , ∗)) ⊢ps O # ∗
-    psd : ∀ {Γ f A x y} → Γ ⊢ps f # (⇒ A (Var x) (Var y)) → Γ ⊢ps y # A
-    pse : ∀ {Γ x A y z C t Tt} → Γ ⊢ps x # A  →  y == length Γ → z == S (length Γ) → C == ⇒ A (Var x) (Var y) → z == t → C == Tt → ((Γ :: (y , A)) :: (z , C)) ⊢ps t # Tt
+    psd : ∀ {Γ f A x y} → Γ ⊢ps f # ((Var x) ⇒[ A ] (Var y)) → Γ ⊢ps y # A
+    pse : ∀ {Γ x A y z C t Tt} → Γ ⊢ps x # A  →  y == length Γ → z == S (length Γ) → C == (Var x) ⇒[ A ] (Var y) → z == t → C == Tt → ((Γ :: (y , A)) :: (z , C)) ⊢ps t # Tt
 
   data _⊢ps : Pre-Ctx → Set₁ where
     ps : ∀ {Γ x} → Γ ⊢ps x # ∗ → Γ ⊢ps
 
-  psd↓ : ∀ {Γ f A x y z} → (Γ⊢ps₁ : Γ ⊢ps f # (⇒ A (Var x) (Var z))) → (Γ⊢ps₂ : Γ ⊢ps f # (⇒ A (Var y) (Var z))) → (p : x == y) → transport p Γ⊢ps₁ == Γ⊢ps₂ → psd Γ⊢ps₁ == psd Γ⊢ps₂
+  psd↓ : ∀ {Γ f A x y z} → (Γ⊢ps₁ : Γ ⊢ps f # ((Var x) ⇒[ A ] (Var z))) → (Γ⊢ps₂ : Γ ⊢ps f # ((Var y) ⇒[ A ] (Var z))) → (p : x == y) → transport p Γ⊢ps₁ == Γ⊢ps₂ → psd Γ⊢ps₁ == psd Γ⊢ps₂
   psd↓ Γ⊢ps₁ .Γ⊢ps₁ idp idp = idp
 
-  pse↓ : ∀ {Γ A B C x y a f z} → (Γ⊢ps₁ : Γ ⊢ps x # A) (a= : a == length Γ) (f= : f == S (length Γ)) (B= : B == ⇒ A (Var x) (Var a)) (z= : f == z) (C= : B == C)
-                                → (Γ⊢ps₂ : Γ ⊢ps y # A) (a=' : a == length Γ) (f=' : f == S (length Γ)) (B=' : B == ⇒ A (Var y) (Var a)) (z=' : f == z) (C=' : B == C)
+  pse↓ : ∀ {Γ A B C x y a f z} → (Γ⊢ps₁ : Γ ⊢ps x # A) (a= : a == length Γ) (f= : f == S (length Γ)) (B= : B == (Var x) ⇒[ A ] (Var a)) (z= : f == z) (C= : B == C)
+                                → (Γ⊢ps₂ : Γ ⊢ps y # A) (a=' : a == length Γ) (f=' : f == S (length Γ)) (B=' : B == (Var y) ⇒[ A ] (Var a)) (z=' : f == z) (C=' : B == C)
                                 → (p : x == y)  → transport p Γ⊢ps₁ == Γ⊢ps₂ → (pse Γ⊢ps₁ a= f= B= z= C=) == (pse Γ⊢ps₂ a=' f=' B=' z=' C=')
   pse↓ _ _ _ _ _ _ _ _ _ _ _ _ idp idp = ap⁶ pse idp (is-prop-has-all-paths (is-setℕ _ _) _ _)
                                                       (is-prop-has-all-paths (is-setℕ _ _) _ _)
@@ -103,16 +103,16 @@ module CaTT.Ps-contexts where
   {- Definition of a few ps-contexts and their source and target in the theory CaTT -}
   -- It is not necessary to define the pre contexts, as they can be infered with the derivation tree. We do it just as a sanity check
   Pre-Γc : Pre-Ctx
-  Pre-Γc = ((((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , ⇒ ∗ (Var 0) (Var 1))) :: (3 , ∗)) :: (4 , ⇒ ∗ (Var 1) (Var 3))
+  Pre-Γc = ((((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , Var 0 ⇒[ ∗ ] Var 1)) :: (3 , ∗)) :: (4 , Var 1 ⇒[ ∗ ] Var 3)
 
   Pre-Γw : Pre-Ctx
-  Pre-Γw = ((((((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , ⇒ ∗ (Var 0) (Var 1))) :: (3 , ⇒ ∗ (Var 0) (Var 1))) :: (4 , ⇒ (⇒ ∗ (Var 0) (Var 1)) (Var 2) (Var 3))) :: (5 , ∗)) :: (6 , ⇒ ∗ (Var 1) (Var 5))
+  Pre-Γw = ((((((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , Var 0 ⇒[ ∗ ] Var 1)) :: (3 , Var 0 ⇒[ ∗ ] Var 1)) :: (4 , Var 2 ⇒[ Var 0 ⇒[ ∗ ] Var 1 ] Var 3)) :: (5 , ∗)) :: (6 , Var 1 ⇒[ ∗ ] Var 5)
 
   Pre-Γ₁ : Pre-Ctx
-  Pre-Γ₁ = ((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , ⇒ ∗ (Var 0) (Var 1))
+  Pre-Γ₁ = ((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , Var 0 ⇒[ ∗ ] Var 1)
 
   Pre-Γ₂ : Pre-Ctx
-  Pre-Γ₂ = ((((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , ⇒ ∗ (Var 0) (Var 1))) :: (3 , ⇒ ∗ (Var 0) (Var 1))) :: (4 , ⇒ (⇒ ∗ (Var 0) (Var 1)) (Var 2) (Var 3))
+  Pre-Γ₂ = ((((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , Var 0 ⇒[ ∗ ] Var 1)) :: (3 , Var 0 ⇒[ ∗ ] Var 1)) :: (4 , Var 2 ⇒[ Var 0 ⇒[ ∗ ] Var 1 ] Var 3)
 
   Γc⊢ps : Pre-Γc ⊢ps
   Γc⊢ps = ps (psd (pse (psd (pse pss idp idp idp idp idp)) idp idp idp idp idp))

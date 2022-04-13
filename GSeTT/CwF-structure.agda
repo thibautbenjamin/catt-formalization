@@ -27,7 +27,7 @@ module GSeTT.CwF-structure where
   [id]t : ∀ Γ t → (t [ Pre-id Γ ]Pre-Tm) == t
 
   [id]T Γ ∗ = idp
-  [id]T Γ (⇒ A t u) = ⇒= ([id]T Γ A) ([id]t Γ t) ([id]t Γ u)
+  [id]T Γ (t ⇒[ A ] u) = ⇒= ([id]T Γ A) ([id]t Γ t) ([id]t Γ u)
   [id]t nil (Var x) = idp
   [id]t (Γ :: (y , B)) (Var x) with (eqdecℕ x y)
   ...                              | inl x=y = Var= (x=y ^)

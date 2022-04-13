@@ -107,7 +107,7 @@ module Globular-TT.Syntax {l} (index : Set l) where
   GPre-Ctx nil = ⊘
   GPre-Ctx (Γ :: (x , A)) = (GPre-Ctx Γ) ∙ x # (GPre-Ty A)
   GPre-Ty GSeTT.Syntax.∗ = ∗
-  GPre-Ty (GSeTT.Syntax.⇒ A t u) = ⇒ (GPre-Ty A) (GPre-Tm t) (GPre-Tm u)
+  GPre-Ty (t GSeTT.Syntax.⇒[ A ] u) = ⇒ (GPre-Ty A) (GPre-Tm t) (GPre-Tm u)
   GPre-Tm (GSeTT.Syntax.Var x) = Var x
 
   {- Depth of a term -}

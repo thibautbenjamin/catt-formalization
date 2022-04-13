@@ -56,7 +56,7 @@ module Globular-TT.Rules {l} (index : Set l) (rule : index → GSeTT.Typed-Synta
   GCtx .nil GSeTT.Rules.ec = ec
   GCtx (Γ :: (.(length Γ) , A)) (GSeTT.Rules.cc Γ⊢ Γ⊢A idp) = coe (ap (λ n → (GPre-Ctx (Γ :: (n , A)) ⊢C)) (G-length Γ) ^) (cc (GCtx Γ Γ⊢) (GTy Γ A Γ⊢A) idp)
   GTy Γ .GSeTT.Syntax.∗ (GSeTT.Rules.ob Γ⊢) = ob (GCtx Γ Γ⊢)
-  GTy Γ (GSeTT.Syntax.⇒ A t u) (GSeTT.Rules.ar Γ⊢A Γ⊢t:A Γ⊢u:A) = ar (GTy Γ A Γ⊢A) (GTm Γ A t Γ⊢t:A) (GTm Γ A u Γ⊢u:A)
+  GTy Γ (t GSeTT.Syntax.⇒[ A ] u) (GSeTT.Rules.ar Γ⊢A Γ⊢t:A Γ⊢u:A) = ar (GTy Γ A Γ⊢A) (GTm Γ A t Γ⊢t:A) (GTm Γ A u Γ⊢u:A)
   GTm Γ A (GSeTT.Syntax.Var x) (GSeTT.Rules.var Γ⊢ x∈Γ) = var (GCtx Γ Γ⊢) (x∈GCtx x∈Γ)
 
   {- Properties of the type theory -}

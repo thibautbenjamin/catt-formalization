@@ -44,12 +44,12 @@ module CaTT.CaTT where
 
    GPre-Ty→Ty : GSeTT.Syntax.Pre-Ty → Ty
    GPre-Ty→Ty GSeTT.Syntax.∗ = ∗
-   GPre-Ty→Ty (GSeTT.Syntax.⇒ A (GSeTT.Syntax.Var x) (GSeTT.Syntax.Var y)) = ⇒ (GPre-Ty→Ty A) (v x) (v y)
+   GPre-Ty→Ty ((GSeTT.Syntax.Var x) GSeTT.Syntax.⇒[ A ] (GSeTT.Syntax.Var y)) = ⇒ (GPre-Ty→Ty A) (v x) (v y)
 
    Ty→Pre-Ty[] : ∀ {A γ} → ((GPre-Ty A) [ Sub→Pre-Sub γ ]Pre-Ty) == Ty→Pre-Ty ((GPre-Ty→Ty A) [ γ ]Ty)
    Tm→Pre-Tm[] : ∀ {x γ} → ((Var x) [ Sub→Pre-Sub γ ]Pre-Tm) == Tm→Pre-Tm ((v x) [ γ ]Tm)
    Ty→Pre-Ty[] {GSeTT.Syntax.∗} {γ} = idp
-   Ty→Pre-Ty[] {GSeTT.Syntax.⇒ A (GSeTT.Syntax.Var x) (GSeTT.Syntax.Var y)} {γ} = ap³ ⇒ Ty→Pre-Ty[] (Tm→Pre-Tm[] {x} {γ}) (Tm→Pre-Tm[] {y} {γ})
+   Ty→Pre-Ty[] {(GSeTT.Syntax.Var x) GSeTT.Syntax.⇒[ A ] (GSeTT.Syntax.Var y)} {γ} = ap³ ⇒ Ty→Pre-Ty[] (Tm→Pre-Tm[] {x} {γ}) (Tm→Pre-Tm[] {y} {γ})
    Tm→Pre-Tm[] {x} {<>} = idp
    Tm→Pre-Tm[] {x} {< γ , y ↦ t >} with eqdecℕ x y
    ... | inl idp = idp
@@ -57,7 +57,7 @@ module CaTT.CaTT where
 
    dim-Pre-Ty[] : ∀ {A γ} → dim (Ty→Pre-Ty ((GPre-Ty→Ty A) [ γ ]Ty)) == dim (GPre-Ty A)
    dim-Pre-Ty[] {GSeTT.Syntax.∗} {γ} = idp
-   dim-Pre-Ty[] {GSeTT.Syntax.⇒ A (GSeTT.Syntax.Var _) (GSeTT.Syntax.Var _)} {γ} = ap S dim-Pre-Ty[]
+   dim-Pre-Ty[] {(GSeTT.Syntax.Var _) GSeTT.Syntax.⇒[ A ](GSeTT.Syntax.Var _)} {γ} = ap S dim-Pre-Ty[]
 
    rule : J → GSeTT.Typed-Syntax.Ctx × Pre-Ty
    rule ((Γ , A) , _) = (fst Γ , Γ⊢ps→Γ⊢ (snd Γ)) , Ty→Pre-Ty A
@@ -82,7 +82,7 @@ module CaTT.CaTT where
 
    GdimT : ∀ {A} → GSeTT.Syntax.dim A == dim (GPre-Ty A)
    GdimT {GSeTT.Syntax.∗} = idp
-   GdimT {GSeTT.Syntax.⇒ A _ _} = ap S GdimT
+   GdimT {_ GSeTT.Syntax.⇒[ A ] _} = ap S GdimT
 
    GdimC : ∀ {Γ} → GSeTT.Syntax.dimC Γ == dimC (GPre-Ctx Γ)
    GdimC {nil} = idp

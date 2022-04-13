@@ -21,7 +21,7 @@ module GSeTT.Disks where
   n-tgt n = S (n-src n)
 
   n⇒ O = ∗
-  n⇒ (S n) = ⇒ (n⇒ n) (Var (n-src n)) (Var (n-tgt  n))
+  n⇒ (S n) = Var (n-src n) ⇒[ n⇒ n ] Var (n-tgt  n)
 
   dim⇒ : ∀ (n : ℕ) → dim (n⇒ n) == n
   dim⇒ O = idp
@@ -65,13 +65,13 @@ module GSeTT.Disks where
     Pre-χ : Pre-Ty → Pre-Sub
 
     Pre-χ ∗ = nil
-    Pre-χ (⇒ A t u) = (Pre-χ A :: (n-src (dim A) , t)) :: (n-tgt (dim A) , u)
+    Pre-χ (t ⇒[ A ] u) = (Pre-χ A :: (n-src (dim A) , t)) :: (n-tgt (dim A) , u)
 
     χ_⊢ : ∀ {Γ A} → (Γ⊢A : Γ ⊢T A) → Γ ⊢S (Pre-χ A) > Pre-𝕊 (dim A)
     ⇒[χ_] : ∀ {Γ A} → (Γ⊢A : Γ ⊢T A) → A == ((n⇒  (dim A))[ Pre-χ A ]Pre-Ty)
 
     χ ob Γ⊢ ⊢ = es Γ⊢
-    χ_⊢ {Γ} {⇒ A t u} (ar Γ⊢A Γ⊢t:A Γ⊢u:A) =
+    χ_⊢ {Γ} {t ⇒[ A ] u} (ar Γ⊢A Γ⊢t:A Γ⊢u:A) =
       let Γ⊢χt = transport {B = λ n → Γ ⊢S Pre-χ A :: (n , t) > (Pre-𝕊 (dim A) :: ((length (Pre-𝕊 (dim A))) , n⇒ (dim A)))} (𝕊-length (dim A)) (sc χ Γ⊢A ⊢ (𝔻⊢ (dim A)) (trT (⇒[χ Γ⊢A ]) Γ⊢t:A) idp) in
       sc Γ⊢χt
          (𝕊⊢ (S (dim A)))
@@ -79,7 +79,7 @@ module GSeTT.Disks where
          (ap S (𝕊-length(dim A)))
 
     ⇒[χ_] {Γ} {.∗} (ob _) = idp
-    ⇒[χ_] {Γ} {(⇒ A t u)} (ar Γ⊢A Γ⊢t:A Γ⊢u:A) with eqdecℕ (n-src (dim A)) (n-tgt (dim A)) | eqdecℕ (n-src (dim A)) (n-src (dim A)) | eqdecℕ (S (n-src (dim A))) (S (n-src (dim A)))
+    ⇒[χ_] {Γ} {(t ⇒[ A ] u)} (ar Γ⊢A Γ⊢t:A Γ⊢u:A) with eqdecℕ (n-src (dim A)) (n-tgt (dim A)) | eqdecℕ (n-src (dim A)) (n-src (dim A)) | eqdecℕ (S (n-src (dim A))) (S (n-src (dim A)))
     ...                                     | inl contra | _ | _ = ⊥-elim (n≠Sn _ contra)
     ...                                     | inr _ | inr n≠n | _ = ⊥-elim (n≠n idp)
     ...                                     | inr _ | inl _ | inr n≠n = ⊥-elim (n≠n idp)

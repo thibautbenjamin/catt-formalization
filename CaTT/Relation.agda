@@ -13,8 +13,8 @@ module CaTT.Relation where
 
   -- The relation ◃ generating cases
   data _,_◃₀_ Γ x y : Set₁ where
-    ◃∂⁻ : ∀{A z} → Γ ⊢t (Var y) # (⇒ A (Var x) (Var z)) → Γ , x ◃₀ y
-    ◃∂⁺ : ∀{A z} → Γ ⊢t (Var x) # (⇒ A (Var z) (Var y)) → Γ , x ◃₀ y
+    ◃∂⁻ : ∀{A z} → Γ ⊢t (Var y) # (Var x ⇒[ A ] Var z) → Γ , x ◃₀ y
+    ◃∂⁺ : ∀{A z} → Γ ⊢t (Var x) # (Var z ⇒[ A ] Var y) → Γ , x ◃₀ y
 
   -- Transitive closure : we associate on the right
   data _,_◃_ Γ x y : Set₁ where
@@ -48,8 +48,8 @@ module CaTT.Relation where
   Γ⊢x:A→x∈Γ (var _ x#A∈Γ) = x#A∈Γ→x∈Γ x#A∈Γ
 
   data _,_⟿_ : Pre-Ctx → ℕ → ℕ → Set₁ where -- y is an iterated target of x in Γ
-    ∂⁺⟿ : ∀{Γ x a y A} → Γ ⊢t (Var x) # (⇒ A (Var a) (Var y)) → Γ , x ⟿ y
-    x⟿∂⁺ : ∀{Γ x a y z A} → Γ ⊢t (Var x) # (⇒ A (Var a) (Var y)) → Γ , y ⟿ z → Γ , x ⟿ z
+    ∂⁺⟿ : ∀{Γ x a y A} → Γ ⊢t (Var x) # (Var a ⇒[ A ] Var y) → Γ , x ⟿ y
+    x⟿∂⁺ : ∀{Γ x a y z A} → Γ ⊢t (Var x) # (Var a ⇒[ A ] Var y) → Γ , y ⟿ z → Γ , x ⟿ z
 
   W⟿ : ∀ {Γ x y z A} → (Γ :: (z , A)) ⊢C → Γ , x ⟿ y → (Γ :: (z , A)) , x ⟿ y
   W⟿ Γ+⊢ (∂⁺⟿ Γ⊢x) = ∂⁺⟿ (wkt Γ⊢x Γ+⊢)
@@ -63,7 +63,7 @@ module CaTT.Relation where
   ⟿→◃ (x⟿∂⁺ Γ⊢x x⟿y) = ◃-trans (gen (◃∂⁺ Γ⊢x)) (⟿→◃ x⟿y)
 
   Γ++ : ∀ {Γ x A} → Γ ⊢ps x # A → Pre-Ctx
-  Γ++ {Γ} {x} {A} _ = (Γ :: (length Γ , A)) :: (S (length Γ) , ⇒ A (Var x) (Var (length Γ)))
+  Γ++ {Γ} {x} {A} _ = (Γ :: (length Γ , A)) :: (S (length Γ) , Var x ⇒[ A ] Var (length Γ))
 
   //⟿ : ∀ {Γ Δ x y A a} → Γ ⊢t (Var x) # A → Δ ⊢t (Var y) # A → Γ , x ⟿ a → Δ , y ⟿ a
   //⟿ Γ⊢x Δ⊢y (∂⁺⟿ Γ⊢x') with unique-type Γ⊢x Γ⊢x' idp
@@ -98,13 +98,13 @@ module CaTT.Relation where
   n≮n : ∀ n → ¬ (n < n)
   n≮n n n<n = Sn≰n _ n<n
 
-  ⟿-is-tgt : ∀ {Γ x y z A} → Γ ⊢t Var x # ⇒ A (Var y) (Var z) → Γ , x ⟿ y → y == z
+  ⟿-is-tgt : ∀ {Γ x y z A} → Γ ⊢t Var x # Var y ⇒[ A ] Var z → Γ , x ⟿ y → y == z
   ⟿-is-tgt Γ⊢x (∂⁺⟿ Γ⊢'x) with unique-type Γ⊢x Γ⊢'x idp
   ... | idp = idp
   ⟿-is-tgt Γ⊢x (x⟿∂⁺ Γ⊢'x y'⟿y) with unique-type Γ⊢x Γ⊢'x idp
   ... | idp = ⊥-elim (Sn≰n _ (⟿dim (Γ⊢tgt (Γ⊢t:A→Γ⊢A Γ⊢'x)) (Γ⊢src (Γ⊢t:A→Γ⊢A Γ⊢x)) y'⟿y))
 
-  no-loop : ∀{Γ x y z T a A} → Γ ⊢ps a # A → Γ ⊢t (Var x) # ⇒ T (Var y) (Var z) → y ≠ z
+  no-loop : ∀{Γ x y z T a A} → Γ ⊢ps a # A → Γ ⊢t Var x # Var y ⇒[ T ] Var z → y ≠ z
   no-loop pss (var _ (inl ())) idp
   no-loop pss (var _ (inr ())) idp
   no-loop (psd Γ⊢psf) Γ⊢x idp = no-loop Γ⊢psf Γ⊢x idp
@@ -112,8 +112,8 @@ module CaTT.Relation where
   no-loop (pse Γ⊢psb idp idp idp idp idp) (var _ (inl (inr (idp , idp)))) idp = no-loop Γ⊢psb (Γ⊢psx:A→Γ⊢x:A Γ⊢psb) idp
   no-loop (pse Γ⊢psb idp idp idp idp idp) (var _ (inr (idp , idp))) idp = x∉ (Γ⊢psx:A→Γ⊢ Γ⊢psb) (n≤n _) (Γ⊢psx:A→Γ⊢x:A Γ⊢psb)
 
-  dangling-is-not-a-source : ∀ {Γ x A} → Γ ⊢ps x # A → (∀ f z {B} →  ¬ (Γ ⊢t Var f # ⇒ B (Var x) (Var z)))
-  post-dangling-is-not-a-source : ∀ {Γ x A} → Γ ⊢ps x # A → (∀ {y B} f z → Γ , x ⟿ y →  ¬ (Γ ⊢t (Var f) # ⇒ B (Var y) (Var z)))
+  dangling-is-not-a-source : ∀ {Γ x A} → Γ ⊢ps x # A → (∀ f z {B} →  ¬ (Γ ⊢t Var f # Var x ⇒[ B ] Var z))
+  post-dangling-is-not-a-source : ∀ {Γ x A} → Γ ⊢ps x # A → (∀ {y B} f z → Γ , x ⟿ y →  ¬ (Γ ⊢t (Var f) # Var y ⇒[ B ] Var z))
 
   dangling-is-not-a-source pss _ _ (var _ (inl ()))
   dangling-is-not-a-source pss _ _ (var _ (inr ()))

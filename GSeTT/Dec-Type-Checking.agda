@@ -46,9 +46,9 @@ module GSeTT.Dec-Type-Checking where
   eqdec-Tm : eqdec Pre-Tm
 
   eqdec-Ty ∗ ∗ = inl idp
-  eqdec-Ty ∗ (⇒ _ _ _) = inr λ{()}
-  eqdec-Ty (⇒ _ _ _) ∗ = inr λ{()}
-  eqdec-Ty (⇒ A t u) (⇒ B t' u') with eqdec-Ty A B | eqdec-Tm t t' | eqdec-Tm u u'
+  eqdec-Ty ∗ (_ ⇒[ _ ] _) = inr λ{()}
+  eqdec-Ty (_ ⇒[ _ ] _) ∗ = inr λ{()}
+  eqdec-Ty (t ⇒[ A ] u) (t' ⇒[ B ] u') with eqdec-Ty A B | eqdec-Tm t t' | eqdec-Tm u u'
   ...                                      | inl idp       | inl idp       | inl idp      = inl idp
   ...                                      | inl idp       | inl idp       | inr u≠u'     = inr λ p → u≠u' (snd (=⇒ p))
   ...                                      | inl idp       | inr t≠t'      | _            = inr λ p → t≠t' (snd (fst (=⇒ p)))
@@ -78,7 +78,7 @@ module GSeTT.Dec-Type-Checking where
   dec-⊢T Γ ∗ with dec-⊢C Γ
   ...             | inl Γ⊢ = inl (ob Γ⊢)
   ...             | inr Γ⊬ = inr λ Γ⊢* → Γ⊬ (Γ⊢A→Γ⊢ Γ⊢*)
-  dec-⊢T Γ (⇒ A t u) with dec-⊢t Γ A t | dec-⊢t Γ A u
+  dec-⊢T Γ (t ⇒[ A ] u) with dec-⊢t Γ A t | dec-⊢t Γ A u
   ...                     | inl Γ⊢t:A    | inl Γ⊢u:A = inl (ar (Γ⊢t:A→Γ⊢A Γ⊢t:A) Γ⊢t:A Γ⊢u:A)
   ...                     | inl _        | inr Γ⊬u:A = inr λ Γ⊢t⇒u → Γ⊬u:A (Γ⊢tgt Γ⊢t⇒u)
   ...                     | inr Γ⊬t:A    | _         = inr λ Γ⊢t⇒u → Γ⊬t:A (Γ⊢src Γ⊢t⇒u)
