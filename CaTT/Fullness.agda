@@ -28,19 +28,10 @@ module CaTT.Fullness where
 
   infix 50 _⇒[_]_
 
-  =⇒Ty : ∀ {A A' : Ty} {t t' u u' : Tm} → _==_ {A = Ty} (t ⇒[ A ] u) (t' ⇒[ A' ] u') → ((A == A' × t == t') × u == u')
-  =⇒Ty idp = (idp , idp) , idp
-
-  coh= : ∀ {Γ Γ' A A' Afull A'full γ γ'} → coh Γ A Afull γ == coh Γ' A' A'full γ' → ((Γ == Γ' × A == A') × γ == γ')
-  coh= idp = (idp , idp) , idp
-
-  <>= : ∀ {γ γ' x x' t t'} → < γ , x ↦ t > == < γ' , x' ↦ t' > → ((γ == γ' × x == x') × t == t')
-  <>= idp = (idp , idp) , idp
-
   {- Set of variables -}
   varC : Pre-Ctx → set
-  varC nil = Ø
-  varC (Γ :: (x , _)) = (varC Γ) ∪-set (singleton x)
+  varC ∅ = Ø
+  varC (Γ ∙ x # _) = (varC Γ) ∪-set (singleton x)
 
   varT : Ty → set
   vart : Tm → set
@@ -63,7 +54,7 @@ module CaTT.Fullness where
   ∈-drop {A} {a} {l :: a₁} x = inl x
 
 
-  l∉∂⁻ : ∀ {Γ i x A y} → (Γ⊢ps : Γ ⊢ps x # A) → length Γ ≤ y → ¬ (y ∈-list (srcᵢ-var i Γ⊢ps))
+  l∉∂⁻ : ∀ {Γ i x A y} → (Γ⊢ps : Γ ⊢ps x # A) → ℓ Γ ≤ y → ¬ (y ∈-list (srcᵢ-var i Γ⊢ps))
   l∉∂⁻ {i = i} pss lΓ≤y y∈ with eqdecℕ i O
   ... | inl _ = y∈
   l∉∂⁻ {i = i} pss lΓ≤y (inr idp) | inr _ = Sn≰n _ lΓ≤y
@@ -74,7 +65,7 @@ module CaTT.Fullness where
   l∉∂⁻ {i = i} (pse {A = _} Γ⊢ps idp idp idp idp idp) SSl≤y (inl (inr idp)) | inr _ = Sn≰n _ (n≤m→n≤Sm SSl≤y)
   l∉∂⁻ {i = i} (pse {A = _} Γ⊢ps idp idp idp idp idp) SSl≤y (inr idp) | inr _ = Sn≰n _ SSl≤y
 
-  l∉∂⁺ : ∀ {Γ i x A y} → (Γ⊢ps : Γ ⊢ps x # A) → length Γ ≤ y → ¬ (y ∈-list (tgtᵢ-var i Γ⊢ps))
+  l∉∂⁺ : ∀ {Γ i x A y} → (Γ⊢ps : Γ ⊢ps x # A) → ℓ Γ ≤ y → ¬ (y ∈-list (tgtᵢ-var i Γ⊢ps))
   l∉∂⁺ {i = i} pss lΓ≤y y∈ with eqdecℕ i O
   ... | inl _ = y∈
   l∉∂⁺ {i = i} pss lΓ≤y (inr idp) | inr _ = Sn≰n _ lΓ≤y
@@ -128,28 +119,28 @@ module CaTT.Fullness where
   ∂⁺ᵢ-var {i = i} (pse {A = _} Γ⊢ps idp idp idp idp idp) (var _ (inr (idp , idp))) i≤SA (inr Sl=l) | inl _ | inl _ = Sn≠n _ Sl=l
 
   ∈-varC : ∀ {Γ x A} →  x # A ∈ Γ → x ∈-set (varC Γ)
-  ∈-varC {Γ :: (y , B)} {x} {A} (inl x∈Γ) = ∈-∪₁ {A = varC Γ} {B = singleton y} (∈-varC x∈Γ)
-  ∈-varC {Γ :: (y , B)} {x} {A} (inr (idp , _)) = ∈-∪₂ {A = varC Γ} {B = singleton y} (∈-singleton y)
+  ∈-varC {Γ ∙ y # B} {x} {A} (inl x∈Γ) = ∈-∪₁ {A = varC Γ} {B = singleton y} (∈-varC x∈Γ)
+  ∈-varC {Γ ∙ y # B} {x} {A} (inr (idp , _)) = ∈-∪₂ {A = varC Γ} {B = singleton y} (∈-singleton y)
 
   max-var-def : Pre-Ctx → ℕ × Pre-Ty
-  max-var-def nil = 0 , ∗
-  max-var-def (Γ :: (y , B)) with dec-≤ (dimC Γ) (dim B)
+  max-var-def ∅ = 0 , ∗
+  max-var-def (Γ ∙ y # B) with dec-≤ (dimC Γ) (dim B)
   ... | inr _ = max-var-def Γ
   ... | inl _ = y , B
 
-  max-var-is-max : ∀ {Γ} → Γ ≠ nil → Γ ⊢C → let (x , A) = max-var-def Γ in ((x # A ∈ Γ) × (dimC Γ == dim A))
-  max-var-is-max {nil} Γ≠nil _ = ⊥-elim (Γ≠nil idp)
-  max-var-is-max {Γ :: (y , B)} _ Γ⊢ with dec-≤ (dimC Γ) (dim B)
+  max-var-is-max : ∀ {Γ} → Γ ≠ ∅ → Γ ⊢C → let (x , A) = max-var-def Γ in ((x # A ∈ Γ) × (dimC Γ == dim A))
+  max-var-is-max {∅} Γ≠∅ _ = ⊥-elim (Γ≠∅ idp)
+  max-var-is-max {Γ ∙ y # B} _ Γ⊢ with dec-≤ (dimC Γ) (dim B)
   ... | inl _ = inr (idp , idp) , idp
   ... | inr _ with Γ
-  max-var-is-max {Γ :: (y , B)} _ (cc Γ⊢ Γ⊢B idp) | inr _ | Δ :: (x , A) = let (x∈ , dimA) = max-var-is-max (λ{()}) Γ⊢ in inl x∈ , dimA
-  max-var-is-max {Γ :: (.0 , .∗)} _ (cc Γ⊢ (ob _) idp) | inr _ | nil = inr (idp , idp) , idp
-  max-var-is-max {Γ :: (.0 , _)} _ (cc Γ⊢ (ar _ _ _) idp) | inr dΓ≤dB | nil = ⊥-elim (dΓ≤dB (0≤ _))
+  max-var-is-max {Γ ∙ y # B} _ (cc Γ⊢ Γ⊢B idp) | inr _ | Δ ∙ x # A = let (x∈ , dimA) = max-var-is-max (λ{()}) Γ⊢ in inl x∈ , dimA
+  max-var-is-max {Γ ∙ .0 # .∗} _ (cc Γ⊢ (ob _) idp) | inr _ | ∅ = inr (idp , idp) , idp
+  max-var-is-max {Γ ∙ .0 # _} _ (cc Γ⊢ (ar _ _ _) idp) | inr dΓ≤dB | ∅ = ⊥-elim (dΓ≤dB (0≤ _))
 
-  psx-nonul : ∀ {Γ x A} → Γ ⊢ps x # A → Γ ≠ nil
+  psx-nonul : ∀ {Γ x A} → Γ ⊢ps x # A → Γ ≠ ∅
   psx-nonul (psd x) idp = psx-nonul x idp
 
-  ps-nonul : ∀ {Γ} → Γ ⊢ps → Γ ≠ nil
+  ps-nonul : ∀ {Γ} → Γ ⊢ps → Γ ≠ ∅
   ps-nonul (ps Γ⊢ps) = psx-nonul Γ⊢ps
 
   max-var : ∀ {Γ} → Γ ⊢ps → Σ (ℕ × Pre-Ty) λ {(x , A) → (x # A ∈ Γ) × (dimC Γ == dim A)}
@@ -183,9 +174,6 @@ module CaTT.Fullness where
   is-prop-full : ∀ Γ A → is-prop (A is-full-in Γ)
   is-prop-full Γ A = has-all-paths-is-prop (has-all-paths-is-full Γ A)
 
-
-
-
   eqdec-Ty : eqdec Ty
   eqdec-Tm : eqdec Tm
   eqdec-Sub : eqdec Sub
@@ -194,25 +182,25 @@ module CaTT.Fullness where
   eqdec-Ty ∗ (_ ⇒[ _ ] _) = inr λ{()}
   eqdec-Ty (_ ⇒[ _ ] _) ∗ = inr λ{()}
   eqdec-Ty (t ⇒[ A ] u) (t' ⇒[ A' ] u') with eqdec-Ty A A' | eqdec-Tm t t' | eqdec-Tm u u'
-  ...                                        | inl idp | inl idp | inl idp = inl idp
   ...                                        | inr A≠A' | _ | _ = inr λ {idp → A≠A' idp}
-  ...                                        | inl idp | inr t≠t' | _ = inr λ p → t≠t' (snd (fst (=⇒Ty p)))
-  ...                                        | inl idp | inl idp | inr u≠u' = inr λ p → u≠u' (snd (=⇒Ty p))
+  ...                                        | inl _ | inr t≠t' | _ = inr λ {idp → t≠t' idp}
+  ...                                        | inl _ | inl _ | inr u≠u' = inr λ {idp → u≠u' idp}
+  ...                                        | inl idp | inl idp | inl idp = inl idp
   eqdec-Tm (v x) (v y) with eqdecℕ x y
   ...                   | inl idp = inl idp
   ...                   | inr x≠y = inr λ{idp → x≠y idp}
   eqdec-Tm (v _) (coh _ _ _ _) = inr λ{()}
   eqdec-Tm (coh _ _ _ _) (v _) = inr λ{()}
   eqdec-Tm (coh Γ A Afull γ) (coh Γ' A' A'full γ') with eqdec-ps Γ Γ' | eqdec-Ty A A' | eqdec-Sub γ γ'
-  ...                                               | inl idp | inl idp | inl idp = inl (ap (λ X → coh Γ A X γ) (is-prop-has-all-paths (is-prop-full Γ A) Afull A'full))
   ...                                               | inr Γ≠Γ' | _ | _ = inr λ {idp → Γ≠Γ' idp}
-  ...                                               | inl idp | inr A≠A' | _ = inr λ p → A≠A' (snd (fst (coh= p)))
-  ...                                               | inl idp | inl idp | inr γ≠γ' = inr λ p → γ≠γ' (snd (coh= p))
+  ...                                               | inl _ | inr A≠A' | _ = inr λ {idp → A≠A' idp}
+  ...                                               | inl _ | inl _ | inr γ≠γ' = inr λ {idp → γ≠γ' idp}
+  ...                                               | inl idp | inl idp | inl idp = inl (ap (λ X → coh Γ A X γ) (is-prop-has-all-paths (is-prop-full Γ A) Afull A'full))
   eqdec-Sub <> <> = inl idp
   eqdec-Sub <> < _ , _ ↦ _ > = inr λ{()}
   eqdec-Sub < _ , _ ↦ _ > <> = inr λ{()}
   eqdec-Sub < γ , x ↦ t > < γ' , x' ↦ t' > with eqdec-Sub γ γ' | eqdecℕ x x' | eqdec-Tm t t'
-  ...                                        | inl idp | inl idp | inl idp = inl idp
+  ...                                        | inl _ | inl _ | inr t≠t' = inr λ {idp → t≠t' idp}
+  ...                                        | inl _ | inr x≠x' | _ = inr λ {idp → x≠x' idp}
   ...                                        | inr γ≠γ' | _ | _ = inr λ {idp → γ≠γ' idp}
-  ...                                        | inl idp | inr x≠x' | _ = inr λ p → x≠x' (snd (fst (<>= p)))
-  ...                                        | inl idp | inl idp | inr t≠t' = inr λ p → t≠t' (snd (<>= p))
+  ...                                        | inl idp | inl idp | inl idp = inl idp

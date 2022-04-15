@@ -18,11 +18,17 @@ module GSeTT.Syntax where
   data Pre-Tm where
     Var : ℕ → Pre-Tm
 
-  Pre-Ctx : Set₁
-  Pre-Ctx = list (ℕ × Pre-Ty)
 
-  Pre-Sub : Set₁
-  Pre-Sub = list (ℕ × Pre-Tm)
+  data Pre-Ctx : Set where
+    ∅ : Pre-Ctx
+    _∙_#_ : Pre-Ctx → ℕ → Pre-Ty → Pre-Ctx
+
+  infix 40 _∙_#_
+
+
+  data Pre-Sub : Set where
+    <> : Pre-Sub
+    <_,_↦_> : Pre-Sub → ℕ → Pre-Tm → Pre-Sub
 
   ⇒= : ∀ {A B t t' u u'} → A == B → t == t' → u == u' → t ⇒[ A ] u == t' ⇒[ B ] u'
   ⇒= idp idp idp = idp
@@ -47,9 +53,8 @@ module GSeTT.Syntax where
 
   -- Careful: dimension of the empty context should be -1
   dimC : Pre-Ctx → ℕ
-  dimC nil = O
-  dimC (Γ :: (x , A)) = max (dimC Γ) (dim A)
-
+  dimC ∅ = O
+  dimC (Γ ∙ x # A) = max (dimC Γ) (dim A)
 
   {- Action of substitutions on types and terms on a syntactical level -}
   _[_]Pre-Ty : Pre-Ty → Pre-Sub → Pre-Ty
@@ -57,42 +62,42 @@ module GSeTT.Syntax where
 
   ∗ [ γ ]Pre-Ty = ∗
   (t ⇒[ A ] u) [ γ ]Pre-Ty = (t [ γ ]Pre-Tm) ⇒[ (A [ γ ]Pre-Ty) ] (u [ γ ]Pre-Tm)
-  Var x [ nil ]Pre-Tm = Var x
-  Var x [ γ :: (v , t) ]Pre-Tm = if x ≡ v then t else ((Var x) [ γ ]Pre-Tm)
+  Var x [ <> ]Pre-Tm = Var x
+  Var x [ < γ , v ↦ t > ]Pre-Tm = if x ≡ v then t else ((Var x) [ γ ]Pre-Tm)
 
   _∘_ : Pre-Sub → Pre-Sub → Pre-Sub
-  nil ∘ γ = nil
-  (γ :: (x , t)) ∘ δ = (γ ∘ δ) :: (x , (t [ δ ]Pre-Tm))
+  <> ∘ δ = <>
+  < γ , x ↦ t > ∘ δ = < γ ∘ δ , x ↦ t [ δ ]Pre-Tm >
 
   {- Identity and canonical projection -}
   Pre-id : ∀ (Γ : Pre-Ctx) → Pre-Sub
-  Pre-id nil = nil
-  Pre-id (Γ :: (x , A)) = (Pre-id Γ) :: (x , Var x)
+  Pre-id ∅ = <>
+  Pre-id (Γ ∙ x # A) = < Pre-id Γ , x ↦ Var x >
 
   Pre-π : ∀ (Γ : Pre-Ctx) (x : ℕ) (A : Pre-Ty) → Pre-Sub
   Pre-π Γ x A = Pre-id Γ
 
   {- The pairing (x#A) ∈ Γ  -}
   _#_∈_ : ℕ → Pre-Ty → Pre-Ctx → Set
-  _ # _ ∈ nil = ⊥
-  x # A ∈ (Γ :: (y , B)) = (x # A ∈ Γ) + ((x == y) × (A == B))
+  _ # _ ∈ ∅ = ⊥
+  x # A ∈ (Γ ∙ y # B) = (x # A ∈ Γ) + ((x == y) × (A == B))
 
   _∈_ : ℕ → Pre-Ctx → Set
-  _ ∈ nil = ⊥
-  x ∈ (Γ :: (y , _)) = (x ∈ Γ) + (x == y)
+  _ ∈ ∅ = ⊥
+  x ∈ (Γ ∙ y # _) = (x ∈ Γ) + (x == y)
 
   eqdec-PreCtx : eqdec Pre-Ctx
   eqdec-PreTy : eqdec Pre-Ty
   eqdec-PreTm : eqdec Pre-Tm
 
-  eqdec-PreCtx nil nil = inl idp
-  eqdec-PreCtx nil (_ :: _) = inr λ()
-  eqdec-PreCtx (_ :: _) nil = inr λ()
-  eqdec-PreCtx (Γ :: (n , A)) (Δ :: (m , B)) with eqdec-PreCtx Γ Δ | eqdecℕ n m | eqdec-PreTy A B
-  ... | inl idp | inl idp | inl idp = inl idp
-  ... | inl idp | inl idp | inr A≠B = inr λ Γ,A=Γ,B → A≠B (snd (=, (snd (=:: Γ,A=Γ,B))))
-  ... | inl idp | inr n≠m | _ = inr λ Γ,A=Γ,B → n≠m (fst (=, (snd (=:: Γ,A=Γ,B))))
+  eqdec-PreCtx ∅ ∅ = inl idp
+  eqdec-PreCtx ∅ (_ ∙ _ # _) = inr λ()
+  eqdec-PreCtx (_ ∙ _ # _) ∅ = inr λ()
+  eqdec-PreCtx (Γ ∙ n # A) (Δ ∙ m # B) with eqdec-PreCtx Γ Δ | eqdecℕ n m | eqdec-PreTy A B
+  ... | inl _ | inl _ | inr A≠B = inr λ {idp → A≠B idp}
+  ... | inl _ | inr n≠m | _ = inr λ {idp → n≠m idp}
   ... | inr Γ≠Δ | _ | _ = inr λ{idp → Γ≠Δ idp}
+  ... | inl idp | inl idp | inl idp = inl idp
 
   eqdec-PreTy ∗ ∗ = inl idp
   eqdec-PreTy ∗ (_ ⇒[ _ ] _) = inr λ()
@@ -106,3 +111,7 @@ module GSeTT.Syntax where
   eqdec-PreTm (Var a) (Var b) with eqdecℕ a b
   ... | inl idp = inl idp
   ... | inr a≠b = inr λ{idp → a≠b idp}
+
+  ℓ : Pre-Ctx → ℕ
+  ℓ ∅ = O
+  ℓ (Γ ∙ _ # _) = S (ℓ Γ)

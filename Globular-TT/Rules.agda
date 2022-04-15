@@ -41,20 +41,20 @@ module Globular-TT.Rules {l} (index : Set l) (rule : index → GSeTT.Typed-Synta
 
   {- Derivability is preserved by the translation from GSeTT to our TT -}
   x∈GCtx : ∀ {x A Γ} → x GSeTT.Syntax.# A ∈ Γ → x # GPre-Ty A ∈ GPre-Ctx Γ
-  x∈GCtx {Γ = Γ :: a} (inl x∈Γ) = inl (x∈GCtx x∈Γ)
-  x∈GCtx {Γ = Γ :: (x,A)} (inr (idp , idp)) = inr (idp , idp)
+  x∈GCtx {Γ = Γ GSeTT.Syntax.∙ _ # _} (inl x∈Γ) = inl (x∈GCtx x∈Γ)
+  x∈GCtx {Γ = Γ GSeTT.Syntax.∙ x # A} (inr (idp , idp)) = inr (idp , idp)
 
-  G-length : ∀ Γ → length Γ == C-length (GPre-Ctx Γ)
-  G-length nil = idp
-  G-length (Γ :: _) = S= (G-length Γ)
+  G-length : ∀ Γ → GSeTT.Syntax.ℓ Γ == C-length (GPre-Ctx Γ)
+  G-length GSeTT.Syntax.∅ = idp
+  G-length (Γ GSeTT.Syntax.∙ _ # _) = S= (G-length Γ)
 
 
   GCtx : ∀ (Γ : GSeTT.Syntax.Pre-Ctx) → Γ GSeTT.Rules.⊢C → (GPre-Ctx Γ) ⊢C
   GTy : ∀ (Γ : GSeTT.Syntax.Pre-Ctx) (A : GSeTT.Syntax.Pre-Ty) → Γ GSeTT.Rules.⊢T A → (GPre-Ctx Γ) ⊢T (GPre-Ty A)
   GTm : ∀ (Γ : GSeTT.Syntax.Pre-Ctx) (A : GSeTT.Syntax.Pre-Ty) (t : GSeTT.Syntax.Pre-Tm) → Γ GSeTT.Rules.⊢t t # A  → (GPre-Ctx Γ) ⊢t (GPre-Tm t) # (GPre-Ty A)
 
-  GCtx .nil GSeTT.Rules.ec = ec
-  GCtx (Γ :: (.(length Γ) , A)) (GSeTT.Rules.cc Γ⊢ Γ⊢A idp) = coe (ap (λ n → (GPre-Ctx (Γ :: (n , A)) ⊢C)) (G-length Γ) ^) (cc (GCtx Γ Γ⊢) (GTy Γ A Γ⊢A) idp)
+  GCtx .GSeTT.Syntax.∅ GSeTT.Rules.ec = ec
+  GCtx (Γ GSeTT.Syntax.∙ .(GSeTT.Syntax.ℓ Γ) # A) (GSeTT.Rules.cc Γ⊢ Γ⊢A idp) = coe (ap (λ n → (GPre-Ctx (Γ GSeTT.Syntax.∙ n # A) ⊢C)) (G-length Γ) ^) (cc (GCtx Γ Γ⊢) (GTy Γ A Γ⊢A) idp)
   GTy Γ .GSeTT.Syntax.∗ (GSeTT.Rules.ob Γ⊢) = ob (GCtx Γ Γ⊢)
   GTy Γ (t GSeTT.Syntax.⇒[ A ] u) (GSeTT.Rules.ar Γ⊢A Γ⊢t:A Γ⊢u:A) = ar (GTy Γ A Γ⊢A) (GTm Γ A t Γ⊢t:A) (GTm Γ A u Γ⊢u:A)
   GTm Γ A (GSeTT.Syntax.Var x) (GSeTT.Rules.var Γ⊢ x∈Γ) = var (GCtx Γ Γ⊢) (x∈GCtx x∈Γ)

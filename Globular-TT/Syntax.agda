@@ -106,8 +106,8 @@ module Globular-TT.Syntax {l} (index : Set l) where
   GPre-Ty : GSeTT.Syntax.Pre-Ty → Pre-Ty
   GPre-Tm : GSeTT.Syntax.Pre-Tm → Pre-Tm
 
-  GPre-Ctx nil = ⊘
-  GPre-Ctx (Γ :: (x , A)) = (GPre-Ctx Γ) ∙ x # (GPre-Ty A)
+  GPre-Ctx GSeTT.Syntax.∅ = ⊘
+  GPre-Ctx (Γ GSeTT.Syntax.∙ x # A) = (GPre-Ctx Γ) ∙ x # (GPre-Ty A)
   GPre-Ty GSeTT.Syntax.∗ = ∗
   GPre-Ty (t GSeTT.Syntax.⇒[ A ] u) = (GPre-Tm t) ⇒[ GPre-Ty A ] (GPre-Tm u)
   GPre-Tm (GSeTT.Syntax.Var x) = Var x

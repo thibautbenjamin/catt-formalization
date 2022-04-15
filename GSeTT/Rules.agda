@@ -13,8 +13,8 @@ module GSeTT.Rules where
   data _⊢S_>_ : Pre-Ctx → Pre-Sub → Pre-Ctx → Set₁
 
   data _⊢C where
-    ec : nil ⊢C
-    cc : ∀ {Γ x A} → Γ ⊢C → Γ ⊢T A → x == length Γ → (Γ :: (x , A)) ⊢C
+    ec : ∅ ⊢C
+    cc : ∀ {Γ x A} → Γ ⊢C → Γ ⊢T A → x == ℓ Γ → (Γ ∙ x # A) ⊢C
 
   data _⊢T_ where
     ob : ∀ {Γ} → Γ ⊢C → Γ ⊢T ∗
@@ -24,19 +24,19 @@ module GSeTT.Rules where
     var : ∀ {Γ x A} → Γ ⊢C → x # A ∈ Γ → Γ ⊢t (Var x) # A
 
   data _⊢S_>_ where
-    es : ∀ {Δ} → Δ ⊢C → Δ ⊢S nil > nil
-    sc : ∀ {Δ Γ γ x y A t} → Δ ⊢S γ > Γ → (Γ :: (x , A)) ⊢C → (Δ ⊢t t # (A [ γ ]Pre-Ty)) → x == y → Δ ⊢S (γ :: (y , t)) > (Γ :: (x , A))
+    es : ∀ {Δ} → Δ ⊢C → Δ ⊢S <> > ∅
+    sc : ∀ {Δ Γ γ x y A t} → Δ ⊢S γ > Γ → (Γ ∙ x # A) ⊢C → (Δ ⊢t t # (A [ γ ]Pre-Ty)) → x == y → Δ ⊢S < γ , y ↦ t > > Γ ∙ x # A
 
   {- Weakening admissibility -}
 
-  wkT : ∀ {Γ A y B} → Γ ⊢T A → (Γ :: (y , B)) ⊢C → (Γ :: (y , B)) ⊢T A
-  wkt : ∀ {Γ A t y B} → Γ ⊢t t # A → (Γ :: (y , B)) ⊢C → (Γ :: (y , B)) ⊢t t # A
+  wkT : ∀ {Γ A y B} → Γ ⊢T A → Γ ∙ y # B ⊢C → Γ ∙ y # B ⊢T A
+  wkt : ∀ {Γ A t y B} → Γ ⊢t t # A → Γ ∙ y # B ⊢C → Γ ∙ y # B ⊢t t # A
 
   wkT (ob _) Γ,y:B⊢ = ob Γ,y:B⊢
   wkT (ar Γ⊢A Γ⊢t:A Γ⊢u:A) Γ,y:B⊢ = ar (wkT Γ⊢A Γ,y:B⊢) (wkt Γ⊢t:A Γ,y:B⊢) (wkt Γ⊢u:A Γ,y:B⊢)
   wkt (var Γ⊢C x∈Γ) Γ,y:B⊢ = var Γ,y:B⊢ (inl x∈Γ)
 
-  wkS : ∀ {Δ Γ γ y B} → Δ ⊢S γ > Γ → (Δ :: (y , B)) ⊢C → (Δ :: (y , B)) ⊢S γ > Γ
+  wkS : ∀ {Δ Γ γ y B} → Δ ⊢S γ > Γ → Δ ∙ y # B ⊢C → Δ ∙ y # B ⊢S γ > Γ
   wkS (es _) Δ,y:B⊢ = es Δ,y:B⊢
   wkS (sc Δ⊢γ:Γ Γ,x:A⊢ Δ⊢t:A[γ] idp) Δ,y:B⊢ = sc (wkS Δ⊢γ:Γ Δ,y:B⊢) Γ,x:A⊢ (wkt Δ⊢t:A[γ] Δ,y:B⊢) idp
 
@@ -57,13 +57,13 @@ module GSeTT.Rules where
   Δ⊢γ:Γ→Δ⊢ (es Δ⊢) = Δ⊢
   Δ⊢γ:Γ→Δ⊢ (sc Δ⊢γ:Γ Γ,x:A⊢ Δ⊢t:A[γ] idp) = Δ⊢γ:Γ→Δ⊢ Δ⊢γ:Γ
 
-  Γ,x:A⊢→Γ,x:A⊢A : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → (Γ :: (x , A)) ⊢T A
+  Γ,x:A⊢→Γ,x:A⊢A : ∀ {Γ x A} → Γ ∙ x # A ⊢C → Γ ∙ x # A ⊢T A
   Γ,x:A⊢→Γ,x:A⊢A Γ,x:A⊢@(cc Γ⊢ Γ⊢A idp) = wkT Γ⊢A Γ,x:A⊢
 
-  Γ,x:A⊢→Γ,x:A⊢x:A : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → (Γ :: (x , A)) ⊢t (Var x) # A
+  Γ,x:A⊢→Γ,x:A⊢x:A : ∀ {Γ x A} → Γ ∙ x # A ⊢C → Γ ∙ x # A ⊢t (Var x) # A
   Γ,x:A⊢→Γ,x:A⊢x:A Γ,x:A⊢ = var Γ,x:A⊢ (inr (idp , idp))
 
-  Γ,x:A⊢→Γ⊢ : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → Γ ⊢C
+  Γ,x:A⊢→Γ⊢ : ∀ {Γ x A} → Γ ∙ x # A ⊢C → Γ ⊢C
   Γ,x:A⊢→Γ⊢ (cc Γ⊢ _ _) = Γ⊢
 
 
@@ -83,19 +83,19 @@ module GSeTT.Rules where
   trT : ∀ {Γ A B t} → A == B → Γ ⊢t t # A → Γ ⊢t t # B
   trT idp Γ⊢t:A = Γ⊢t:A
 
-  n∉Γ : ∀ {Γ A n} → Γ ⊢C → (length Γ ≤ n) → ¬ (n # A ∈ Γ)
+  n∉Γ : ∀ {Γ A n} → Γ ⊢C → (ℓ Γ ≤ n) → ¬ (n # A ∈ Γ)
   n∉Γ (cc Γ⊢ _ _) l+1≤n (inl n∈Γ) = n∉Γ Γ⊢ (Sn≤m→n≤m l+1≤n) n∈Γ
   n∉Γ (cc Γ⊢ _ idp) Sn≤n (inr (idp , idp)) = Sn≰n _ Sn≤n
 
-  lΓ∉Γ : ∀ {Γ A} → Γ ⊢C → ¬ ((length Γ) # A ∈ Γ)
+  lΓ∉Γ : ∀ {Γ A} → Γ ⊢C → ¬ ((ℓ Γ) # A ∈ Γ)
   lΓ∉Γ Γ⊢ = n∉Γ Γ⊢ (n≤n _)
 
-  Γ+⊢l : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → x == length Γ
+  Γ+⊢l : ∀ {Γ x A} → Γ ∙ x # A ⊢C → x == ℓ Γ
   Γ+⊢l (cc _ _ idp) = idp
 
   {- action on weakened types and terms -}
-  wk[]T : ∀ {Γ Δ γ x u A B} → Γ ⊢T A → Δ ⊢S (γ :: (x , u)) > (Γ :: (x , B)) → (A [ (γ :: (x , u)) ]Pre-Ty) == (A [ γ ]Pre-Ty)
-  wk[]t : ∀ {Γ Δ γ x u A t B} → Γ ⊢t t # A → Δ ⊢S (γ :: (x , u)) > (Γ :: (x , B)) → (t [ (γ :: (x , u)) ]Pre-Tm) == (t [ γ ]Pre-Tm)
+  wk[]T : ∀ {Γ Δ γ x u A B} → Γ ⊢T A → Δ ⊢S < γ , x ↦ u > > Γ ∙ x # B → (A [ < γ , x ↦ u > ]Pre-Ty) == (A [ γ ]Pre-Ty)
+  wk[]t : ∀ {Γ Δ γ x u A t B} → Γ ⊢t t # A → Δ ⊢S < γ , x ↦ u > > Γ ∙ x # B → (t [ < γ , x ↦ u > ]Pre-Tm) == (t [ γ ]Pre-Tm)
 
   wk[]T (ob Γ⊢) _ = idp
   wk[]T (ar Γ⊢A Γ⊢t:A Γ⊢u:A) Δ⊢γ+:Γ+ = ⇒= (wk[]T Γ⊢A Δ⊢γ+:Γ+)  (wk[]t Γ⊢t:A Δ⊢γ+:Γ+) (wk[]t Γ⊢u:A Δ⊢γ+:Γ+)

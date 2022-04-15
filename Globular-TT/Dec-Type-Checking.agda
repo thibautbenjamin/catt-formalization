@@ -2,6 +2,7 @@
 
 open import Agda.Primitive
 open import Prelude
+import GSeTT.Syntax
 import GSeTT.Rules
 import GSeTT.Typed-Syntax
 import Globular-TT.Syntax
@@ -53,11 +54,10 @@ module Globular-TT.Dec-Type-Checking {l} (index : Set l) (rule : index → GSeTT
   ...                                                             | inr Γ⊬γ = inr λ t → Γ⊬γ (Γ⊢tm→Γ⊢γ t)
   ...                                                             | inl Γ⊢γ = inl (tm Ci⊢Ti Γ⊢γ idp)
 
-
-  dec-G⊢S Δ (nil , _) _ _ <> (0≤ _) _ = inl (es (GCtx _ (snd Δ)))
-  dec-G⊢S Δ ((Γ :: _) , _) _ _ <> _ _ = inr λ {()}
-  dec-G⊢S Δ (nil , _) _ _ < γ , x ↦ t > _ _ = inr λ {()}
-  dec-G⊢S Δ ((Γ :: (y , A)) , Γ+⊢@(GSeTT.Rules.cc Γ⊢ Γ⊢A idp)) n d < γ , x ↦ t > dimΓ+≤n dγ+≤d with dec-G⊢S Δ (Γ , Γ⊢) n d γ
+  dec-G⊢S Δ (GSeTT.Syntax.∅ , _) _ _ <> (0≤ _) _ = inl (es (GCtx _ (snd Δ)))
+  dec-G⊢S Δ ((Γ GSeTT.Syntax.∙ _ # _) , _) _ _ <> _ _ = inr λ {()}
+  dec-G⊢S Δ (GSeTT.Syntax.∅ , _) _ _ < γ , x ↦ t > _ _ = inr λ {()}
+  dec-G⊢S Δ ((Γ GSeTT.Syntax.∙ y # A) , Γ+⊢@(GSeTT.Rules.cc Γ⊢ Γ⊢A idp)) n d < γ , x ↦ t > dimΓ+≤n dγ+≤d with dec-G⊢S Δ (Γ , Γ⊢) n d γ
                                                                                                       (≤T (n≤max (dimC (GPre-Ctx Γ)) (dim (GPre-Ty A))) dimΓ+≤n) -- dim Γ ≤ n
                                                                                                       (≤T (n≤max (depthS γ) (depth t)) dγ+≤d)                    -- depth γ ≤ d
                                                                                           | dec-G⊢t Δ n d ((GPre-Ty A) [ γ ]Pre-Ty) t
@@ -107,12 +107,12 @@ module Globular-TT.Dec-Type-Checking {l} (index : Set l) (rule : index → GSeTT
   ...                 | inl _ | inl _ | inr n≠l = inr λ {(cc _ _ idp) → n≠l idp}
 
 
-  dec-⊢S:G Δ (nil , _) <> with (dec-⊢C Δ)
+  dec-⊢S:G Δ (GSeTT.Syntax.∅ , _) <> with (dec-⊢C Δ)
   ...             | inl Δ⊢ = inl (es Δ⊢)
   ...             | inr Δ⊬ = inr λ{(es Δ⊢) → Δ⊬ Δ⊢}
-  dec-⊢S:G Δ (nil , _) < γ , x ↦ x₁ > = inr λ{()}
-  dec-⊢S:G Δ ((Γ :: _) , _) <> = inr λ{()}
-  dec-⊢S:G Δ ((Γ :: (v , A)) , Γ+⊢@(GSeTT.Rules.cc Γ⊢ Γ⊢A idp)) < γ , x ↦ t > with dec-⊢S:G Δ (Γ , Γ⊢) γ | dec-⊢t Δ ((GPre-Ty A) [ γ ]Pre-Ty) t | eqdecℕ x (length Γ)
+  dec-⊢S:G Δ (GSeTT.Syntax.∅ , _) < γ , x ↦ x₁ > = inr λ{()}
+  dec-⊢S:G Δ ((Γ GSeTT.Syntax.∙ _ # _) , _) <> = inr λ{()}
+  dec-⊢S:G Δ ((Γ GSeTT.Syntax.∙ v # A) , Γ+⊢@(GSeTT.Rules.cc Γ⊢ Γ⊢A idp)) < γ , x ↦ t > with dec-⊢S:G Δ (Γ , Γ⊢) γ | dec-⊢t Δ ((GPre-Ty A) [ γ ]Pre-Ty) t | eqdecℕ x (GSeTT.Syntax.ℓ Γ)
   ...                                                                | inl Δ⊢γ | inl Δ⊢t | inl idp = inl (sc Δ⊢γ (GCtx _ Γ+⊢) Δ⊢t idp)
   ...                                                                | inr Δ⊬γ | _ | _ = inr λ{(sc Δ⊢γ _ _ idp) → Δ⊬γ Δ⊢γ}
   ...                                                                | inl _ | inr Δ⊬t | _ = inr λ{(sc _ _ Δ⊢t idp) → Δ⊬t Δ⊢t}

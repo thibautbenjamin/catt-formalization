@@ -14,10 +14,10 @@ module GSeTT.CwF-structure where
 
   []T (ob Γ⊢) Δ⊢γ:Γ = ob (Δ⊢γ:Γ→Δ⊢ Δ⊢γ:Γ)
   []T (ar Γ⊢A Γ⊢t:A Γ⊢u:A) Δ⊢γ:Γ = ar ([]T Γ⊢A Δ⊢γ:Γ) ([]t Γ⊢t:A Δ⊢γ:Γ) ([]t Γ⊢u:A Δ⊢γ:Γ)
-  []t {Γ = (Γ :: _)} {t = Var x} (var Γ+⊢@(cc Γ⊢ _ idp) (inl x∈Γ)) Δ⊢γ+:Γ+@(sc Δ⊢γ:Γ _ _ idp) with (eqdecℕ x (length Γ))
+  []t {Γ = (Γ ∙ _ # _)} {t = Var x} (var Γ+⊢@(cc Γ⊢ _ idp) (inl x∈Γ)) Δ⊢γ+:Γ+@(sc Δ⊢γ:Γ _ _ idp) with (eqdecℕ x (ℓ Γ))
   ...                                                                                     | inl idp = ⊥-elim (lΓ∉Γ Γ⊢ x∈Γ)
   ...                                                                                     | inr _ = trT (wk[]T (Γ⊢t:A→Γ⊢A (var Γ⊢ x∈Γ)) Δ⊢γ+:Γ+ ^) ([]t (var Γ⊢ x∈Γ) Δ⊢γ:Γ)
-  []t {Γ = (Γ :: _)} {t = Var x} (var Γ+⊢@(cc Γ⊢ Γ⊢A idp) (inr (idp , idp))) Δ⊢γ+:Γ+@(sc Δ⊢γ:Γ x₁ Δ⊢t:A[γ] idp) with (eqdecℕ x (length Γ))
+  []t {Γ = (Γ ∙ _ # _)} {t = Var x} (var Γ+⊢@(cc Γ⊢ Γ⊢A idp) (inr (idp , idp))) Δ⊢γ+:Γ+@(sc Δ⊢γ:Γ x₁ Δ⊢t:A[γ] idp) with (eqdecℕ x (ℓ Γ))
   ...                                                                                     | inl _ = trT (wk[]T Γ⊢A Δ⊢γ+:Γ+ ^) Δ⊢t:A[γ]
   ...                                                                                     | inr x≠x = ⊥-elim (x≠x idp)
 
@@ -28,8 +28,8 @@ module GSeTT.CwF-structure where
 
   [id]T Γ ∗ = idp
   [id]T Γ (t ⇒[ A ] u) = ⇒= ([id]T Γ A) ([id]t Γ t) ([id]t Γ u)
-  [id]t nil (Var x) = idp
-  [id]t (Γ :: (y , B)) (Var x) with (eqdecℕ x y)
+  [id]t ∅ (Var x) = idp
+  [id]t (Γ ∙ y # B) (Var x) with (eqdecℕ x y)
   ...                              | inl x=y = Var= (x=y ^)
   ...                              | inr _ = [id]t Γ (Var x)
 
@@ -60,30 +60,30 @@ module GSeTT.CwF-structure where
   {- composition is associative, this is true only for well-formed substitutions -}
   ∘-associativity : ∀ {Γ Δ Θ Ξ γ δ θ} → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → Ξ ⊢S θ > Θ → ((γ ∘ δ) ∘ θ) == (γ ∘ (δ ∘ θ))
   ∘-associativity (es _) _ _ = idp
-  ∘-associativity (sc Δ⊢γ:Γ _ Δ⊢t:A[γ] idp) Θ⊢δ:Δ Ξ⊢θ:Θ = ::= (∘-associativity Δ⊢γ:Γ Θ⊢δ:Δ Ξ⊢θ:Θ) (×= idp ([∘]t Δ⊢t:A[γ] Θ⊢δ:Δ Ξ⊢θ:Θ))
+  ∘-associativity (sc Δ⊢γ:Γ _ Δ⊢t:A[γ] idp) Θ⊢δ:Δ Ξ⊢θ:Θ = ap² (λ σ  u → < σ , _ ↦ u >) (∘-associativity Δ⊢γ:Γ Θ⊢δ:Δ Ξ⊢θ:Θ) ([∘]t Δ⊢t:A[γ] Θ⊢δ:Δ Ξ⊢θ:Θ)
 
 
   {- Left unitality of composition -}
 
   -- To prove right-unitality, we need a analoguous of wk[]T and wk[]t for substitutions
   -- Composing if θ is a subst without x, acting (γ :: (x , u)) on it is same as acting just γ on it
-  wk[]S : ∀ {Γ Δ γ x u B Θ θ} → Γ ⊢S θ > Θ → Δ ⊢S (γ :: (x , u)) > (Γ :: (x , B)) → (θ ∘ (γ :: (x , u))) == (θ ∘ γ)
+  wk[]S : ∀ {Γ Δ γ x u B Θ θ} → Γ ⊢S θ > Θ → Δ ⊢S < γ , x ↦ u > > Γ ∙ x # B → (θ ∘ < γ , x ↦ u >) == (θ ∘ γ)
   wk[]S (es _) _ = idp
-  wk[]S (sc Γ⊢θ:Θ _ Γ⊢t:A[θ] idp) Δ⊢γ+:Γ+ = ::= (wk[]S Γ⊢θ:Θ Δ⊢γ+:Γ+) (×= idp (wk[]t Γ⊢t:A[θ] Δ⊢γ+:Γ+))
+  wk[]S (sc Γ⊢θ:Θ _ Γ⊢t:A[θ] idp) Δ⊢γ+:Γ+ = ap² (λ σ  u → < σ , _ ↦ u >) (wk[]S Γ⊢θ:Θ Δ⊢γ+:Γ+) (wk[]t Γ⊢t:A[θ] Δ⊢γ+:Γ+)
 
   ∘-left-unit : ∀{Γ Δ γ} → Δ ⊢S γ > Γ → (Pre-id Γ ∘ γ) == γ
   ∘-left-unit (es _) = idp
   ∘-left-unit Δ⊢γ+:Γ+@(sc {x = x} Δ⊢γ:Γ (cc Γ⊢ _ _) _ idp) with (eqdecℕ x x)
-  ...                                                 | inl _ = ::= (wk[]S (Γ⊢id:Γ Γ⊢) Δ⊢γ+:Γ+ >> ∘-left-unit Δ⊢γ:Γ) idp
+  ...                                                 | inl _ = ap (λ σ → < σ , _ ↦ _ >) (wk[]S (Γ⊢id:Γ Γ⊢) Δ⊢γ+:Γ+ >> ∘-left-unit Δ⊢γ:Γ)
   ...                                                 | inr x≠x = ⊥-elim (x≠x idp)
 
  {- Right unitality of composition (true on syntax)-}
   ∘-right-unit : ∀ {Δ γ} →  (γ ∘ Pre-id Δ) == γ
-  ∘-right-unit {Δ} {nil} = idp
-  ∘-right-unit {Δ} {γ :: (y , t)} = ::= ∘-right-unit (×= idp ([id]t Δ t))
+  ∘-right-unit {Δ} {<>} = idp
+  ∘-right-unit {Δ} {< γ , y ↦ t >} = ap² (λ σ u → < σ , _ ↦ u >) ∘-right-unit ([id]t Δ t)
 
   {- Structure of CwF -}
-  Γ,x:A⊢π:Γ : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → (Γ :: (x , A)) ⊢S Pre-π Γ x A > Γ
+  Γ,x:A⊢π:Γ : ∀ {Γ x A} → Γ ∙ x # A ⊢C → Γ ∙ x # A ⊢S Pre-π Γ x A > Γ
   Γ,x:A⊢π:Γ Γ,x:A⊢@(cc Γ⊢ _ _) = wkS (Γ⊢id:Γ Γ⊢) Γ,x:A⊢
 
   -- TODO : complete the CwF structure

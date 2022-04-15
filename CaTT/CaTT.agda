@@ -85,31 +85,31 @@ module CaTT.CaTT where
    GdimT {_ GSeTT.Syntax.⇒[ A ] _} = ap S GdimT
 
    GdimC : ∀ {Γ} → GSeTT.Syntax.dimC Γ == dimC (GPre-Ctx Γ)
-   GdimC {nil} = idp
-   GdimC {Γ :: (x , A)} = ap² max (GdimC {Γ}) GdimT
+   GdimC {GSeTT.Syntax.∅} = idp
+   GdimC {Γ GSeTT.Syntax.∙ x # A} = ap² max (GdimC {Γ}) GdimT
 
    G#∈ : ∀ {Γ x A} → x GSeTT.Syntax.# A ∈ Γ → x # (GPre-Ty A) ∈ (GPre-Ctx Γ)
-   G#∈ {Γ :: a} (inl x∈Γ) = inl (G#∈ x∈Γ)
-   G#∈ {Γ :: a} (inr (idp , idp)) = inr (idp , idp)
+   G#∈ {Γ GSeTT.Syntax.∙ _ # _} (inl x∈Γ) = inl (G#∈ x∈Γ)
+   G#∈ {Γ GSeTT.Syntax.∙ _ # _} (inr (idp , idp)) = inr (idp , idp)
 
    G∈ : ∀ {Γ x} → x GSeTT.Syntax.∈ Γ → x ∈-set (varC Γ)
-   G∈ {Γ :: (a , _)} (inl x∈Γ) = ∈-∪₁ {A = varC Γ} {B = singleton a} (G∈ x∈Γ)
-   G∈ {Γ :: (x , _)} (inr idp) = ∈-∪₂ {A = varC Γ} {B = singleton x} (∈-singleton x)
+   G∈ {Γ GSeTT.Syntax.∙ a # _} (inl x∈Γ) = ∈-∪₁ {A = varC Γ} {B = singleton a} (G∈ x∈Γ)
+   G∈ {Γ GSeTT.Syntax.∙ x # _} (inr idp) = ∈-∪₂ {A = varC Γ} {B = singleton x} (∈-singleton x)
 
    private
      every-term-has-variables : ∀ {Γ t A} → Γ ⊢t (Tm→Pre-Tm t) # A → Σ ℕ λ x → x ∈-set vart t
      every-term-has-variables {Γ} {v x} {A} Γ⊢t = x , ∈-singleton x
-     every-term-has-variables {Γ} {coh (nil , (ps Δ⊢ps)) _ _ γ} {A} (tm _ Γ⊢γ idp) = ⊥-elim (∅-is-not-ps _ _ Δ⊢ps)
-     every-term-has-variables {Γ} {coh ((_ :: _) , Δ⊢ps) _ _ <>} {A} (tm _ () idp)
-     every-term-has-variables {Γ} {coh ((_ :: _) , Δ⊢ps) _ _ < γ , _ ↦ u >} {A} (tm _ (sc _ _ Γ⊢u _) idp) with every-term-has-variables Γ⊢u
+     every-term-has-variables {Γ} {coh (GSeTT.Syntax.∅ , (ps Δ⊢ps)) _ _ γ} {A} (tm _ Γ⊢γ idp) = ⊥-elim (∅-is-not-ps _ _ Δ⊢ps)
+     every-term-has-variables {Γ} {coh ((_ GSeTT.Syntax.∙ _ # _) , Δ⊢ps) _ _ <>} {A} (tm _ () idp)
+     every-term-has-variables {Γ} {coh ((_ GSeTT.Syntax.∙ _ # _) , Δ⊢ps) _ _ < γ , _ ↦ u >} {A} (tm _ (sc _ _ Γ⊢u _) idp) with every-term-has-variables Γ⊢u
      ... | (x , x∈) = x , ∈-∪₂ {A = varS γ} {B = vart u} x∈
 
 
-     side-cond₁-not𝔻0 : ∀ Γ Γ⊢ps A t → (GPre-Ctx Γ) ⊢t (Tm→Pre-Tm t) # (Ty→Pre-Ty A) → ((varT A) ∪-set (vart t)) ⊂ (src-var (Γ , Γ⊢ps)) → Γ ≠ (nil :: (0 , GSeTT.Syntax.∗))
-     side-cond₁-not𝔻0 .(nil :: (0 , GSeTT.Syntax.∗)) (ps pss) A t Γ⊢t incl idp with every-term-has-variables Γ⊢t | dec-≤ 0 0
+     side-cond₁-not𝔻0 : ∀ Γ Γ⊢ps A t → (GPre-Ctx Γ) ⊢t (Tm→Pre-Tm t) # (Ty→Pre-Ty A) → ((varT A) ∪-set (vart t)) ⊂ (src-var (Γ , Γ⊢ps)) → Γ ≠ (GSeTT.Syntax.∅ GSeTT.Syntax.∙ 0 # GSeTT.Syntax.∗)
+     side-cond₁-not𝔻0 ._ (ps pss) A t Γ⊢t incl idp with every-term-has-variables Γ⊢t | dec-≤ 0 0
      ... | x , x∈A | inl _ = incl _ (∈-∪₂ {A = varT A} {B = vart t} x∈A)
      ... | x , x∈A | inr _ = incl _ (∈-∪₂ {A = varT A} {B = vart t} x∈A)
-     side-cond₁-not𝔻0 .(nil :: (0 , GSeTT.Syntax.∗)) (ps (psd Γ⊢psf)) A t Γ⊢t incl idp = ⇒≠∗ (𝔻0-type _ _ (psvar Γ⊢psf))
+     side-cond₁-not𝔻0 ._ (ps (psd Γ⊢psf)) A t Γ⊢t incl idp = ⇒≠∗ (𝔻0-type _ _ (psvar Γ⊢psf))
 
    max-srcᵢ-var-def : ∀ {Γ x A i} → (Γ⊢psx : Γ ⊢ps x # A) → 0 < i → ℕ × Pre-Ty
    max-srcᵢ-var-def pss _ = 0 , ∗
@@ -161,7 +161,7 @@ module CaTT.CaTT where
    max-srcᵢ-var : ∀ {Γ x A i} → (Γ⊢psx : Γ ⊢ps x # A) → 0 < i → Σ (Σ (ℕ × Pre-Ty) (λ {(x , B) → GPre-Ctx Γ ⊢t Var x # B})) (λ {((x , B) , Γ⊢x) → (x ∈-list (srcᵢ-var i Γ⊢psx)) × (min i (S (dimC (GPre-Ctx Γ))) == S (dim-tm Γ⊢x))})
    max-srcᵢ-var Γ⊢psx 0<i = (max-srcᵢ-var-def Γ⊢psx 0<i , max-srcᵢ-var-⊢ Γ⊢psx 0<i) , (max-srcᵢ-var-∈ Γ⊢psx 0<i , max-srcᵢ-var-dim Γ⊢psx 0<i)
 
-   max-src-var : ∀ Γ → (Γ⊢ps : Γ ⊢ps) → (Γ ≠ (nil :: (0 , GSeTT.Syntax.∗))) → Σ (Σ (ℕ × Pre-Ty) (λ {(x , B) → GPre-Ctx Γ ⊢t Var x # B})) (λ {((x , B) , Γ⊢x) → (x ∈-set (src-var (Γ , Γ⊢ps))) × (dimC (GPre-Ctx Γ) == S (dim-tm Γ⊢x))})
+   max-src-var : ∀ Γ → (Γ⊢ps : Γ ⊢ps) → (Γ ≠ GSeTT.Syntax.∅ GSeTT.Syntax.∙ 0 # GSeTT.Syntax.∗) → Σ (Σ (ℕ × Pre-Ty) (λ {(x , B) → GPre-Ctx Γ ⊢t Var x # B})) (λ {((x , B) , Γ⊢x) → (x ∈-set (src-var (Γ , Γ⊢ps))) × (dimC (GPre-Ctx Γ) == S (dim-tm Γ⊢x))})
    max-src-var Γ Γ⊢ps@(ps Γ⊢psx) Γ≠𝔻0 with max-srcᵢ-var {i = GSeTT.Syntax.dimC Γ} Γ⊢psx (dim-ps-not-𝔻0 Γ⊢ps Γ≠𝔻0)
    ... | ((x , B) , (x∈ , p)) = (x , B) , (∈-list-∈-set _ _ x∈ , (ap (λ n → min n (S (dimC (GPre-Ctx Γ)))) (GdimC {Γ}) >> simplify-min-l (n≤Sn _) ^ >> p) )
 
@@ -185,7 +185,7 @@ module CaTT.CaTT where
    dim-∈-var-t {t = v x} Γ⊢x Γ⊢t (inr idp) with unique-type Γ⊢x Γ⊢t (ap Var idp)
    ... | idp = n≤n _
    dim-∈-var-t {t = coh Γ A Afull γ} Γ⊢x (tm Γ⊢A Δ⊢γ:Γ p) x∈t = ≤-= (≤T (dim-∈-var-S Γ⊢x Δ⊢γ:Γ x∈t) (dim-full-ty (snd Γ) Γ⊢A Afull) ) ((dim[] _ _ ^) >> ap dim (p ^))
-   dim-∈-var-S {Δ} {< γ , y ↦ t >} {Γ :: (_ , A)} {x} {B} Δ⊢x (sc Δ⊢γ:Γ Γ+⊢ Δ⊢t idp) x∈γ+ with ∈-∪ {varS γ} {vart t} x∈γ+
+   dim-∈-var-S {Δ} {< γ , y ↦ t >} {Γ GSeTT.Syntax.∙ _ # A} {x} {B} Δ⊢x (sc Δ⊢γ:Γ Γ+⊢ Δ⊢t idp) x∈γ+ with ∈-∪ {varS γ} {vart t} x∈γ+
    ... | inl x∈γ = ≤T (dim-∈-var-S Δ⊢x Δ⊢γ:Γ x∈γ) (n≤max _ _)
    ... | inr x∈t = ≤T (dim-∈-var-t Δ⊢x (transport {B = Δ ⊢t (Tm→Pre-Tm t) #_} Ty→Pre-Ty[] Δ⊢t) x∈t) (=-≤ (dim-Pre-Ty[]) (m≤max (dimC (GPre-Ctx Γ)) (dim (GPre-Ty A))))
    dim-full-ty Γ⊢ps Γ⊢A Afull with full-term-have-max-variables Γ⊢A Afull

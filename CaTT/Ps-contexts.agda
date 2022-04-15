@@ -11,9 +11,9 @@ module CaTT.Ps-contexts where
 
   {- Rules for PS-contexts -}
   data _⊢ps_#_ : Pre-Ctx → ℕ → Pre-Ty → Set₁ where
-    pss : (nil :: (O , ∗)) ⊢ps O # ∗
+    pss : (∅ ∙ O # ∗) ⊢ps O # ∗
     psd : ∀ {Γ f A x y} → Γ ⊢ps f # ((Var x) ⇒[ A ] (Var y)) → Γ ⊢ps y # A
-    pse : ∀ {Γ x A y z C t Tt} → Γ ⊢ps x # A  →  y == length Γ → z == S (length Γ) → C == (Var x) ⇒[ A ] (Var y) → z == t → C == Tt → ((Γ :: (y , A)) :: (z , C)) ⊢ps t # Tt
+    pse : ∀ {Γ x A y z C t Tt} → Γ ⊢ps x # A  →  y == ℓ Γ → z == S (ℓ Γ) → C == (Var x) ⇒[ A ] (Var y) → z == t → C == Tt → ((Γ ∙ y # A) ∙ z # C) ⊢ps t # Tt
 
   data _⊢ps : Pre-Ctx → Set₁ where
     ps : ∀ {Γ x} → Γ ⊢ps x # ∗ → Γ ⊢ps
@@ -21,8 +21,8 @@ module CaTT.Ps-contexts where
   psd↓ : ∀ {Γ f A x y z} → (Γ⊢ps₁ : Γ ⊢ps f # ((Var x) ⇒[ A ] (Var z))) → (Γ⊢ps₂ : Γ ⊢ps f # ((Var y) ⇒[ A ] (Var z))) → (p : x == y) → transport p Γ⊢ps₁ == Γ⊢ps₂ → psd Γ⊢ps₁ == psd Γ⊢ps₂
   psd↓ Γ⊢ps₁ .Γ⊢ps₁ idp idp = idp
 
-  pse↓ : ∀ {Γ A B C x y a f z} → (Γ⊢ps₁ : Γ ⊢ps x # A) (a= : a == length Γ) (f= : f == S (length Γ)) (B= : B == (Var x) ⇒[ A ] (Var a)) (z= : f == z) (C= : B == C)
-                                → (Γ⊢ps₂ : Γ ⊢ps y # A) (a=' : a == length Γ) (f=' : f == S (length Γ)) (B=' : B == (Var y) ⇒[ A ] (Var a)) (z=' : f == z) (C=' : B == C)
+  pse↓ : ∀ {Γ A B C x y a f z} → (Γ⊢ps₁ : Γ ⊢ps x # A) (a= : a == ℓ Γ) (f= : f == S (ℓ Γ)) (B= : B == (Var x) ⇒[ A ] (Var a)) (z= : f == z) (C= : B == C)
+                                → (Γ⊢ps₂ : Γ ⊢ps y # A) (a=' : a == ℓ Γ) (f=' : f == S (ℓ Γ)) (B=' : B == (Var y) ⇒[ A ] (Var a)) (z=' : f == z) (C=' : B == C)
                                 → (p : x == y)  → transport p Γ⊢ps₁ == Γ⊢ps₂ → (pse Γ⊢ps₁ a= f= B= z= C=) == (pse Γ⊢ps₂ a=' f=' B=' z=' C=')
   pse↓ _ _ _ _ _ _ _ _ _ _ _ _ idp idp = ap⁶ pse idp (is-prop-has-all-paths (is-setℕ _ _) _ _)
                                                       (is-prop-has-all-paths (is-setℕ _ _) _ _)
@@ -67,7 +67,7 @@ module CaTT.Ps-contexts where
   srcᵢ-var i (psd Γ⊢psx) = srcᵢ-var i Γ⊢psx
   srcᵢ-var i (pse {Γ = Γ} {A = A} Γ⊢psx idp idp idp idp idp) with dec-≤ i (S (dim A))
   ... | inl i≤SdimA = srcᵢ-var i Γ⊢psx
-  ... | inr SdimA<i = (srcᵢ-var i Γ⊢psx :: length Γ) :: (S (length Γ))
+  ... | inr SdimA<i = (srcᵢ-var i Γ⊢psx :: ℓ Γ) :: (S (ℓ Γ))
 
   drop : ∀ {i} {A : Set i} → list A → list A
   drop nil = nil
@@ -77,8 +77,8 @@ module CaTT.Ps-contexts where
   tgtᵢ-var i pss = if i ≡ 0 then nil else (nil :: 0)
   tgtᵢ-var i (psd Γ⊢psx) = tgtᵢ-var i Γ⊢psx
   tgtᵢ-var i (pse {Γ = Γ} {A = A} Γ⊢psx idp idp idp idp idp) with dec-≤ i (S (dim A))
-  ... | inl i≤SdimA = if i ≡ S (dim A) then drop(tgtᵢ-var i Γ⊢psx) :: length Γ else tgtᵢ-var i Γ⊢psx
-  ... | inr SdimA<i = (tgtᵢ-var i Γ⊢psx :: length Γ) :: (S (length Γ))
+  ... | inl i≤SdimA = if i ≡ S (dim A) then drop(tgtᵢ-var i Γ⊢psx) :: ℓ Γ else tgtᵢ-var i Γ⊢psx
+  ... | inr SdimA<i = (tgtᵢ-var i Γ⊢psx :: ℓ Γ) :: (S (ℓ Γ))
 
   src-var : (Γ : ps-ctx) → set
   src-var (Γ , ps Γ⊢psx) = set-of-list (srcᵢ-var (dimC Γ) Γ⊢psx)
@@ -86,12 +86,12 @@ module CaTT.Ps-contexts where
   tgt-var : (Γ : ps-ctx) → set
   tgt-var (Γ , ps Γ⊢psx) = set-of-list (tgtᵢ-var (dimC Γ) Γ⊢psx)
 
-  dim-psx-not-𝔻0 : ∀ {Γ x A} → (Γ⊢ps : Γ ⊢ps x # A) → (Γ ≠ (nil :: (0 , ∗))) → 0 < dimC Γ
-  dim-psx-not-𝔻0 {.(nil :: (0 , ∗))} {.0} {.∗} pss Γ≠𝔻0 = ⊥-elim (Γ≠𝔻0 idp)
+  dim-psx-not-𝔻0 : ∀ {Γ x A} → (Γ⊢ps : Γ ⊢ps x # A) → (Γ ≠ (∅ ∙ 0 # ∗)) → 0 < dimC Γ
+  dim-psx-not-𝔻0 {.(∅ ∙ 0 # ∗)} {.0} {.∗} pss Γ≠𝔻0 = ⊥-elim (Γ≠𝔻0 idp)
   dim-psx-not-𝔻0 {Γ} {x} {A} (psd Γ⊢psx) Γ≠𝔻0 = dim-psx-not-𝔻0 Γ⊢psx Γ≠𝔻0
   dim-psx-not-𝔻0 {_} {x} {A} (pse {Γ = Γ} Γ⊢psx idp idp idp idp idp) Γ+≠𝔻0 = ≤T (S≤ (0≤ _)) (m≤max (max (dimC Γ) _) (dim A))
 
-  dim-ps-not-𝔻0 : ∀ {Γ} → (Γ⊢ps : Γ ⊢ps) → (Γ ≠ (nil :: (0 , ∗))) → 0 < dimC Γ
+  dim-ps-not-𝔻0 : ∀ {Γ} → (Γ⊢ps : Γ ⊢ps) → (Γ ≠ (∅ ∙ 0 # ∗)) → 0 < dimC Γ
   dim-ps-not-𝔻0 (ps Γ⊢psx) Γ≠𝔻0 = dim-psx-not-𝔻0 Γ⊢psx Γ≠𝔻0
 
   dim-dangling : ∀ {Γ x A} → Γ ⊢ps x # A → dim A ≤ dimC Γ
@@ -103,16 +103,16 @@ module CaTT.Ps-contexts where
   {- Definition of a few ps-contexts and their source and target in the theory CaTT -}
   -- It is not necessary to define the pre contexts, as they can be infered with the derivation tree. We do it just as a sanity check
   Pre-Γc : Pre-Ctx
-  Pre-Γc = ((((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , Var 0 ⇒[ ∗ ] Var 1)) :: (3 , ∗)) :: (4 , Var 1 ⇒[ ∗ ] Var 3)
+  Pre-Γc = ((((∅ ∙ 0 # ∗) ∙ 1 # ∗) ∙ 2 # Var 0 ⇒[ ∗ ] Var 1) ∙ 3 # ∗) ∙ 4 # Var 1 ⇒[ ∗ ] Var 3
 
   Pre-Γw : Pre-Ctx
-  Pre-Γw = ((((((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , Var 0 ⇒[ ∗ ] Var 1)) :: (3 , Var 0 ⇒[ ∗ ] Var 1)) :: (4 , Var 2 ⇒[ Var 0 ⇒[ ∗ ] Var 1 ] Var 3)) :: (5 , ∗)) :: (6 , Var 1 ⇒[ ∗ ] Var 5)
+  Pre-Γw = ((((((∅ ∙ 0 # ∗) ∙ 1 # ∗) ∙ 2 # Var 0 ⇒[ ∗ ] Var 1) ∙ 3 # Var 0 ⇒[ ∗ ] Var 1) ∙ 4 # Var 2 ⇒[ Var 0 ⇒[ ∗ ] Var 1 ] Var 3) ∙ 5 # ∗) ∙ 6 # Var 1 ⇒[ ∗ ] Var 5
 
   Pre-Γ₁ : Pre-Ctx
-  Pre-Γ₁ = ((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , Var 0 ⇒[ ∗ ] Var 1)
+  Pre-Γ₁ = ((∅ ∙ 0 # ∗) ∙ 1 # ∗) ∙ 2 # Var 0 ⇒[ ∗ ] Var 1
 
   Pre-Γ₂ : Pre-Ctx
-  Pre-Γ₂ = ((((nil :: (0 , ∗)) :: (1 , ∗)) :: (2 , Var 0 ⇒[ ∗ ] Var 1)) :: (3 , Var 0 ⇒[ ∗ ] Var 1)) :: (4 , Var 2 ⇒[ Var 0 ⇒[ ∗ ] Var 1 ] Var 3)
+  Pre-Γ₂ = ((((∅ ∙ 0 # ∗) ∙ 1 # ∗) ∙ 2 # Var 0 ⇒[ ∗ ] Var 1) ∙ 3 # Var 0 ⇒[ ∗ ] Var 1) ∙ 4 # Var 2 ⇒[ Var 0 ⇒[ ∗ ] Var 1 ] Var 3
 
   Γc⊢ps : Pre-Γc ⊢ps
   Γc⊢ps = ps (psd (pse (psd (pse pss idp idp idp idp idp)) idp idp idp idp idp))
@@ -165,10 +165,10 @@ module CaTT.Ps-contexts where
   tgt-Γw = (λ _ x → x) , λ _ x → x
 
 -- TODO : cleanup and unite these two lemmas
-  x∉ : ∀ {Γ x} → Γ ⊢C → length Γ ≤ x → (∀ {A} → ¬ (Γ ⊢t (Var x) # A))
+  x∉ : ∀ {Γ x} → Γ ⊢C → ℓ Γ ≤ x → (∀ {A} → ¬ (Γ ⊢t (Var x) # A))
   x∉ (cc Γ⊢ _ idp) l≤x (var _ (inl x∈Γ)) = x∉ Γ⊢ (Sn≤m→n≤m l≤x) (var Γ⊢ x∈Γ)
   x∉ (cc Γ⊢ _ idp) l≤x (var _ (inr (idp , idp))) = Sn≰n _ l≤x
 
-  l∉ : ∀ {Γ x} → Γ ⊢C → length Γ ≤ x → ¬ (x ∈ Γ)
+  l∉ : ∀ {Γ x} → Γ ⊢C → ℓ Γ ≤ x → ¬ (x ∈ Γ)
   l∉ (cc Γ⊢ _ idp) l≤x (inl x∈Γ) = l∉ Γ⊢ (Sn≤m→n≤m l≤x) x∈Γ
   l∉ (cc Γ⊢ _ idp) l≤x (inr idp) = Sn≰n _ l≤x
