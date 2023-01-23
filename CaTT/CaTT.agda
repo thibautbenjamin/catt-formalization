@@ -46,8 +46,8 @@ module CaTT.CaTT where
    GPre-Ty→Ty GSeTT.Syntax.∗ = ∗
    GPre-Ty→Ty ((GSeTT.Syntax.Var x) GSeTT.Syntax.⇒[ A ] (GSeTT.Syntax.Var y)) = v x ⇒[ GPre-Ty→Ty A ] v y
 
-   Ty→Pre-Ty[] : ∀ {A γ} → ((GPre-Ty A) [ Sub→Pre-Sub γ ]Pre-Ty) == Ty→Pre-Ty ((GPre-Ty→Ty A) [ γ ]Ty)
-   Tm→Pre-Tm[] : ∀ {x γ} → ((Var x) [ Sub→Pre-Sub γ ]Pre-Tm) == Tm→Pre-Tm ((v x) [ γ ]Tm)
+   Ty→Pre-Ty[] : ∀ {A γ} → ((GPre-Ty A) [ Sub→Pre-Sub γ ]T) == Ty→Pre-Ty ((GPre-Ty→Ty A) [ γ ]Ty)
+   Tm→Pre-Tm[] : ∀ {x γ} → ((Var x) [ Sub→Pre-Sub γ ]t) == Tm→Pre-Tm ((v x) [ γ ]Tm)
    Ty→Pre-Ty[] {GSeTT.Syntax.∗} {γ} = idp
    Ty→Pre-Ty[] {(GSeTT.Syntax.Var x) GSeTT.Syntax.⇒[ A ] (GSeTT.Syntax.Var y)} {γ} = ap³ _⇒[_]_  (Tm→Pre-Tm[] {x} {γ}) Ty→Pre-Ty[] (Tm→Pre-Tm[] {y} {γ})
    Tm→Pre-Tm[] {x} {<>} = idp

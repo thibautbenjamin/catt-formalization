@@ -32,11 +32,11 @@ module Globular-TT.Rules {l} (index : Set l) (rule : index → GSeTT.Typed-Synta
 
   data _⊢t_#_ where
     var : ∀ {Γ x A} → Γ ⊢C → x # A ∈ Γ → Γ ⊢t (Var x) # A
-    tm : ∀ {Δ γ A i} → Ci i ⊢T Ti i → Δ ⊢S γ > Ci i → (A == (Ti i [ γ ]Pre-Ty)) → Δ ⊢t Tm-constructor i γ # A
+    tm : ∀ {Δ γ A i} → Ci i ⊢T Ti i → Δ ⊢S γ > Ci i → (A == (Ti i [ γ ]T)) → Δ ⊢t Tm-constructor i γ # A
 
   data _⊢S_>_ where
     es : ∀ {Δ} → Δ ⊢C → Δ ⊢S <> > ⊘
-    sc : ∀ {Δ Γ γ x y A t} → Δ ⊢S γ > Γ → (Γ ∙ x # A) ⊢C → (Δ ⊢t t # (A [ γ ]Pre-Ty)) → x == y → Δ ⊢S < γ , y ↦ t > > (Γ ∙ x # A)
+    sc : ∀ {Δ Γ γ x y A t} → Δ ⊢S γ > Γ → (Γ ∙ x # A) ⊢C → (Δ ⊢t t # (A [ γ ]T)) → x == y → Δ ⊢S < γ , y ↦ t > > (Γ ∙ x # A)
 
 
   {- Derivability is preserved by the translation from GSeTT to our TT -}

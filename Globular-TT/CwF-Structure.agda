@@ -27,13 +27,13 @@ module Globular-TT.CwF-Structure {l} (index : Set l) (rule : index → GSeTT.Typ
   lΓ∉Γ : ∀ {Γ A} → Γ ⊢C → ¬ ((C-length Γ) # A ∈ Γ)
   lΓ∉Γ Γ⊢ = n∉Γ Γ⊢ (n≤n _)
 
-  wk[]T : ∀ {Γ Δ γ x u A B} → Γ ⊢T A → Δ ⊢S < γ , x ↦ u > > (Γ ∙ x # B) → (A [ < γ , x ↦ u > ]Pre-Ty) == (A [ γ ]Pre-Ty)
-  wk[]t : ∀ {Γ Δ γ x u A t B} → Γ ⊢t t # A → Δ ⊢S < γ , x ↦ u > > (Γ ∙ x # B) → (t [ < γ , x ↦ u > ]Pre-Tm) == (t [ γ ]Pre-Tm)
+  wk[]T : ∀ {Γ Δ γ x u A B} → Γ ⊢T A → Δ ⊢S < γ , x ↦ u > > (Γ ∙ x # B) → (A [ < γ , x ↦ u > ]T) == (A [ γ ]T)
+  wk[]t : ∀ {Γ Δ γ x u A t B} → Γ ⊢t t # A → Δ ⊢S < γ , x ↦ u > > (Γ ∙ x # B) → (t [ < γ , x ↦ u > ]t) == (t [ γ ]t)
   wk[]S : ∀ {Γ Δ γ x u B Θ θ} → Γ ⊢S θ > Θ → Δ ⊢S < γ , x ↦ u > > (Γ ∙ x # B) → (θ ∘ < γ , x ↦ u >) == (θ ∘ γ)
-  []T : ∀ {Γ A Δ γ} → Γ ⊢T A → Δ ⊢S γ > Γ → Δ ⊢T (A [ γ ]Pre-Ty)
-  []t : ∀ {Γ A t Δ γ} → Γ ⊢t t # A → Δ ⊢S γ > Γ → Δ ⊢t (t [ γ ]Pre-Tm) # (A [ γ ]Pre-Ty)
-  [∘]T : ∀ {Γ Δ Θ A γ δ} → Γ ⊢T A → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → ((A [ γ ]Pre-Ty) [ δ ]Pre-Ty) == (A [ γ ∘ δ ]Pre-Ty)
-  [∘]t : ∀ {Γ Δ Θ A t γ δ} → Γ ⊢t t # A → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → ((t [ γ ]Pre-Tm) [ δ ]Pre-Tm) == (t [ γ ∘ δ ]Pre-Tm)
+  []T : ∀ {Γ A Δ γ} → Γ ⊢T A → Δ ⊢S γ > Γ → Δ ⊢T (A [ γ ]T)
+  []t : ∀ {Γ A t Δ γ} → Γ ⊢t t # A → Δ ⊢S γ > Γ → Δ ⊢t (t [ γ ]t) # (A [ γ ]T)
+  [∘]T : ∀ {Γ Δ Θ A γ δ} → Γ ⊢T A → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → ((A [ γ ]T) [ δ ]T) == (A [ γ ∘ δ ]T)
+  [∘]t : ∀ {Γ Δ Θ A t γ δ} → Γ ⊢t t # A → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → ((t [ γ ]t) [ δ ]t) == (t [ γ ∘ δ ]t)
   ∘-admissibility : ∀ {Γ Δ Θ γ δ} → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → Θ ⊢S (γ ∘ δ) > Γ
   ∘-associativity : ∀ {Γ Δ Θ Ξ γ δ θ} → Δ ⊢S γ > Γ → Θ ⊢S δ > Δ → Ξ ⊢S θ > Θ → ((γ ∘ δ) ∘ θ) == (γ ∘ (δ ∘ θ))
 
@@ -78,8 +78,8 @@ module Globular-TT.CwF-Structure {l} (index : Set l) (rule : index → GSeTT.Typ
   Γ⊢t:A→Γ⊢A (tm Ci⊢Ti Γ⊢γ:Δ idp) = []T Ci⊢Ti Γ⊢γ:Δ
 
   {- action of identity on types terms and substitutions is trivial (true on syntax) -}
-  [id]T : ∀ Γ A → (A [ Pre-id Γ ]Pre-Ty) == A
-  [id]t : ∀ Γ t → (t [ Pre-id Γ ]Pre-Tm) == t
+  [id]T : ∀ Γ A → (A [ Pre-id Γ ]T) == A
+  [id]t : ∀ Γ t → (t [ Pre-id Γ ]t) == t
   ∘-right-unit : ∀ {Δ γ} →  (γ ∘ Pre-id Δ) == γ
 
   [id]T Γ ∗ = idp

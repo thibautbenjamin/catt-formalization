@@ -36,7 +36,7 @@ module GSeTT.Dec-Type-Checking where
     Δ⊢γ+:Γ+→x=y : ∀ {Δ Γ x A γ y t} → Δ ⊢S < γ , y ↦ t > > Γ ∙ x # A → x == y
     Δ⊢γ+:Γ+→x=y (sc _ _ _ idp) = idp
 
-    Δ⊢γ+:Γ+→Δ⊢t : ∀ {Δ Γ x A γ y t} → Δ ⊢S < γ , y ↦ t > > Γ ∙ x # A → Δ ⊢t t # (A [ γ ]Pre-Ty)
+    Δ⊢γ+:Γ+→Δ⊢t : ∀ {Δ Γ x A γ y t} → Δ ⊢S < γ , y ↦ t > > Γ ∙ x # A → Δ ⊢t t # (A [ γ ]T)
     Δ⊢γ+:Γ+→Δ⊢t (sc _ _ Δ⊢t idp) = Δ⊢t
 
     Δ⊢γ+:Γ+→Δ⊢γ : ∀ {Δ Γ x A γ y t} → Δ ⊢S < γ , y ↦ t > > Γ ∙ x # A → Δ ⊢S γ > Γ
@@ -92,7 +92,7 @@ module GSeTT.Dec-Type-Checking where
   ...              | inr Δ⊬ = inr λ Δ⊢<>:⊘ → Δ⊬ (Δ⊢γ:Γ→Δ⊢ Δ⊢<>:⊘)
   dec-⊢S Δ (Γ ∙ _ # _) <> = inr λ ()
   dec-⊢S Δ ∅ < γ , _ ↦ _ > = inr λ ()
-  dec-⊢S Δ (Γ ∙ x # A) < γ , y ↦ t > with dec-⊢S Δ Γ γ | dec-⊢C (Γ ∙ x # A) | dec-⊢t Δ (A [ γ ]Pre-Ty) t | eqdecℕ x y
+  dec-⊢S Δ (Γ ∙ x # A) < γ , y ↦ t > with dec-⊢S Δ Γ γ | dec-⊢C (Γ ∙ x # A) | dec-⊢t Δ (A [ γ ]T) t | eqdecℕ x y
   ...                                    | inl Δ⊢γ:Γ       | inl Γ+⊢               | inl Δ⊢t                    | inl idp    = inl (sc Δ⊢γ:Γ Γ+⊢ Δ⊢t idp)
   ...                                    | inl _           | inl _                 | inl _                      | inr x≠y    = inr λ Δ⊢γ+:Γ+ → x≠y (Δ⊢γ+:Γ+→x=y Δ⊢γ+:Γ+)
   ...                                    | inl _           | inl _                 | inr Δ⊬t                    | _          = inr λ Δ⊢γ+:Γ+ → Δ⊬t (Δ⊢γ+:Γ+→Δ⊢t Δ⊢γ+:Γ+)

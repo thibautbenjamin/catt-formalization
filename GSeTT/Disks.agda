@@ -57,9 +57,8 @@ module GSeTT.Disks where
   𝔻 : ℕ → Ctx
   𝔻 n = Pre-𝔻 n , 𝔻⊢ n
 
-
   Ty-n : ∀ {Γ} → Σ ℕ (λ n →  Sub Γ (𝕊 n)) → Ty Γ
-  Ty-n {Γ} (n , (γ , Γ⊢γ:Sn) ) = ((⇒ᵤ n)[ γ ]Pre-Ty) , ([]T (𝕊⊢⇒ n) Γ⊢γ:Sn)
+  Ty-n {Γ} (n , (γ , Γ⊢γ:Sn) ) = ((⇒ᵤ n)[ γ ]T) , ([]T (𝕊⊢⇒ n) Γ⊢γ:Sn)
 
   private
     Pre-χ : Pre-Ty → Pre-Sub
@@ -68,7 +67,7 @@ module GSeTT.Disks where
     Pre-χ (t ⇒[ A ] u) = < < Pre-χ A , n-src (dim A) ↦ t > , n-tgt (dim A) ↦ u >
 
     χ_⊢ : ∀ {Γ A} → (Γ⊢A : Γ ⊢T A) → Γ ⊢S (Pre-χ A) > Pre-𝕊 (dim A)
-    ⇒[χ_] : ∀ {Γ A} → (Γ⊢A : Γ ⊢T A) → A == ((⇒ᵤ  (dim A))[ Pre-χ A ]Pre-Ty)
+    ⇒[χ_] : ∀ {Γ A} → (Γ⊢A : Γ ⊢T A) → A == ((⇒ᵤ  (dim A))[ Pre-χ A ]T)
 
     χ ob Γ⊢ ⊢ = es Γ⊢
     χ_⊢ {Γ} {t ⇒[ A ] u} (ar Γ⊢A Γ⊢t:A Γ⊢u:A) =
@@ -86,7 +85,7 @@ module GSeTT.Disks where
     ...                                     | inr _ | inl _ | inl _ =
       let Γ⊢χt = (sc χ Γ⊢A ⊢ (𝔻⊢(dim A)) (trT ⇒[χ Γ⊢A ] Γ⊢t:A) idp) in
       let A=⇒[γt] = ⇒[χ Γ⊢A ] >> (wk[]T (𝕊⊢⇒ (dim A)) Γ⊢χt ^) in
-      ⇒= (A=⇒[γt] >> ((wk[]T (wkT (𝕊⊢⇒ (dim A)) (𝔻⊢ (dim A))) (sc Γ⊢χt (𝕊⊢ (S (dim A))) (trT A=⇒[γt] Γ⊢u:A) idp)) ^) >> ap (λ n → (⇒ᵤ (dim A) [ < < Pre-χ A , n ↦ t > , S n ↦ u > ]Pre-Ty)) (𝕊-ℓ (dim A))) idp idp
+      ⇒= (A=⇒[γt] >> ((wk[]T (wkT (𝕊⊢⇒ (dim A)) (𝔻⊢ (dim A))) (sc Γ⊢χt (𝕊⊢ (S (dim A))) (trT A=⇒[γt] Γ⊢u:A) idp)) ^) >> ap (λ n → (⇒ᵤ (dim A) [ < < Pre-χ A , n ↦ t > , S n ↦ u > ]T)) (𝕊-ℓ (dim A))) idp idp
 
 
     χ : ∀ {Γ} → Ty Γ → Σ ℕ λ n → Sub Γ (𝕊 n)

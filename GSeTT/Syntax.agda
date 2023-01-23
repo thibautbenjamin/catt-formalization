@@ -57,17 +57,17 @@ module GSeTT.Syntax where
   dimC (Γ ∙ x # A) = max (dimC Γ) (dim A)
 
   {- Action of substitutions on types and terms on a syntactical level -}
-  _[_]Pre-Ty : Pre-Ty → Pre-Sub → Pre-Ty
-  _[_]Pre-Tm : Pre-Tm → Pre-Sub → Pre-Tm
+  _[_]T : Pre-Ty → Pre-Sub → Pre-Ty
+  _[_]t : Pre-Tm → Pre-Sub → Pre-Tm
 
-  ∗ [ γ ]Pre-Ty = ∗
-  (t ⇒[ A ] u) [ γ ]Pre-Ty = (t [ γ ]Pre-Tm) ⇒[ (A [ γ ]Pre-Ty) ] (u [ γ ]Pre-Tm)
-  Var x [ <> ]Pre-Tm = Var x
-  Var x [ < γ , v ↦ t > ]Pre-Tm = if x ≡ v then t else ((Var x) [ γ ]Pre-Tm)
+  ∗ [ γ ]T = ∗
+  (t ⇒[ A ] u) [ γ ]T = (t [ γ ]t) ⇒[ (A [ γ ]T) ] (u [ γ ]t)
+  Var x [ <> ]t = Var x
+  Var x [ < γ , v ↦ t > ]t = if x ≡ v then t else ((Var x) [ γ ]t)
 
   _∘_ : Pre-Sub → Pre-Sub → Pre-Sub
   <> ∘ δ = <>
-  < γ , x ↦ t > ∘ δ = < γ ∘ δ , x ↦ t [ δ ]Pre-Tm >
+  < γ , x ↦ t > ∘ δ = < γ ∘ δ , x ↦ t [ δ ]t >
 
   {- Identity and canonical projection -}
   Pre-id : ∀ (Γ : Pre-Ctx) → Pre-Sub

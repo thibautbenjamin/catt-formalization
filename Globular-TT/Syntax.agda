@@ -61,17 +61,17 @@ module Globular-TT.Syntax {l} (index : Set l) where
 
 
   {- Action of substitutions on types and terms and substitutions on a syntactical level -}
-  _[_]Pre-Ty : Pre-Ty → Pre-Sub → Pre-Ty
-  _[_]Pre-Tm : Pre-Tm → Pre-Sub → Pre-Tm
+  _[_]T : Pre-Ty → Pre-Sub → Pre-Ty
+  _[_]t : Pre-Tm → Pre-Sub → Pre-Tm
   _∘_ : Pre-Sub → Pre-Sub → Pre-Sub
 
-  ∗ [ σ ]Pre-Ty = ∗
-  (t ⇒[ A ] u) [ σ ]Pre-Ty = (t [ σ ]Pre-Tm) ⇒[ A [ σ ]Pre-Ty ] (u [ σ ]Pre-Tm)
-  Var x [ <> ]Pre-Tm = Var x
-  Var x [ < σ , v ↦ t > ]Pre-Tm = if x ≡ v then t else ((Var x) [ σ ]Pre-Tm)
-  Tm-constructor i γ [ σ ]Pre-Tm = Tm-constructor i (γ ∘ σ)
+  ∗ [ σ ]T = ∗
+  (t ⇒[ A ] u) [ σ ]T = (t [ σ ]t) ⇒[ A [ σ ]T ] (u [ σ ]t)
+  Var x [ <> ]t = Var x
+  Var x [ < σ , v ↦ t > ]t = if x ≡ v then t else ((Var x) [ σ ]t)
+  Tm-constructor i γ [ σ ]t = Tm-constructor i (γ ∘ σ)
   <> ∘ γ = <>
-  < γ , x ↦ t > ∘ δ = < γ ∘ δ , x ↦ t [ δ ]Pre-Tm >
+  < γ , x ↦ t > ∘ δ = < γ ∘ δ , x ↦ t [ δ ]t >
 
 
   _#_∈_ : ℕ → Pre-Ty → Pre-Ctx → Set (lsuc l)
@@ -84,7 +84,7 @@ module Globular-TT.Syntax {l} (index : Set l) where
   dim ∗ = O
   dim (t ⇒[ A ] u) = S (dim A)
 
-  dim[] : ∀ (A : Pre-Ty) (γ : Pre-Sub) → dim (A [ γ ]Pre-Ty) == dim A
+  dim[] : ∀ (A : Pre-Ty) (γ : Pre-Sub) → dim (A [ γ ]T) == dim A
   dim[] ∗ γ = idp
   dim[] (_ ⇒[ A ] _) γ = S= (dim[] A γ)
 

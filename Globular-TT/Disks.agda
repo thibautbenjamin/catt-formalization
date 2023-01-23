@@ -63,7 +63,7 @@ module Globular-TT.Disks {l} (index : Set l) (rule : index → GSeTT.Typed-Synta
 
 
   Ty-n : ∀ {Γ} → Σ ℕ (λ n →  Sub Γ (𝕊 n)) → Ty Γ
-  Ty-n {Γ} (n , (γ , Γ⊢γ:Sn) ) = ((⇒ᵤ n)[ γ ]Pre-Ty) , ([]T (𝕊⊢⇒ n) Γ⊢γ:Sn)
+  Ty-n {Γ} (n , (γ , Γ⊢γ:Sn) ) = ((⇒ᵤ n)[ γ ]T) , ([]T (𝕊⊢⇒ n) Γ⊢γ:Sn)
 
   private
     Pre-χ : Pre-Ty → Pre-Sub
@@ -72,7 +72,7 @@ module Globular-TT.Disks {l} (index : Set l) (rule : index → GSeTT.Typed-Synta
     Pre-χ (t ⇒[ A ] u) = < < Pre-χ A , n-src (dim A) ↦ t > , n-tgt (dim A) ↦ u >
 
     χ_⊢ : ∀ {Γ A} → (Γ⊢A : Γ ⊢T A) → Γ ⊢S (Pre-χ A) > Pre-𝕊 (dim A)
-    ⇒[χ_] : ∀ {Γ A} → (Γ⊢A : Γ ⊢T A) → A == ((⇒ᵤ  (dim A))[ Pre-χ A ]Pre-Ty)
+    ⇒[χ_] : ∀ {Γ A} → (Γ⊢A : Γ ⊢T A) → A == ((⇒ᵤ  (dim A))[ Pre-χ A ]T)
 
     χ ob Γ⊢ ⊢ = es Γ⊢
     χ_⊢ {Γ} {t ⇒[ A ] u} (ar Γ⊢A Γ⊢t:A Γ⊢u:A) =
@@ -91,7 +91,7 @@ module Globular-TT.Disks {l} (index : Set l) (rule : index → GSeTT.Typed-Synta
     ...                                     | inr _ | inl _ | inl _ =
       let Γ⊢χt = (sc χ Γ⊢A ⊢ (𝔻⊢(dim A)) (trT ⇒[χ Γ⊢A ] Γ⊢t:A) idp) in
       let A=⇒[γt] = ⇒[χ Γ⊢A ] >> (wk[]T (𝕊⊢⇒ (dim A)) Γ⊢χt ^) in
-      ⇒= (A=⇒[γt] >> (wk[]T (wkT (𝕊⊢⇒ (dim A)) (𝔻⊢ (dim A))) (sc Γ⊢χt (𝕊⊢ (S (dim A))) (trT A=⇒[γt] Γ⊢u:A) idp) ^) >> ap (λ n → (⇒ᵤ (dim A) [ < (< Pre-χ A , n ↦ t > ), S n ↦ u > ]Pre-Ty)) (𝕊-length (dim A))) idp idp
+      ⇒= (A=⇒[γt] >> (wk[]T (wkT (𝕊⊢⇒ (dim A)) (𝔻⊢ (dim A))) (sc Γ⊢χt (𝕊⊢ (S (dim A))) (trT A=⇒[γt] Γ⊢u:A) idp) ^) >> ap (λ n → (⇒ᵤ (dim A) [ < (< Pre-χ A , n ↦ t > ), S n ↦ u > ]T)) (𝕊-length (dim A))) idp idp
 
     χ : ∀ {Γ} → Ty Γ → Σ ℕ λ n → Sub Γ (𝕊 n)
     χ (A , Γ⊢A) = dim A , (Pre-χ A , χ Γ⊢A ⊢)

@@ -43,7 +43,7 @@ module Globular-TT.Dec-Type-Checking {l} (index : Set l) (rule : index → GSeTT
   dec-G⊢t Γ n _ A (Var x) _ (0≤ _) with dec-∈ x A (GPre-Ctx (fst Γ))
   ...                              | inl x∈Γ = inl (var (GCtx _ (snd Γ)) x∈Γ)
   ...                              | inr x∉Γ = inr λ {(var _ x∈Γ) → x∉Γ x∈Γ}
-  dec-G⊢t Γ n (S d) A (Tm-constructor i γ) dimA≤n (S≤ dγ≤d) with eqdec-Ty A (Ti i [ γ ]Pre-Ty )
+  dec-G⊢t Γ n (S d) A (Tm-constructor i γ) dimA≤n (S≤ dγ≤d) with eqdec-Ty A (Ti i [ γ ]T )
   ...                                         | inr A≠Ti = inr λ{(tm _ _ idp) → A≠Ti idp}
   ...                                         | inl idp
                                                     with dec-G⊢T (fst (rule i)) n (Ti i) (=-≤ (dim[] _ _ ^) dimA≤n)
@@ -60,7 +60,7 @@ module Globular-TT.Dec-Type-Checking {l} (index : Set l) (rule : index → GSeTT
   dec-G⊢S Δ ((Γ GSeTT.Syntax.∙ y # A) , Γ+⊢@(GSeTT.Rules.cc Γ⊢ Γ⊢A idp)) n d < γ , x ↦ t > dimΓ+≤n dγ+≤d with dec-G⊢S Δ (Γ , Γ⊢) n d γ
                                                                                                       (≤T (n≤max (dimC (GPre-Ctx Γ)) (dim (GPre-Ty A))) dimΓ+≤n) -- dim Γ ≤ n
                                                                                                       (≤T (n≤max (depthS γ) (depth t)) dγ+≤d)                    -- depth γ ≤ d
-                                                                                          | dec-G⊢t Δ n d ((GPre-Ty A) [ γ ]Pre-Ty) t
+                                                                                          | dec-G⊢t Δ n d ((GPre-Ty A) [ γ ]T) t
                                                                                                       ((≤T (=-≤ (dim[] _ _) (m≤max (dimC (GPre-Ctx Γ)) (dim (GPre-Ty A)))) dimΓ+≤n)) -- dim A[γ] ≤ n
                                                                                                       (≤T (m≤max (depthS γ) (depth t)) dγ+≤d)                                        -- depth t ≤ d
                                                                                           | eqdecℕ y x
@@ -90,7 +90,7 @@ module Globular-TT.Dec-Type-Checking {l} (index : Set l) (rule : index → GSeTT
   ...                | inl Γ⊢ | inl x∈Γ = inl (var Γ⊢ x∈Γ)
   ...                | inr Γ⊬ | _ = inr λ {(var Γ⊢ _) → Γ⊬ Γ⊢}
   ...                | inl _ | inr x∉Γ = inr λ {(var _ x∈Γ) → x∉Γ x∈Γ}
-  dec-⊢t Γ A (Tm-constructor i γ) with eqdec-Ty A (Ti i [ γ ]Pre-Ty)
+  dec-⊢t Γ A (Tm-constructor i γ) with eqdec-Ty A (Ti i [ γ ]T)
   ...                                   | inr A≠Ti = inr λ{(tm _ _ idp) → A≠Ti idp}
   ...                                   | inl idp
                                               with dec-G⊢T (fst (rule i)) _ (Ti i) (n≤n _) | dec-⊢S:G Γ (fst (rule i)) γ
@@ -112,7 +112,7 @@ module Globular-TT.Dec-Type-Checking {l} (index : Set l) (rule : index → GSeTT
   ...             | inr Δ⊬ = inr λ{(es Δ⊢) → Δ⊬ Δ⊢}
   dec-⊢S:G Δ (GSeTT.Syntax.∅ , _) < γ , x ↦ x₁ > = inr λ{()}
   dec-⊢S:G Δ ((Γ GSeTT.Syntax.∙ _ # _) , _) <> = inr λ{()}
-  dec-⊢S:G Δ ((Γ GSeTT.Syntax.∙ v # A) , Γ+⊢@(GSeTT.Rules.cc Γ⊢ Γ⊢A idp)) < γ , x ↦ t > with dec-⊢S:G Δ (Γ , Γ⊢) γ | dec-⊢t Δ ((GPre-Ty A) [ γ ]Pre-Ty) t | eqdecℕ x (GSeTT.Syntax.ℓ Γ)
+  dec-⊢S:G Δ ((Γ GSeTT.Syntax.∙ v # A) , Γ+⊢@(GSeTT.Rules.cc Γ⊢ Γ⊢A idp)) < γ , x ↦ t > with dec-⊢S:G Δ (Γ , Γ⊢) γ | dec-⊢t Δ ((GPre-Ty A) [ γ ]T) t | eqdecℕ x (GSeTT.Syntax.ℓ Γ)
   ...                                                                | inl Δ⊢γ | inl Δ⊢t | inl idp = inl (sc Δ⊢γ (GCtx _ Γ+⊢) Δ⊢t idp)
   ...                                                                | inr Δ⊬γ | _ | _ = inr λ{(sc Δ⊢γ _ _ idp) → Δ⊬γ Δ⊢γ}
   ...                                                                | inl _ | inr Δ⊬t | _ = inr λ{(sc _ _ Δ⊢t idp) → Δ⊬t Δ⊢t}
@@ -126,7 +126,7 @@ module Globular-TT.Dec-Type-Checking {l} (index : Set l) (rule : index → GSeTT
   ...             | inr Δ⊬ = inr λ{(es Δ⊢) → Δ⊬ Δ⊢}
   dec-⊢S Δ ⊘ < γ , x ↦ x₁ > = inr λ{()}
   dec-⊢S Δ (Γ ∙ _ # _) <> = inr λ{()}
-  dec-⊢S Δ (Γ ∙ v # A) < γ , x ↦ t > with dec-⊢S Δ Γ γ | dec-⊢C (Γ ∙ v # A) | dec-⊢t Δ (A [ γ ]Pre-Ty) t | eqdecℕ x v
+  dec-⊢S Δ (Γ ∙ v # A) < γ , x ↦ t > with dec-⊢S Δ Γ γ | dec-⊢C (Γ ∙ v # A) | dec-⊢t Δ (A [ γ ]T) t | eqdecℕ x v
   ...                                                                | inl Δ⊢γ | inl Γ+⊢ | inl Δ⊢t | inl idp  = inl (sc Δ⊢γ Γ+⊢ Δ⊢t idp)
   ...                                                                | inr Δ⊬γ | _ | _ | _  = inr λ{(sc Δ⊢γ _ _ idp) → Δ⊬γ Δ⊢γ}
   ...                                                                | inl _ | inr Γ+⊬ | _ | _  = inr λ{(sc _ Γ⊢ _ idp) → Γ+⊬ Γ⊢}

@@ -25,7 +25,7 @@ module GSeTT.Rules where
 
   data _⊢S_>_ where
     es : ∀ {Δ} → Δ ⊢C → Δ ⊢S <> > ∅
-    sc : ∀ {Δ Γ γ x y A t} → Δ ⊢S γ > Γ → (Γ ∙ x # A) ⊢C → (Δ ⊢t t # (A [ γ ]Pre-Ty)) → x == y → Δ ⊢S < γ , y ↦ t > > Γ ∙ x # A
+    sc : ∀ {Δ Γ γ x y A t} → Δ ⊢S γ > Γ → (Γ ∙ x # A) ⊢C → (Δ ⊢t t # (A [ γ ]T)) → x == y → Δ ⊢S < γ , y ↦ t > > Γ ∙ x # A
 
   {- Weakening admissibility -}
 
@@ -94,8 +94,8 @@ module GSeTT.Rules where
   Γ+⊢l (cc _ _ idp) = idp
 
   {- action on weakened types and terms -}
-  wk[]T : ∀ {Γ Δ γ x u A B} → Γ ⊢T A → Δ ⊢S < γ , x ↦ u > > Γ ∙ x # B → (A [ < γ , x ↦ u > ]Pre-Ty) == (A [ γ ]Pre-Ty)
-  wk[]t : ∀ {Γ Δ γ x u A t B} → Γ ⊢t t # A → Δ ⊢S < γ , x ↦ u > > Γ ∙ x # B → (t [ < γ , x ↦ u > ]Pre-Tm) == (t [ γ ]Pre-Tm)
+  wk[]T : ∀ {Γ Δ γ x u A B} → Γ ⊢T A → Δ ⊢S < γ , x ↦ u > > Γ ∙ x # B → (A [ < γ , x ↦ u > ]T) == (A [ γ ]T)
+  wk[]t : ∀ {Γ Δ γ x u A t B} → Γ ⊢t t # A → Δ ⊢S < γ , x ↦ u > > Γ ∙ x # B → (t [ < γ , x ↦ u > ]t) == (t [ γ ]t)
 
   wk[]T (ob Γ⊢) _ = idp
   wk[]T (ar Γ⊢A Γ⊢t:A Γ⊢u:A) Δ⊢γ+:Γ+ = ⇒= (wk[]T Γ⊢A Δ⊢γ+:Γ+)  (wk[]t Γ⊢t:A Δ⊢γ+:Γ+) (wk[]t Γ⊢u:A Δ⊢γ+:Γ+)
@@ -103,6 +103,6 @@ module GSeTT.Rules where
   wk[]t {x = x} (var {x = y} Γ⊢ y∈Γ) Δ⊢γ+:Γ+ | inr _ = idp
   wk[]t (var {Γ = Γ} Γ⊢ x∈Γ) Δ⊢γ+:Γ+ | inl idp = ⊥-elim (lΓ∉Γ Γ⊢ (transport {B = λ n → n # _ ∈ Γ} (Γ+⊢l (Δ⊢γ:Γ→Γ⊢ Δ⊢γ+:Γ+)) x∈Γ))
 
-  dim[] : ∀ (A : Pre-Ty) (γ : Pre-Sub) → dim (A [ γ ]Pre-Ty) == dim A
+  dim[] : ∀ (A : Pre-Ty) (γ : Pre-Sub) → dim (A [ γ ]T) == dim A
   dim[] ∗ γ = idp
   dim[] (_ ⇒[ A ] _) γ = S= (dim[] A γ)
