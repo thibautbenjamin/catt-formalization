@@ -90,6 +90,9 @@ module Prelude where
   transport₂ : ∀ {i j k} {A : Set i} {B : Set j} {C : A → B → Set k} {a a' : A} {b b' : B} (pₐ : a == a') (q : b == b') → C a b → C a' b'
   transport₂ pₐ q c = coe (ap² _ pₐ q) c
 
+  transport₃ : ∀ {i j k l} {A : Set i} {B : Set j} {C : Set k} {D : A → B → C → Set l} {a a' : A} {b b' : B} {c c' : C} (pₐ : a == a') (q : b == b') (r : c == c') → D a b c → D a' b' c'
+  transport₃ pₐ q r d = coe (ap³ _ pₐ q r) d
+
   hfiber : ∀ {i} {A B : Set i} (f : A → B) (b : B) → Set i
   hfiber {A = A} f b = Σ A (λ a → f a == b)
 
@@ -156,16 +159,27 @@ module Prelude where
   eqdec : ∀ {i} → Set i → Set i
   eqdec A = ∀ (a b : A) → dec (a == b)
 
-
   {- Natural numbers -}
   data ℕ : Set where
     O : ℕ
     S : ℕ → ℕ
-
   {-# BUILTIN NATURAL ℕ #-}
+
+  _+ℕ_ : ℕ → ℕ → ℕ
+  O +ℕ n = n
+  (S m) +ℕ n = S (m +ℕ n)
+  {-# BUILTIN NATPLUS _+ℕ_ #-}
 
   S= : ∀{n m} → n == m → S n == S m
   S= idp = idp
+
+  n+0 : ∀ (n : ℕ) → (n +ℕ 0) == n
+  n+0 O = idp
+  n+0 (S n) = S= (n+0 n)
+
+  n+Sm : ∀ (n m : ℕ) → (n +ℕ S m) == S (n +ℕ m)
+  n+Sm O m = idp
+  n+Sm (S n) m = S= (n+Sm n m)
 
   pred : ℕ → ℕ
   pred O = O
