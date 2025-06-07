@@ -86,6 +86,30 @@ module CaTT.Trees where
   tree-to-ps : ∀ (T : tree) → ps-ctx
   tree-to-ps T = tree-to-Pre-Ctx T , tree-to-ps-der T
 
+  bdryᵢ : ℕ → tree → tree
+  bdryᵢ O _ = node
+  bdryᵢ (S n) node = node
+  bdryᵢ (S n) (gr T T₁) = gr (bdryᵢ n T) (bdryᵢ (S n) T₁)
+
+  dim-tree : tree → ℕ
+  dim-tree node = 0
+  dim-tree (gr T T₁) = max (S (dim-tree T)) (dim-tree T₁)
+
+  bdry : ∀ (T : tree) → T ≠ node → tree
+  bdry node x = ⊥-elim (x idp)
+  bdry (gr T T₁) _ = bdryᵢ (pred (dim-tree (gr T T₁))) (gr T T₁)
+
+  wedge-sub : ∀{Γ Δ Γ' Δ'} {γ γ'} → ℕ → Δ ⊢S γ > Γ → Δ' ⊢S γ' > Γ' → Pre-Sub
+  wedge-sub {Γ} {Δ} {Γ'} {Δ'} {γ} {γ'} n Δ⊢γ:Γ (es x) = γ
+  wedge-sub n Δ⊢γ:Γ (sc {γ = γ'} Δ'⊢γ':Γ' x (var x₁ x₂) idp) = γ' :: {!!}
+
+  srcᵢ-tree : ℕ → tree → Pre-Sub
+  srcᵢ-tree O T = nil :: (0 , Var 0)
+  srcᵢ-tree (S n) node = nil :: (0 , Var 0)
+  srcᵢ-tree (S n) (gr T T₁) = {!wedge-sub (srcᵢ-tree n T) (srcᵢ-tree (S n) T₁)!}
+
+  src-incl-tree : ∀ (T : tree) → Pre-Sub
+  src-incl-tree = {!!}
 
   -- Disks and whiskerings
   𝔻-Tree : ℕ → tree
