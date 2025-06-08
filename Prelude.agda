@@ -181,6 +181,10 @@ module Prelude where
   n+Sm O m = idp
   n+Sm (S n) m = S= (n+Sm n m)
 
+  n+m=m+n : ∀ (n m : ℕ) → (n +ℕ m) == (m +ℕ n)
+  n+m=m+n n O = n+0 n
+  n+m=m+n n (S m) = n+Sm n m >> S= (n+m=m+n n m)
+
   pred : ℕ → ℕ
   pred O = O
   pred (S n) = n

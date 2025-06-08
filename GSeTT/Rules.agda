@@ -66,7 +66,6 @@ module GSeTT.Rules where
   Γ,x:A⊢→Γ⊢ : ∀ {Γ x A} → (Γ :: (x , A)) ⊢C → Γ ⊢C
   Γ,x:A⊢→Γ⊢ (cc Γ⊢ _ _) = Γ⊢
 
-
   Γ⊢t:A→Γ⊢A : ∀ {Γ A t} → Γ ⊢t t # A → Γ ⊢T A
   Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc Γ⊢ Γ⊢A idp) (inl y∈Γ)) = wkT (Γ⊢t:A→Γ⊢A (var Γ⊢ y∈Γ)) Γ,x:A⊢
   Γ⊢t:A→Γ⊢A (var Γ,x:A⊢@(cc _ _ idp) (inr (idp , idp))) = Γ,x:A⊢→Γ,x:A⊢A Γ,x:A⊢
@@ -76,7 +75,6 @@ module GSeTT.Rules where
 
   Γ⊢tgt : ∀ {Γ A t u} → Γ ⊢T t ⇒[ A ] u → Γ ⊢t u # A
   Γ⊢tgt (ar Γ⊢A Γ⊢t Γ⊢u) = Γ⊢u
-
 
   {- Cut-admissibility -}
   -- notational shortcut : if A = B a term of type A is also of type B
